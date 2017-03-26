@@ -96,7 +96,7 @@ public class PropertiesProcesser {
 
 	public static void main(String[] args) {
 		PropertiesProcesser processer = new PropertiesProcesser();
-		String filePath = "F:\\work\\workspace\\HRSystem\\HRSystem\\properties\\setting.properties";
+		String filePath = "properties\\setting.properties";
 		processer.loadProperties(filePath);
 		processer.setProperty("user.highTemperatureAllowance", String.valueOf(90));
 		processer.setProperty("user.制表人", "何娜");
