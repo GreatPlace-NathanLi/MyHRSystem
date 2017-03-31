@@ -18,6 +18,8 @@ public class BillingPlan {
 	private double totalPay;
 	private int payCount;
 	private double withdrawalFee;
+	private String billingStatus;
+	private String billingID;
 	
 	/**
 	 * @return the orderNumber
@@ -243,6 +245,34 @@ public class BillingPlan {
 		this.withdrawalFee = withdrawalFee;
 	}
 
+	/**
+	 * @return the billingStatus
+	 */
+	public String getBillingStatus() {
+		return billingStatus;
+	}
+
+	/**
+	 * @param billingStatus the billingStatus to set
+	 */
+	public void setBillingStatus(String billingStatus) {
+		this.billingStatus = billingStatus;
+	}
+
+	/**
+	 * @return the billingID
+	 */
+	public String getBillingID() {
+		return billingID;
+	}
+
+	/**
+	 * @param billingID the billingID to set
+	 */
+	public void setBillingID(String billingID) {
+		this.billingID = billingID;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -253,9 +283,11 @@ public class BillingPlan {
 				+ ", contractValue=" + contractValue + ", invoiceAmount=" + invoiceAmount + ", payYear=" + payYear
 				+ ", payMonth=" + payMonth + ", administrationExpenses=" + administrationExpenses
 				+ ", administrationExpensesRate=" + administrationExpensesRate + ", totalAdministrationExpenses="
-				+ totalAdministrationExpenses + ", totalPay=" + totalPay + ", staffNumber=" + payCount
-				+ ", withdrawalFee=" + withdrawalFee + "]";
+				+ totalAdministrationExpenses + ", totalPay=" + totalPay + ", payCount=" + payCount + ", withdrawalFee="
+				+ withdrawalFee + ", billingStatus=" + billingStatus + ", billingID=" + billingID + "]";
 	}
+
+	
 
 
 }

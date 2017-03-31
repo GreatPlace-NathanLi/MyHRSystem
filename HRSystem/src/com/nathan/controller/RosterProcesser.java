@@ -52,20 +52,30 @@ public class RosterProcesser {
 			// 获取指定单元格的对象引用
 
 			roster = new ProjectMemberRoster();
-			for (int i = 1; i < rsRows; i++) {
+			int i = 0;
+			if (isRosterWithStatistics(readsheet)) {
+				i = 2;
+			} else {
+				i = 1;
+				buildRosterStatistics(readsheet);
+			}
+			for (; i < rsRows; i++) {
 				ProjectMember member = new ProjectMember();
 
 				member.setOrderNumber(Integer.valueOf(readsheet.getCell(0, i).getContents()));
 				member.setName(readsheet.getCell(1, i).getContents());
 				member.setBasePay(((NumberCell) readsheet.getCell(2, i)).getValue());
+				member.setContractStartAndEndTime(readsheet.getCell(3, i).getContents());
 
-//				logger.debug(member);
+				logger.debug(member);
 				roster.addMember(member);
 			}
 			if (rsColumns<=3) {
 				roster.setAvailablePayCount(Integer.MAX_VALUE);
 			}
+
 			logger.debug("花名册人数： " + roster.getTotalMember());
+			logger.debug("花名册： " + roster);
 			instream.close();
 
 		} catch (Exception e) {
@@ -73,6 +83,18 @@ public class RosterProcesser {
 		} finally {
 			readwb.close();
 		}
+	}
+	
+	private void buildRosterStatistics(Sheet readsheet) {
+		
+	}
+	
+	private boolean isRosterWithStatistics(Sheet readsheet) {
+		if ("序号".equals(readsheet.getCell(0, 0).getContents())) {
+			logger.debug("Roster Without Statistics");
+			return false;
+		}
+		return true;
 	}
 
 	/**

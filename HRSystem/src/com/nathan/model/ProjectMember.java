@@ -9,6 +9,12 @@ public class ProjectMember {
 	private double basePay;
 	
 	private double dailyPay;
+	
+	private String contractStartAndEndTime;
+	
+	private int contractStartTimeInInteger;
+	
+	private int contractEndTimeInInteger;
 
 	/**
 	 * @return the orderNumber
@@ -73,13 +79,64 @@ public class ProjectMember {
 		this.dailyPay = dailyPay;
 	}
 
+	/**
+	 * @return the contractStartAndEndTime
+	 */
+	public String getContractStartAndEndTime() {
+		return contractStartAndEndTime;
+	}
+
+	/**
+	 * @param contractStartAndEndTime the contractStartAndEndTime to set
+	 */
+	public void setContractStartAndEndTime(String contractStartAndEndTime) {
+		this.contractStartAndEndTime = contractStartAndEndTime;
+		parseContractStartAndEndTime(contractStartAndEndTime);
+	}
+
+	private void parseContractStartAndEndTime(String contractStartAndEndTime) {
+		if(contractStartAndEndTime != null) {
+			String[] s = contractStartAndEndTime.split("-");
+			this.contractStartTimeInInteger = Integer.valueOf(s[0]);
+			this.contractEndTimeInInteger = Integer.valueOf(s[1]);
+		}
+	}
+	/**
+	 * @return the contractStartTimeInInteger
+	 */
+	public int getContractStartTimeInInteger() {
+		return contractStartTimeInInteger;
+	}
+
+	/**
+	 * @param contractStartTimeInInteger the contractStartTimeInInteger to set
+	 */
+	public void setContractStartTimeInInteger(int contractStartTimeInInteger) {
+		this.contractStartTimeInInteger = contractStartTimeInInteger;
+	}
+
+	/**
+	 * @return the contractEndTimeInInteger
+	 */
+	public int getContractEndTimeInInteger() {
+		return contractEndTimeInInteger;
+	}
+
+	/**
+	 * @param contractEndTimeInInteger the contractEndTimeInInteger to set
+	 */
+	public void setContractEndTimeInInteger(int contractEndTimeInInteger) {
+		this.contractEndTimeInInteger = contractEndTimeInInteger;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		return "ProjectMember [orderNumber=" + orderNumber + ", name=" + name + ", basePay=" + basePay + ", dailyPay="
-				+ dailyPay + "]";
+				+ dailyPay + ", contractStartTimeInInteger=" + contractStartTimeInInteger
+				+ ", contractEndTimeInInteger=" + contractEndTimeInInteger + "]";
 	}
 
 

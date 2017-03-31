@@ -7,6 +7,8 @@ public class ProjectMemberRoster {
 	
 	private ArrayList<ProjectMember> projectMemberList;
 	
+	private RosterStatistics statistics;
+	
 	private int currentPayYear;
 	
 	private int currentPayMonth;
@@ -30,8 +32,12 @@ public class ProjectMemberRoster {
         }
 	}
 	
+	public void buildStatistics() {
+		
+	}
+	
 	/**
-//	 * @return the projectMemberList
+	 * @return the projectMemberList
 	 */
 	public ArrayList<ProjectMember> getProjectMemberList() {
 		return projectMemberList;
