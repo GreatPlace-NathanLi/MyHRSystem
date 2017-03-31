@@ -14,4 +14,7 @@ public class Constant {
 	public static final String LINE0 = "========================================================================";
 	public static final String LINE1 = "------------------------------------------------------------------------";
 	
+	public static final String DELIMITER0 = "|";
+	
+	public static final String BILLING_STATUS_COMPLETED = "制作完成";
 }

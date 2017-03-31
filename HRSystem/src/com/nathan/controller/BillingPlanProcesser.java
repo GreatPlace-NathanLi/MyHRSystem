@@ -39,6 +39,9 @@ public class BillingPlanProcesser {
 		logger.info("步骤1 - 读取开票计划输入： " + filePath);
 		readBillingInput(filePath);
 //		logger.info(LINE1);
+		if (billingPlanBook.getTotalBillingPlanSize() == 0) {
+			throw new BillingPlanProcessException("没有可处理的开票计划！");
+		}
 		
 		logger.info("步骤2 - 计算开票计划结果...");
 		calculateBillingOutput();
@@ -257,24 +260,26 @@ public class BillingPlanProcesser {
 			
 			int rsRows = sheet.getRows();
 			for (int r = 2; r < rsRows; r++) {
-				BillingPlan billing = billingPlanBook.getBillingPlanList().get(r - 2);
-				Number payCount = new Number(17, r, billing.getPayCount(), sheet.getCell(17, r).getCellFormat());
-				sheet.addCell(payCount);
+				BillingPlan billingPlan = billingPlanBook.getBillingPlanList().get(r - 2);
+				if (!bypassBillingOutputCalculation) {
+					Number payCount = new Number(17, r, billingPlan.getPayCount(), sheet.getCell(17, r).getCellFormat());
+					sheet.addCell(payCount);
 
-				Number totalAdministrationExpenses = new Number(19, r, billing.getTotalAdministrationExpenses(),
-						sheet.getCell(19, r).getCellFormat());
-				sheet.addCell(totalAdministrationExpenses);
+					Number totalAdministrationExpenses = new Number(19, r, billingPlan.getTotalAdministrationExpenses(),
+							sheet.getCell(19, r).getCellFormat());
+					sheet.addCell(totalAdministrationExpenses);
 
-				Number totalPay = new Number(20, r, billing.getTotalPay(), sheet.getCell(20, r).getCellFormat());
-				sheet.addCell(totalPay);
+					Number totalPay = new Number(20, r, billingPlan.getTotalPay(), sheet.getCell(20, r).getCellFormat());
+					sheet.addCell(totalPay);
 
-				Number withdrawalFee = new Number(28, r, billing.getWithdrawalFee(), sheet.getCell(28, r).getCellFormat());
-				sheet.addCell(withdrawalFee);
+					Number withdrawalFee = new Number(28, r, billingPlan.getWithdrawalFee(), sheet.getCell(28, r).getCellFormat());
+					sheet.addCell(withdrawalFee);
+				}		
 				
-				Label billingStatus = new Label(35,r,"开票完成", sheet.getCell(35, r).getCellFormat());
+				Label billingStatus = new Label(35,r,billingPlan.getBillingStatusAfterBillingCompleted(), sheet.getCell(35, r).getCellFormat());
 				sheet.addCell(billingStatus);
 				
-				Label billingID = new Label(37,r,billing.getProjectLeader()+billing.getProjectID(), sheet.getCell(37, r).getCellFormat());
+				Label billingID = new Label(37,r,billingPlan.getBillingIDAfterBillingCompleted(), sheet.getCell(37, r).getCellFormat());
 				sheet.addCell(billingID);
 			}		
 	
@@ -286,6 +291,5 @@ public class BillingPlanProcesser {
 			rwb.close();
 			wwb.close();
 		}
-
 	}
 }
