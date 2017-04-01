@@ -56,7 +56,7 @@ public class PayrollSheetProcesser {
 		
 		for (String projectLeader : billingPlanBook.getProjectLeaderBillingPlanMap().keySet()) {
 			List<BillingPlan> billingPlanList = billingPlanBook.getBillingByProjectLeader(projectLeader);
-			rosterProcesser.processRoster(projectLeader);
+			rosterProcesser.processRoster(projectLeader, billingPlanList.get(0).getPayYear());
 			
 			ProjectMemberRoster roster = rosterProcesser.getRoster();
 			

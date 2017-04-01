@@ -15,6 +15,12 @@ public class ProjectMember {
 	private int contractStartTimeInInteger;
 	
 	private int contractEndTimeInInteger;
+	
+	private String onJobStartAndEndTime;
+	
+	private int onJobStartTimeInInteger;
+	
+	private int onJobEndTimeInInteger;
 
 	/**
 	 * @return the orderNumber
@@ -101,6 +107,7 @@ public class ProjectMember {
 			this.contractEndTimeInInteger = Integer.valueOf(s[1]);
 		}
 	}
+	
 	/**
 	 * @return the contractStartTimeInInteger
 	 */
@@ -129,6 +136,57 @@ public class ProjectMember {
 		this.contractEndTimeInInteger = contractEndTimeInInteger;
 	}
 
+	/**
+	 * @return the onJobStartAndEndTime
+	 */
+	public String getOnJobStartAndEndTime() {
+		return onJobStartAndEndTime;
+	}
+
+	/**
+	 * @param onJobStartAndEndTime the onJobStartAndEndTime to set
+	 */
+	public void setOnJobStartAndEndTime(String onJobStartAndEndTime) {
+		this.onJobStartAndEndTime = onJobStartAndEndTime;
+		parseOnJobStartAndEndTime(onJobStartAndEndTime);
+	}
+
+	private void parseOnJobStartAndEndTime(String onJobStartAndEndTime) {
+		if(onJobStartAndEndTime != null) {
+			String[] s = onJobStartAndEndTime.split("-");
+			this.onJobStartTimeInInteger = Integer.valueOf(s[0]);
+			this.onJobEndTimeInInteger = Integer.valueOf(s[1]);
+		}
+	}
+	
+	/**
+	 * @return the onJobStartTimeInInteger
+	 */
+	public int getOnJobStartTimeInInteger() {
+		return onJobStartTimeInInteger;
+	}
+
+	/**
+	 * @param onJobStartTimeInInteger the onJobStartTimeInInteger to set
+	 */
+	public void setOnJobStartTimeInInteger(int onJobStartTimeInInteger) {
+		this.onJobStartTimeInInteger = onJobStartTimeInInteger;
+	}
+
+	/**
+	 * @return the onJobEndTimeInInteger
+	 */
+	public int getOnJobEndTimeInInteger() {
+		return onJobEndTimeInInteger;
+	}
+
+	/**
+	 * @param onJobEndTimeInInteger the onJobEndTimeInInteger to set
+	 */
+	public void setOnJobEndTimeInInteger(int onJobEndTimeInInteger) {
+		this.onJobEndTimeInInteger = onJobEndTimeInInteger;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -136,8 +194,8 @@ public class ProjectMember {
 	public String toString() {
 		return "ProjectMember [orderNumber=" + orderNumber + ", name=" + name + ", basePay=" + basePay + ", dailyPay="
 				+ dailyPay + ", contractStartTimeInInteger=" + contractStartTimeInInteger
-				+ ", contractEndTimeInInteger=" + contractEndTimeInInteger + "]";
+				+ ", contractEndTimeInInteger=" + contractEndTimeInInteger + ", onJobStartTimeInInteger="
+				+ onJobStartTimeInInteger + ", onJobEndTimeInInteger=" + onJobEndTimeInInteger + "]";
 	}
-
 
 }

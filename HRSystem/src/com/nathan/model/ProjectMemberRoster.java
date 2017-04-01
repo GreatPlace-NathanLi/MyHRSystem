@@ -3,7 +3,7 @@ package com.nathan.model;
 import java.util.ArrayList;
 import java.util.Calendar;
 
-public class ProjectMemberRoster {
+public class ProjectMemberRoster extends AbstractBook {
 	
 	private ArrayList<ProjectMember> projectMemberList;
 	
@@ -30,10 +30,6 @@ public class ProjectMemberRoster {
         	int totalMember = projectMemberList.size();
         	availablePayCount = (month - 1 - currentPayMonth) * totalMember + (totalMember - currentPayIndex - 1);
         }
-	}
-	
-	public void buildStatistics() {
-		
 	}
 	
 	/**
@@ -130,6 +126,20 @@ public class ProjectMemberRoster {
 	 */
 	public void setAvailablePayCount(int availablePayCount) {
 		this.availablePayCount = availablePayCount;
+	}
+
+	/**
+	 * @return the statistics
+	 */
+	public RosterStatistics getStatistics() {
+		return statistics;
+	}
+
+	/**
+	 * @param statistics the statistics to set
+	 */
+	public void setStatistics(RosterStatistics statistics) {
+		this.statistics = statistics;
 	}
 
 	/* (non-Javadoc)

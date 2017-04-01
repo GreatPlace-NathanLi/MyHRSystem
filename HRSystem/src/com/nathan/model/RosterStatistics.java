@@ -1,6 +1,7 @@
 package com.nathan.model;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class RosterStatistics {
 	
@@ -9,6 +10,10 @@ public class RosterStatistics {
 	private int currentAvailableMonth;
 	
 	private Map<Integer, RosterMonthStatistics> monthsStatisticsMap;
+	
+	public RosterStatistics() {
+		monthsStatisticsMap = new ConcurrentHashMap<Integer, RosterMonthStatistics>();
+	}
 
 	/**
 	 * @return the totalAvailableCount
@@ -50,6 +55,23 @@ public class RosterStatistics {
 	 */
 	public void setMonthsStatisticsMap(Map<Integer, RosterMonthStatistics> monthsStatisticsMap) {
 		this.monthsStatisticsMap = monthsStatisticsMap;
+	}
+	
+	public void putMonthStatistics(int month, RosterMonthStatistics monthsStatistics) {
+		this.monthsStatisticsMap.put(month, monthsStatistics);
+	}
+	
+	public RosterMonthStatistics getMonthStatistics(int month) {
+		return this.monthsStatisticsMap.get(month);
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "RosterStatistics [totalAvailableCount=" + totalAvailableCount + ", currentAvailableMonth="
+				+ currentAvailableMonth + ", monthsStatisticsMap=" + monthsStatisticsMap + "]";
 	}
 	
 	

@@ -5,6 +5,11 @@ public class RosterMonthStatistics {
 	private int currentAvailableIndex;
 	
 	private int availableCount;
+	
+	public RosterMonthStatistics(int currentAvailableIndex, int availableCount) {
+		this.currentAvailableIndex = currentAvailableIndex;
+		this.availableCount = availableCount;
+	}
 
 	/**
 	 * @return the currentAvailableIndex
@@ -36,5 +41,13 @@ public class RosterMonthStatistics {
 		this.availableCount = availableCount;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "RosterMonthStatistics [currentAvailableIndex=" + currentAvailableIndex + ", availableCount="
+				+ availableCount + "]\n";
+	}
 
 }
