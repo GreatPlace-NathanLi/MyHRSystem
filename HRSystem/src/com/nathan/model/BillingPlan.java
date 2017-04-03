@@ -12,8 +12,6 @@ public class BillingPlan {
 	private String projectLeader;
 	private double contractValue;
 	private double invoiceAmount;
-	private int payYear;
-	private int payMonth;
 	private double administrationExpenses;
 	private double administrationExpensesRate;
 	private double totalAdministrationExpenses;
@@ -22,6 +20,13 @@ public class BillingPlan {
 	private double withdrawalFee;
 	private String billingStatus = null;
 	private String billingID = null;
+	private String startAndEndPayTime;
+	private int startPayTimeInInteger;
+	private int endPayTimeInInteger;
+	private int startPayYear;
+	private int endPayYear;
+	private int startPayMonth;
+	private int endPayMonth;
 
 	/**
 	 * @return the orderNumber
@@ -141,36 +146,6 @@ public class BillingPlan {
 	 */
 	public void setInvoiceAmount(double invoiceAmount) {
 		this.invoiceAmount = invoiceAmount;
-	}
-
-	/**
-	 * @return the payYear
-	 */
-	public int getPayYear() {
-		return payYear;
-	}
-
-	/**
-	 * @param payYear
-	 *            the payYear to set
-	 */
-	public void setPayYear(int payYear) {
-		this.payYear = payYear;
-	}
-
-	/**
-	 * @return the payMonth
-	 */
-	public int getPayMonth() {
-		return payMonth;
-	}
-
-	/**
-	 * @param payMonth
-	 *            the payMonth to set
-	 */
-	public void setPayMonth(int payMonth) {
-		this.payMonth = payMonth;
 	}
 
 	/**
@@ -304,20 +279,136 @@ public class BillingPlan {
 		this.billingID = billingID;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
+	/**
+	 * @return the startAndEndPayTime
+	 */
+	public String getStartAndEndPayTime() {
+		return startAndEndPayTime;
+	}
+
+	/**
+	 * @param startAndEndPayTime the startAndEndPayTime to set
+	 */
+	public void setStartAndEndPayTime(String startAndEndPayTime) {
+		this.startAndEndPayTime = startAndEndPayTime;
+		parseStartAndEndPayTime();
+	}
+	
+	private void parseStartAndEndPayTime() {
+		if(startAndEndPayTime != null) {
+			String[] s = startAndEndPayTime.split("-");
+			this.startPayTimeInInteger = Integer.valueOf(s[0]);
+			this.endPayTimeInInteger = Integer.valueOf(s[1]);
+		}
+		if(startPayTimeInInteger > 0) {
+			this.startPayYear = startPayTimeInInteger/100;
+			this.startPayMonth = startPayTimeInInteger%100;
+		}
+		if(endPayTimeInInteger > 0) {
+			this.endPayYear = endPayTimeInInteger/100;
+			this.endPayMonth = endPayTimeInInteger%100;
+		}
+	}
+
+	/**
+	 * @return the endPayTimeInInteger
+	 */
+	public int getEndPayTimeInInteger() {
+		return endPayTimeInInteger;
+	}
+
+	/**
+	 * @param endPayTimeInInteger the endPayTimeInInteger to set
+	 */
+	public void setEndPayTimeInInteger(int endPayTimeInInteger) {
+		this.endPayTimeInInteger = endPayTimeInInteger;
+	}
+
+	/**
+	 * @return the startPayTimeInInteger
+	 */
+	public int getStartPayTimeInInteger() {
+		return startPayTimeInInteger;
+	}
+
+	/**
+	 * @param startPayTimeInInteger the startPayTimeInInteger to set
+	 */
+	public void setStartPayTimeInInteger(int startPayTimeInInteger) {
+		this.startPayTimeInInteger = startPayTimeInInteger;
+	}
+
+	/**
+	 * @return the startPayYear
+	 */
+	public int getStartPayYear() {
+		return startPayYear;
+	}
+
+	/**
+	 * @param startPayYear the startPayYear to set
+	 */
+	public void setStartPayYear(int startPayYear) {
+		this.startPayYear = startPayYear;
+	}
+
+	/**
+	 * @return the endPayYear
+	 */
+	public int getEndPayYear() {
+		return endPayYear;
+	}
+
+	/**
+	 * @param endPayYear the endPayYear to set
+	 */
+	public void setEndPayYear(int endPayYear) {
+		this.endPayYear = endPayYear;
+	}
+
+	/**
+	 * @return the startPayMonth
+	 */
+	public int getStartPayMonth() {
+		return startPayMonth;
+	}
+
+	/**
+	 * @param startPayMonth the startPayMonth to set
+	 */
+	public void setStartPayMonth(int startPayMonth) {
+		this.startPayMonth = startPayMonth;
+	}
+
+	/**
+	 * @return the endPayMonth
+	 */
+	public int getEndPayMonth() {
+		return endPayMonth;
+	}
+
+	/**
+	 * @param endPayMonth the endPayMonth to set
+	 */
+	public void setEndPayMonth(int endPayMonth) {
+		this.endPayMonth = endPayMonth;
+	}
+
+	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		return "BillingPlan [orderNumber=" + orderNumber + ", projectUnit=" + projectUnit + ", contractID=" + contractID
 				+ ", projectName=" + projectName + ", projectID=" + projectID + ", projectLeader=" + projectLeader
-				+ ", contractValue=" + contractValue + ", invoiceAmount=" + invoiceAmount + ", payYear=" + payYear
-				+ ", payMonth=" + payMonth + ", administrationExpenses=" + administrationExpenses
-				+ ", administrationExpensesRate=" + administrationExpensesRate + ", totalAdministrationExpenses="
-				+ totalAdministrationExpenses + ", totalPay=" + totalPay + ", payCount=" + payCount + ", withdrawalFee="
-				+ withdrawalFee + ", billingStatus=" + billingStatus + ", billingID=" + billingID + "]";
+				+ ", contractValue=" + contractValue + ", invoiceAmount=" + invoiceAmount + ", administrationExpenses="
+				+ administrationExpenses + ", administrationExpensesRate=" + administrationExpensesRate
+				+ ", totalAdministrationExpenses=" + totalAdministrationExpenses + ", totalPay=" + totalPay
+				+ ", payCount=" + payCount + ", withdrawalFee=" + withdrawalFee + ", billingStatus=" + billingStatus
+				+ ", billingID=" + billingID + ", startAndEndPayTime=" + startAndEndPayTime + ", startPayYear="
+				+ startPayYear + ", endPayYear=" + endPayYear + ", startPayMonth=" + startPayMonth + ", endPayMonth="
+				+ endPayMonth + "]";
 	}
-
+	
+	
 }

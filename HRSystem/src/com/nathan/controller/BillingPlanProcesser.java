@@ -190,10 +190,7 @@ public class BillingPlanProcesser {
 			billingPLan.setBillingID(cell.getContents());
 			
 			cell = readsheet.getCell(38, rowIndex);
-			billingPLan.setPayYear(Integer.parseInt(cell.getContents()));
-
-			cell = readsheet.getCell(39, rowIndex);
-			billingPLan.setPayMonth(Integer.parseInt(cell.getContents()));
+			billingPLan.setStartAndEndPayTime(cell.getContents());
 			
 			validateBillingPlan(billingPLan);
 			

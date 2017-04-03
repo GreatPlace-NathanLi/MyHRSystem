@@ -56,13 +56,13 @@ public class PayrollSheetProcesser {
 		
 		for (String projectLeader : billingPlanBook.getProjectLeaderBillingPlanMap().keySet()) {
 			List<BillingPlan> billingPlanList = billingPlanBook.getBillingByProjectLeader(projectLeader);
-			rosterProcesser.processRoster(projectLeader, billingPlanList.get(0).getPayYear());
+			rosterProcesser.processRoster(projectLeader, billingPlanList.get(0).getStartPayYear());
 			
 			ProjectMemberRoster roster = rosterProcesser.getRoster();
 			
 			int totalPayrollCount = billingPlanBook.getPayrollCountByProjectLeader(projectLeader);
-			roster.setCurrentPayYear(billingPlanList.get(0).getPayYear());
-			roster.setCurrentPayMonth(billingPlanList.get(0).getPayMonth());
+			roster.setCurrentPayYear(billingPlanList.get(0).getStartPayYear());
+			roster.setCurrentPayMonth(billingPlanList.get(0).getStartPayMonth());
 			int availablePayCount = roster.getAvailablePayCount();
 			logger.info("availablePayCount: " + availablePayCount + ", totalPayrollCount: " + totalPayrollCount);
 
@@ -79,7 +79,7 @@ public class PayrollSheetProcesser {
 			logger.info(Constant.LINE1);
 			
 			String outputPath = Constant.PAYROLL_FILE.replace("NNN", projectLeader);
-			outputPath = outputPath.replace("YYYY", String.valueOf(billingPlanList.get(0).getPayYear()));
+			outputPath = outputPath.replace("YYYY", String.valueOf(billingPlanList.get(0).getStartPayYear()));
 			
 			logger.info("步骤6 - 读取工资表输出模板： " + Constant.PAYROLL_TEMPLATE_FILE);
 			writePayrollSheet(Constant.PAYROLL_TEMPLATE_FILE, outputPath, payrollSheetList);
@@ -148,8 +148,8 @@ public class PayrollSheetProcesser {
 		logger.debug("工资单数量: " + payrollSheetCount);
 		// 决定工资表金额/人数/月份
 
-		int payYear = billingPlan.getPayYear();
-		int payMonth = billingPlan.getPayMonth();
+		int payYear = billingPlan.getStartPayYear();
+		int payMonth = billingPlan.getStartPayMonth();
 		if (payrollSheetCount > 1) {
 			buildPayrollSheet(roster, remainPayCount, payYear, payMonth, billingPlan, payrollSheetList);
 			if (payMonth == 12) {
