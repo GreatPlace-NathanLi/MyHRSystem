@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.nathan.common.Constant;
+import com.nathan.exception.RosterProcessException;
 import com.nathan.model.BillingPlan;
 import com.nathan.model.BillingPlanBook;
 import com.nathan.model.Payroll;
@@ -56,24 +57,12 @@ public class PayrollSheetProcesser {
 		
 		for (String projectLeader : billingPlanBook.getProjectLeaderBillingPlanMap().keySet()) {
 			List<BillingPlan> billingPlanList = billingPlanBook.getBillingByProjectLeader(projectLeader);
-			rosterProcesser.processRoster(projectLeader, billingPlanList.get(0).getStartPayYear());
-			
-			ProjectMemberRoster roster = rosterProcesser.getRoster();
-			
-			int totalPayrollCount = billingPlanBook.getPayrollCountByProjectLeader(projectLeader);
-			roster.setCurrentPayYear(billingPlanList.get(0).getStartPayYear());
-			roster.setCurrentPayMonth(billingPlanList.get(0).getStartPayMonth());
-			int availablePayCount = roster.getAvailablePayCount();
-			logger.info("availablePayCount: " + availablePayCount + ", totalPayrollCount: " + totalPayrollCount);
-
-			logger.info("步骤5 - 计算工资表数据...");
 			List<PayrollSheet> payrollSheetList = new ArrayList<PayrollSheet>();
+			
 			for (BillingPlan billingPlan : billingPlanList) {
-				int currentPayIndex = roster.getCurrentPayIndex();
-				logger.debug("currentPayIndex: " +currentPayIndex);
-				buildPayrollSheet(billingPlan, roster, payrollSheetList);
-				logger.debug("currentPayIndex1: " +roster.getCurrentPayIndex());
+				buildPayrollSheetForSingleBillingPlan(billingPlan, payrollSheetList, rosterProcesser);				
 			}
+	
 			logger.debug("sheet number: " + payrollSheetList.size());
 			logger.debug(payrollSheetList);
 			logger.info(Constant.LINE1);
@@ -86,7 +75,27 @@ public class PayrollSheetProcesser {
 			logger.info(Constant.LINE1);
 			logger.info("步骤7 - 保存工资表输出： " + outputPath);
 			
+			rosterProcesser.updateProjectMemberRoster();
+			
 		}	
+	}
+	
+	private void buildPayrollSheetForSingleBillingPlan(BillingPlan billingPlan, List<PayrollSheet> payrollSheetList, RosterProcesser rosterProcesser) throws RosterProcessException, WriteException, IOException {
+		rosterProcesser.processRoster(billingPlan.getProjectLeader(), billingPlan.getStartPayYear());
+		
+		ProjectMemberRoster roster = rosterProcesser.getRoster();
+		
+//		int totalPayrollCount = billingPlanBook.getPayrollCountByProjectLeader(projectLeader);
+//		roster.setCurrentPayYear(billingPlanList.get(0).getStartPayYear());
+//		roster.setCurrentPayMonth(billingPlanList.get(0).getStartPayMonth());
+//		int availablePayCount = roster.getAvailablePayCount();
+//		logger.info("availablePayCount: " + availablePayCount + ", totalPayrollCount: " + totalPayrollCount);
+
+		logger.info("步骤5 - 计算工资表数据...");
+//		int currentPayIndex = roster.getCurrentPayIndex();
+//		logger.debug("currentPayIndex: " +currentPayIndex);
+		buildPayrollSheet(billingPlan, roster, payrollSheetList);
+//		logger.debug("currentPayIndex1: " +roster.getCurrentPayIndex());
 	}
 
 /*
@@ -128,52 +137,39 @@ public class PayrollSheetProcesser {
 	}
 */
 	
-	public void buildPayrollSheet(BillingPlan billingPlan, ProjectMemberRoster roster,
+	public int buildPayrollSheet(BillingPlan billingPlan, ProjectMemberRoster roster,
 			List<PayrollSheet> payrollSheetList) {
 		// 决定工资表数量
 		// Todo: unit test
 
-		int payCount = billingPlan.getPayCount();
-		int memberCount = roster.getTotalMember();
-//		int availablePayCount = roster.getAvailablePayCount();
-		int remainPayCount = memberCount - roster.getCurrentPayIndex() - 1;
-		logger.debug("remainPayCount: " + remainPayCount + ", current billing payCount: " + payCount);
-		int payrollSheetCount = 0;
-		if (payCount <= remainPayCount && payCount > 0) {
-			payrollSheetCount = 1;
-		} else if (memberCount > 0) {
-			payrollSheetCount = (payCount - remainPayCount) / memberCount + 2;
-		}
-//		logger.debug("payrollSheetCount: " + payrollSheetCount);
-		logger.debug("工资单数量: " + payrollSheetCount);
-		// 决定工资表金额/人数/月份
-
 		int payYear = billingPlan.getStartPayYear();
-		int payMonth = billingPlan.getStartPayMonth();
-		if (payrollSheetCount > 1) {
-			buildPayrollSheet(roster, remainPayCount, payYear, payMonth, billingPlan, payrollSheetList);
-			if (payMonth == 12) {
-				payMonth = 1;
-				payYear++;
-			} else {
-				payMonth++;
-			}
-			for (int i = 1; i <= payrollSheetCount - 2; i++) {
-				buildPayrollSheet(roster, memberCount, payYear, payMonth, billingPlan, payrollSheetList);
-				if (payMonth == 12) {
-					payMonth = 1;
-					payYear++;
-				} else {
-					payMonth++;
-				}
-			}
-			buildPayrollSheet(roster, (payCount-remainPayCount) % memberCount, payYear, payMonth, billingPlan, payrollSheetList);
-		} else {
-			buildPayrollSheet(roster, payCount, payYear, payMonth, billingPlan, payrollSheetList);
+		int startPayMonth = billingPlan.getStartPayMonth();
+		int endPayMonth = billingPlan.getEndPayMonth();
+		if (billingPlan.getStartPayYear() < billingPlan.getEndPayYear()) {
+			endPayMonth = 12;
 		}
+		int payCount = billingPlan.getPayCount();
+		int remainPayCount = payCount;
+		
+		for (int month = startPayMonth; month <= endPayMonth; month++) {
+			int monthAvailableCount = roster.getStatistics().getMonthAvailableCount(month);
+			int currentProcessingCount = Math.min(monthAvailableCount, remainPayCount);
+			if (currentProcessingCount == 0) {
+				continue;
+			}
+			buildPayrollSheet(roster, currentProcessingCount, payYear, month, billingPlan, payrollSheetList);
+			remainPayCount -= currentProcessingCount;
+			logger.debug("remainPayCount: " + remainPayCount + ", current processing payCount: " + currentProcessingCount);
+			if (remainPayCount ==0) {
+				break;
+			}
+		}
+		
+		logger.debug("工资单数量: " + payrollSheetList.size());
 
-//		logger.debug("payrollSheetList: " + payrollSheetList);
+		logger.debug("payrollSheetList: " + payrollSheetList);
 
+		return remainPayCount;
 	}
 
 	protected void buildPayrollSheet(ProjectMemberRoster roster, int payrollCount, int payYear, int payMonth,
@@ -190,7 +186,6 @@ public class PayrollSheetProcesser {
 		payrollSheetList.add(payrollSheet);
 		roster.setCurrentPayYear(payYear);
 		roster.setCurrentPayMonth(payMonth);
-		logger.debug("payrollSheet size ***: " + payrollSheetList.size());
 	}
 
 /*
@@ -235,7 +230,7 @@ public class PayrollSheetProcesser {
 		int initWorkingDayCount = calcDraftWorkingDayCount(payrollCount, totalAmount);
 		double tempAmount = 0.0;
 		for (int i = 0; i < payrollCount; i++) {
-			ProjectMember member = roster.getMember();
+			ProjectMember member = roster.getMemberByMonth(payrollSheet.getPayMonth());
 			Payroll payroll = new Payroll();
 			payroll.setOrderNumber(i + 1);
 			payroll.setName(member.getName());
@@ -245,6 +240,8 @@ public class PayrollSheetProcesser {
 			payrollSheet.addPayroll(payroll);
 			tempAmount += payroll.getTotalPay();
 		}
+		
+		roster.setCursor(payrollSheet.getPayMonth(), payrollSheet.getContractID(), totalAmount);
 		
 		double remainAmount = totalAmount - tempAmount;
 		for (int i = 0; i < payrollCount; i++) {

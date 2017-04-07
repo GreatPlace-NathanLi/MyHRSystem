@@ -65,6 +65,22 @@ public class RosterStatistics {
 		return this.monthsStatisticsMap.get(month);
 	}
 
+	public int getMonthAvailableCount(int month) {
+		return this.monthsStatisticsMap.get(month).getAvailableCount();
+	}
+	
+	public void setMonthAvailableCount(int month, int availableCount) {
+		this.monthsStatisticsMap.get(month).setAvailableCount(availableCount);
+	}
+	
+	public int getMonthAvaiableIndex(int month) {
+		return this.monthsStatisticsMap.get(month).getCurrentAvailableIndex();
+	}
+	
+	public void setMonthAvaiableIndex(int month, int currentAvailableIndex) {
+		this.monthsStatisticsMap.get(month).setCurrentAvailableIndex(currentAvailableIndex);
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */

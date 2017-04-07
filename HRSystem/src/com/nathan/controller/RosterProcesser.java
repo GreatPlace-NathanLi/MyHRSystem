@@ -4,11 +4,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.nathan.common.Constant;
 import com.nathan.exception.RosterProcessException;
 import com.nathan.model.ProjectMember;
 import com.nathan.model.ProjectMemberRoster;
+import com.nathan.model.RosterCursor;
 import com.nathan.model.RosterMonthStatistics;
 import com.nathan.model.RosterStatistics;
 
@@ -17,6 +20,7 @@ import jxl.NumberCell;
 import jxl.Sheet;
 import jxl.Workbook;
 import jxl.common.Logger;
+import jxl.write.Label;
 import jxl.write.Number;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
@@ -28,18 +32,46 @@ public class RosterProcesser {
 	private static Logger logger = Logger.getLogger(RosterProcesser.class);
 
 	private ProjectMemberRoster roster;
+	
+	private Map<String, ProjectMemberRoster> rosterCache;
+	
+	public RosterProcesser() {
+		rosterCache = new ConcurrentHashMap<String, ProjectMemberRoster>();
+	}
+	
+	public ProjectMemberRoster getRosterFormCache(String projectLeaderAndYear) {
+		return rosterCache.get(projectLeaderAndYear);
+	}
+	
+	public void putRosterToCache(String projectLeaderAndYear, ProjectMemberRoster roster) {
+		rosterCache.put(projectLeaderAndYear, roster);
+	}
 
 	public void processRoster(String projectLeader, int year)
 			throws RosterProcessException, WriteException, IOException {
-		String inputPath = Constant.ROSTER_FILE.replace("NNN", projectLeader).replace("YYYY", String.valueOf(year));
-		logger.info("步骤4.1 - 读取花名册： " + inputPath);
-		roster = new ProjectMemberRoster();
-		roster.setLocation(inputPath);
-		roster.setCurrentPayYear(year);
-		readProjectMemberRoster(inputPath);
-		logger.info(Constant.LINE1);
+		roster = getRosterFormCache(projectLeader + year);
+		if (roster == null) {
+			String inputPath = Constant.ROSTER_FILE.replace("NNN", projectLeader).replace("YYYY", String.valueOf(year));
+			logger.info("步骤4.1 - 读取花名册： " + inputPath);
+			roster = new ProjectMemberRoster();
+			roster.setLocation(inputPath);
+			roster.setCurrentPayYear(year);
+			readProjectMemberRoster(inputPath);
+			
+			putRosterToCache(projectLeader + year, roster);
+			
+			logger.info(Constant.LINE1);
+			
+		} else {
+			logger.info("从缓存中读取花名册：" + roster.getName());
+		}
+		logger.debug("roster statistics:" + roster.getStatistics());
+	}
+	
+	public void updateProjectMemberRoster() throws RosterProcessException, WriteException, IOException {
+		String inputPath = roster.getLocation();
 		String outputPath = inputPath.replace("/in/", "/out/out");
-		logger.info("步骤4.2 - 保存花名册： " + outputPath);
+		logger.info("步骤4.2 - 更新花名册： " + outputPath);
 		writeProjectMemberRoster(inputPath, outputPath);
 	}
 
@@ -115,7 +147,7 @@ public class RosterProcesser {
 			for (int r = 1; r < rsRows; r++) {
 				cell = readsheet.getCell(c, r);
 				if (Constant.EMPTY_STRING.equals(cell.getContents())) {
-					if (!isContractExpiredOrOffJob(readsheet, r, payYear, payMonth)) {
+					if (isAvailable(r, payYear, payMonth)) {
 						availableCount++;
 						if (currentAvailableIndex == -1) {
 							currentAvailableIndex = r + 1;
@@ -132,24 +164,12 @@ public class RosterProcesser {
 
 			statistics.putMonthStatistics(payMonth, new RosterMonthStatistics(currentAvailableIndex, availableCount));
 		}
-		logger.debug("roster statistics:" + statistics);
 		roster.setStatistics(statistics);
 	}
 
-	private boolean isContractExpiredOrOffJob(Sheet readsheet, int rowIndex, int year, int month) {
-		int processingTime = year * 10000 + month * 100 + 1;
+	private boolean isAvailable(int rowIndex, int year, int month) {
 		ProjectMember member = roster.getMember(rowIndex - 1);
-		int contractStartTime = member.getContractStartTimeInInteger();
-		int contractEndTime = member.getContractEndTimeInInteger();
-		boolean isContractExpired = processingTime < contractStartTime || processingTime > contractEndTime;
-		int onJobStartTime = member.getOnJobStartTimeInInteger();
-		int onJobEndTime = member.getOnJobStartTimeInInteger();
-		boolean isOffJob = false;
-		if (onJobEndTime > 0) {
-			isOffJob = processingTime < onJobStartTime || processingTime >= onJobEndTime;
-		}
-
-		return isContractExpired || isOffJob;
+		return member.isAvailable(year, month);
 	}
 
 	private boolean isRosterWithStatistics(Sheet readsheet) {
@@ -198,8 +218,13 @@ public class RosterProcesser {
 		}
 	}	
 
-	private void writeCursor(WritableSheet sheet) {
-		// TODO:
+	private void writeCursor(WritableSheet sheet) throws RowsExceededException, WriteException {
+		for(RosterCursor cursor : roster.getCursorList()) {
+			Label identifier = new Label(cursor.getColumnIndex(), cursor.getRowIndex(), cursor.getIdentifier());
+			sheet.addCell(identifier);
+			Number amount = new Number(cursor.getColumnIndex()+1, cursor.getRowIndex(), cursor.getAmount());
+			sheet.addCell(amount);
+		}
 	}
 
 	/**

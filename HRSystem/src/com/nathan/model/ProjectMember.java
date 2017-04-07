@@ -21,6 +21,16 @@ public class ProjectMember {
 	private int onJobStartTimeInInteger;
 	
 	private int onJobEndTimeInInteger;
+	
+	public boolean isAvailable(int year, int month) {
+		int processingTime = year * 10000 + month * 100 + 1;
+		boolean isContractExpired = processingTime < contractStartTimeInInteger || processingTime > contractEndTimeInInteger;
+		boolean isOffJob = false;
+		if (onJobEndTimeInInteger > 0) {
+			isOffJob = processingTime < onJobStartTimeInInteger || processingTime >= onJobEndTimeInInteger;
+		}
+		return !isContractExpired && !isOffJob;
+	}
 
 	/**
 	 * @return the orderNumber

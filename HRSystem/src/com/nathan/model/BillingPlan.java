@@ -295,7 +295,7 @@ public class BillingPlan {
 	}
 	
 	private void parseStartAndEndPayTime() {
-		if(startAndEndPayTime != null) {
+		if(startAndEndPayTime != null && !Constant.EMPTY_STRING.equals(startAndEndPayTime)) {
 			String[] s = startAndEndPayTime.split("-");
 			this.startPayTimeInInteger = Integer.valueOf(s[0]);
 			this.endPayTimeInInteger = Integer.valueOf(s[1]);

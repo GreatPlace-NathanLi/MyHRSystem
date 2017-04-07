@@ -29,7 +29,7 @@ public class BillingPlanProcesser {
 	
 	private BillingPlanBook billingPlanBook;
 	
-	private boolean bypassBillingOutputCalculation = true;
+	private boolean bypassBillingOutputCalculation = false;
 	
 	public BillingPlanProcesser() {
 		this.billingPlanBook = new BillingPlanBook();
@@ -180,8 +180,10 @@ public class BillingPlanProcesser {
 				billingPLan.setTotalPay(((NumberCell)cell).getValue());
 			}	
 			
-			numCell = (NumberCell) readsheet.getCell(28, rowIndex);
-			billingPLan.setWithdrawalFee(numCell.getValue());
+			cell = readsheet.getCell(28, rowIndex);
+			if (cell.getType().equals(CellType.NUMBER)) {
+				billingPLan.setWithdrawalFee(((NumberCell)cell).getValue());
+			}	
 			
 			cell = readsheet.getCell(35, rowIndex);
 			billingPLan.setBillingStatus(cell.getContents());
@@ -200,6 +202,9 @@ public class BillingPlanProcesser {
 	}
 	
 	private void validateBillingPlan(BillingPlan billingPlan) throws BillingPlanProcessException {
+		if(!bypassBillingOutputCalculation) {
+			return;
+		}
 		if (billingPlan.getProjectLeader() == null || "".equals(billingPlan.getProjectLeader())) {
 			throw new BillingPlanProcessException("开票计划中领队不能为空! 计划序号：" + billingPlan.getOrderNumber());
 		}
@@ -230,6 +235,13 @@ public class BillingPlanProcesser {
 			double invoiceAmount = billingPlan.getInvoiceAmount();
 			double administrationExpensesRate = billingPlan.getAdministrationExpensesRate();
 			double administrationExpenses = billingPlan.getAdministrationExpenses();
+			
+			if (administrationExpensesRate == 0) {
+				administrationExpensesRate = 0.035;
+			}
+			if (administrationExpenses == 200) {
+				administrationExpensesRate = 0.064;
+			}
 
 			int payCount = (int) Math.ceil(invoiceAmount * administrationExpensesRate / administrationExpenses);
 			double totalAdministrationExpenses = administrationExpenses * payCount;
