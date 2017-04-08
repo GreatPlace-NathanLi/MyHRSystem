@@ -174,7 +174,7 @@ public class PayrollSheetProcesser {
 
 	protected void buildPayrollSheet(ProjectMemberRoster roster, int payrollCount, int payYear, int payMonth,
 			BillingPlan billing, List<PayrollSheet> payrollSheetList) {
-		logger.debug("payrollCount ***: " + payrollCount + "year " + payYear + ", month " + payMonth);
+		logger.debug("payrollCount: " + payrollCount + ", year " + payYear + ", month " + payMonth);
 		PayrollSheet payrollSheet = new PayrollSheet();
 		payrollSheet.setPayrollNumber(payrollCount);
 		payrollSheet.setPayYear(payYear);

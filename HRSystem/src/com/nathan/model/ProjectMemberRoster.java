@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 import com.nathan.common.Util;
-import com.sun.media.jfxmedia.logging.Logger;
 
 public class ProjectMemberRoster extends AbstractBook {
 	

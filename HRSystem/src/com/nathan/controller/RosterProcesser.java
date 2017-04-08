@@ -32,17 +32,17 @@ public class RosterProcesser {
 	private static Logger logger = Logger.getLogger(RosterProcesser.class);
 
 	private ProjectMemberRoster roster;
-	
+
 	private Map<String, ProjectMemberRoster> rosterCache;
-	
+
 	public RosterProcesser() {
 		rosterCache = new ConcurrentHashMap<String, ProjectMemberRoster>();
 	}
-	
+
 	public ProjectMemberRoster getRosterFormCache(String projectLeaderAndYear) {
 		return rosterCache.get(projectLeaderAndYear);
 	}
-	
+
 	public void putRosterToCache(String projectLeaderAndYear, ProjectMemberRoster roster) {
 		rosterCache.put(projectLeaderAndYear, roster);
 	}
@@ -57,17 +57,17 @@ public class RosterProcesser {
 			roster.setLocation(inputPath);
 			roster.setCurrentPayYear(year);
 			readProjectMemberRoster(inputPath);
-			
+
 			putRosterToCache(projectLeader + year, roster);
-			
+
 			logger.info(Constant.LINE1);
-			
+
 		} else {
 			logger.info("从缓存中读取花名册：" + roster.getName());
 		}
 		logger.debug("roster statistics:" + roster.getStatistics());
 	}
-	
+
 	public void updateProjectMemberRoster() throws RosterProcessException, WriteException, IOException {
 		String inputPath = roster.getLocation();
 		String outputPath = inputPath.replace("/in/", "/out/out");
@@ -115,7 +115,11 @@ public class RosterProcesser {
 			}
 
 			if (!isRosterWithStatistics(readsheet)) {
+				logger.debug("创建花名册统计数据");
 				buildRosterStatistics(readsheet);
+			} else {
+				logger.debug("读取花名册统计数据");
+				parseRosterStatistics(readsheet);
 			}
 
 			if (rsColumns <= 3) {
@@ -167,6 +171,22 @@ public class RosterProcesser {
 		roster.setStatistics(statistics);
 	}
 
+	public void parseRosterStatistics(Sheet readsheet) {
+		int rsColumns = readsheet.getColumns();
+		Cell cell = null;
+		RosterStatistics statistics = new RosterStatistics();
+		for (int c = 5; c < rsColumns; c += 2) {
+			cell = readsheet.getCell(c, 0);
+			int currentAvailableIndex = Integer.valueOf(cell.getContents());
+			cell = readsheet.getCell(c + 1, 0);
+			int availableCount = Integer.valueOf(cell.getContents());
+			int payMonth = Integer.valueOf(readsheet.getCell(c + 1, 1).getContents().split("月")[0]);
+
+			statistics.putMonthStatistics(payMonth, new RosterMonthStatistics(currentAvailableIndex, availableCount));
+		}
+		roster.setStatistics(statistics);
+	}
+
 	private boolean isAvailable(int rowIndex, int year, int month) {
 		ProjectMember member = roster.getMember(rowIndex - 1);
 		return member.isAvailable(year, month);
@@ -207,22 +227,27 @@ public class RosterProcesser {
 	}
 
 	private void writeRosterStatistics(WritableSheet sheet) throws RowsExceededException, WriteException {
-		sheet.insertRow(0);
-		for (int m = 1; m <= 12; m++) {
-			RosterStatistics statistics = roster.getStatistics();
-			Number availableIndex = new Number(2 * m + 3, 0,
-					statistics.getMonthStatistics(m).getCurrentAvailableIndex());
+		if (!isRosterWithStatistics(sheet)) {
+			sheet.insertRow(0);
+		}
+		int rsColumns = sheet.getColumns();
+		RosterStatistics statistics = roster.getStatistics();
+		for (int c = 5; c < rsColumns; c += 2) {
+			int payMonth = Integer.valueOf(sheet.getCell(c + 1, 1).getContents().split("月")[0]);
+
+			Number availableIndex = new Number(c, 0,
+					statistics.getMonthStatistics(payMonth).getCurrentAvailableIndex());
 			sheet.addCell(availableIndex);
-			Number availableCount = new Number(2 * m + 4, 0, statistics.getMonthStatistics(m).getAvailableCount());
+			Number availableCount = new Number(c + 1, 0, statistics.getMonthStatistics(payMonth).getAvailableCount());
 			sheet.addCell(availableCount);
 		}
-	}	
+	}
 
 	private void writeCursor(WritableSheet sheet) throws RowsExceededException, WriteException {
-		for(RosterCursor cursor : roster.getCursorList()) {
+		for (RosterCursor cursor : roster.getCursorList()) {
 			Label identifier = new Label(cursor.getColumnIndex(), cursor.getRowIndex(), cursor.getIdentifier());
 			sheet.addCell(identifier);
-			Number amount = new Number(cursor.getColumnIndex()+1, cursor.getRowIndex(), cursor.getAmount());
+			Number amount = new Number(cursor.getColumnIndex() + 1, cursor.getRowIndex(), cursor.getAmount());
 			sheet.addCell(amount);
 		}
 	}
