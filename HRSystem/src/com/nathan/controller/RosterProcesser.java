@@ -52,7 +52,7 @@ public class RosterProcesser {
 		roster = getRosterFormCache(projectLeader + year);
 		if (roster == null) {
 			String inputPath = Constant.ROSTER_FILE.replace("NNN", projectLeader).replace("YYYY", String.valueOf(year));
-			logger.info("步骤4.1 - 读取花名册： " + inputPath);
+			logger.info("从本地读取花名册： " + inputPath);
 			roster = new ProjectMemberRoster();
 			roster.setLocation(inputPath);
 			roster.setCurrentPayYear(year);
@@ -60,18 +60,16 @@ public class RosterProcesser {
 
 			putRosterToCache(projectLeader + year, roster);
 
-			logger.info(Constant.LINE1);
-
 		} else {
 			logger.info("从缓存中读取花名册：" + roster.getName());
 		}
-		logger.debug("roster statistics:" + roster.getStatistics());
+		logger.debug("花名册统计数据:" + roster.getStatistics());
 	}
 
 	public void updateProjectMemberRoster() throws RosterProcessException, WriteException, IOException {
 		String inputPath = roster.getLocation();
 		String outputPath = inputPath.replace("/in/", "/out/out");
-		logger.info("步骤4.2 - 更新花名册： " + outputPath);
+		logger.info("保存花名册： " + outputPath);
 		writeProjectMemberRoster(inputPath, outputPath);
 	}
 
@@ -110,7 +108,7 @@ public class RosterProcesser {
 					member.setOnJobStartAndEndTime(readsheet.getCell(4, i).getContents());
 				}
 
-				logger.debug(member);
+//				logger.debug(member);
 				roster.addMember(member);
 			}
 
@@ -122,11 +120,6 @@ public class RosterProcesser {
 				parseRosterStatistics(readsheet);
 			}
 
-			if (rsColumns <= 3) {
-				roster.setAvailablePayCount(Integer.MAX_VALUE);
-			}
-
-			logger.debug("花名册人数： " + roster.getTotalMember());
 			logger.debug("花名册： " + roster);
 			instream.close();
 

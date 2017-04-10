@@ -1,6 +1,7 @@
 package com.nathan.model;
 
 import com.nathan.common.Constant;
+import com.nathan.common.Util;
 
 public class BillingPlan {
 
@@ -260,7 +261,7 @@ public class BillingPlan {
 
 	public String getBillingIDAfterBillingCompleted() {
 		this.billingID = this.projectUnit + Constant.DELIMITER0 + this.projectLeader + Constant.DELIMITER0
-				+ this.contractID + Constant.DELIMITER0 + this.orderNumber;
+				+ this.contractID + Constant.DELIMITER0 + Util.getCurrentDateString();
 		return billingID;
 	}
 

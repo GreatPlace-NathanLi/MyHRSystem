@@ -17,5 +17,5 @@ public class Constant {
 	public static final String DELIMITER0 = "|";
 	public static final String EMPTY_STRING = "";
 	
-	public static final String BILLING_STATUS_COMPLETED = "制作完成";
+	public static final String BILLING_STATUS_COMPLETED = "已制作";
 }

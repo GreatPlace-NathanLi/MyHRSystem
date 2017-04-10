@@ -29,27 +29,25 @@ public class BillingPlanProcesser {
 	
 	private BillingPlanBook billingPlanBook;
 	
-	private boolean bypassBillingOutputCalculation = false;
+	private boolean bypassBillingOutputCalculation = true;
 	
 	public BillingPlanProcesser() {
 		this.billingPlanBook = new BillingPlanBook();
 	}
 	
 	public void processBillingPlanInput(String filePath) throws BillingPlanProcessException {
-		logger.info("步骤1 - 读取开票计划输入： " + filePath);
+		
 		readBillingInput(filePath);
-//		logger.info(LINE1);
 		if (billingPlanBook.getTotalBillingPlanSize() == 0) {
 			throw new BillingPlanProcessException("没有可处理的开票计划！");
 		}
 		
-		logger.info("步骤2 - 计算开票计划结果...");
+		logger.info("计算开票计划结果...");
 		calculateBillingOutput();
 		billingPlanBook.buildProjectLeaderBillingPlanMap();
 		billingPlanBook.buildProjectLeaderPayrollCountMap();
 		
 		logger.info("开票计划： " + billingPlanBook);
-//		logger.info(LINE1);
 	}
 
 	public void readBillingInput(String filePath) throws BillingPlanProcessException {
@@ -125,8 +123,7 @@ public class BillingPlanProcesser {
 
 	private void createBillingObjectFromInputSheet(Sheet readsheet, int rowIndex) throws BillingPlanProcessException {
 		Cell cell = readsheet.getCell(35, rowIndex);
-		logger.debug("cell:" + cell.getContents());
-		System.out.println(cell.getType());
+//		logger.debug("cell:" + cell.getContents() + ", type:" + cell.getType());
 		if(CellType.EMPTY.equals(cell.getType()) || "".equals(cell.getContents())) {
 			BillingPlan billingPLan = new BillingPlan();
 
@@ -170,7 +167,6 @@ public class BillingPlanProcesser {
 			}	
 			
 			cell = readsheet.getCell(19, rowIndex);
-			System.out.println(cell.getType());
 			if (cell.getType().equals(CellType.NUMBER) || cell.getType().equals(CellType.NUMBER_FORMULA)) {
 				billingPLan.setTotalAdministrationExpenses(((NumberCell)cell).getValue());
 			}	
@@ -185,14 +181,14 @@ public class BillingPlanProcesser {
 				billingPLan.setWithdrawalFee(((NumberCell)cell).getValue());
 			}	
 			
-			cell = readsheet.getCell(35, rowIndex);
+			cell = readsheet.getCell(36, rowIndex);
 			billingPLan.setBillingStatus(cell.getContents());
 			
 			cell = readsheet.getCell(37, rowIndex);
-			billingPLan.setBillingID(cell.getContents());
+			billingPLan.setStartAndEndPayTime(cell.getContents());
 			
 			cell = readsheet.getCell(38, rowIndex);
-			billingPLan.setStartAndEndPayTime(cell.getContents());
+			billingPLan.setBillingID(cell.getContents());
 			
 			validateBillingPlan(billingPLan);
 			
@@ -285,10 +281,10 @@ public class BillingPlanProcesser {
 					sheet.addCell(withdrawalFee);
 				}		
 				
-				Label billingStatus = new Label(35,r,billingPlan.getBillingStatusAfterBillingCompleted(), sheet.getCell(35, r).getCellFormat());
+				Label billingStatus = new Label(36,r,billingPlan.getBillingStatusAfterBillingCompleted(), sheet.getCell(36, r).getCellFormat());
 				sheet.addCell(billingStatus);
 				
-				Label billingID = new Label(37,r,billingPlan.getBillingIDAfterBillingCompleted(), sheet.getCell(37, r).getCellFormat());
+				Label billingID = new Label(38,r,billingPlan.getBillingIDAfterBillingCompleted(), sheet.getCell(38, r).getCellFormat());
 				sheet.addCell(billingID);
 			}		
 	
