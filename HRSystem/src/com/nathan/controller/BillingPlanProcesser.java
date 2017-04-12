@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.nathan.common.Constant;
 import com.nathan.exception.BillingPlanProcessException;
 import com.nathan.model.BillingPlan;
 import com.nathan.model.BillingPlanBook;
@@ -89,7 +90,7 @@ public class BillingPlanProcesser {
 //			}
 			
 			for (int r = 2; r < rsRows; r++) {
-				createBillingObjectFromInputSheet(readsheet, r);
+				createBillingPlanFromInputSheet(readsheet, r);
 			}
 
 			
@@ -121,13 +122,11 @@ public class BillingPlanProcesser {
 	}
 
 
-	private void createBillingObjectFromInputSheet(Sheet readsheet, int rowIndex) throws BillingPlanProcessException {
-		Cell cell = readsheet.getCell(35, rowIndex);
-//		logger.debug("cell:" + cell.getContents() + ", type:" + cell.getType());
-		if(CellType.EMPTY.equals(cell.getType()) || "".equals(cell.getContents())) {
+	private void createBillingPlanFromInputSheet(Sheet readsheet, int rowIndex) throws BillingPlanProcessException {
+		if(isNewBillingPlan(readsheet, rowIndex)) {
 			BillingPlan billingPLan = new BillingPlan();
 
-			cell = readsheet.getCell(0, rowIndex);
+			Cell cell = readsheet.getCell(0, rowIndex);
 			billingPLan.setOrderNumber(Integer.valueOf(cell.getContents()));
 
 			cell = readsheet.getCell(1, rowIndex);
@@ -181,20 +180,33 @@ public class BillingPlanProcesser {
 				billingPLan.setWithdrawalFee(((NumberCell)cell).getValue());
 			}	
 			
+			cell = readsheet.getCell(35, rowIndex);
+			billingPLan.setBillingStatus(isEmpty(cell) ? null : cell.getContents());
+			
 			cell = readsheet.getCell(36, rowIndex);
-			billingPLan.setBillingStatus(cell.getContents());
+			billingPLan.setBillingStatus(isEmpty(cell) ? null : cell.getContents());
 			
 			cell = readsheet.getCell(37, rowIndex);
-			billingPLan.setStartAndEndPayTime(cell.getContents());
+			billingPLan.setStartAndEndPayTime(isEmpty(cell) ? null : cell.getContents());
 			
 			cell = readsheet.getCell(38, rowIndex);
-			billingPLan.setBillingID(cell.getContents());
+			billingPLan.setBillingID(isEmpty(cell) ? null : cell.getContents());
 			
 			validateBillingPlan(billingPLan);
 			
 			billingPlanBook.addBillingPlan(billingPLan);
 		}			
 		
+	}
+	
+	private boolean isNewBillingPlan(Sheet readsheet, int rowIndex) {
+		Cell cell = readsheet.getCell(36, rowIndex);
+		logger.debug("isNewBillingPlan() - cell:" + cell.getContents() + ", type:" + cell.getType());
+		return isEmpty(cell);
+	}
+	
+	private boolean isEmpty(Cell cell) {
+		return CellType.EMPTY.equals(cell.getType()) || Constant.EMPTY_STRING.equals(cell.getContents());
 	}
 	
 	private void validateBillingPlan(BillingPlan billingPlan) throws BillingPlanProcessException {
@@ -279,12 +291,15 @@ public class BillingPlanProcesser {
 
 					Number withdrawalFee = new Number(28, r, billingPlan.getWithdrawalFee(), sheet.getCell(28, r).getCellFormat());
 					sheet.addCell(withdrawalFee);
-				}		
+				}	
+				
+				Label alternatedProjectLeaderRemark = new Label(35,r,billingPlan.getAlternatedProjectLeaderRemark(), sheet.getCell(35, r).getCellFormat());
+				sheet.addCell(alternatedProjectLeaderRemark);
 				
 				Label billingStatus = new Label(36,r,billingPlan.getBillingStatusAfterBillingCompleted(), sheet.getCell(36, r).getCellFormat());
 				sheet.addCell(billingStatus);
 				
-				Label billingID = new Label(38,r,billingPlan.getBillingIDAfterBillingCompleted(), sheet.getCell(38, r).getCellFormat());
+				Label billingID = new Label(38,r,billingPlan.getBillingID(), sheet.getCell(38, r).getCellFormat());
 				sheet.addCell(billingID);
 			}		
 	

@@ -33,24 +33,8 @@ import jxl.write.biff.RowsExceededException;
 public class PayrollSheetProcesser {
 
 	private static Logger logger = Logger.getLogger(PayrollSheetProcesser.class);
-
-	/*
-	public void processPayrollSheet(BillingPlan billingPlan, ProjectMemberRoster roster, String payrollFile,
-			String payrollTemplateFile) throws Exception {
-		logger.info("步骤5 - 计算工资表数据...");
-		List<PayrollSheet> payrollSheetList = new ArrayList<PayrollSheet>();
-		buildPayrollSheet(billingPlan, roster, payrollSheetList);
-		logger.info(Constant.LINE1);
-
-		String outputPath = payrollFile.replace("NNN", billingPlan.getProjectLeader());
-		outputPath = outputPath.replace("YYYY", String.valueOf(billingPlan.getPayYear()));
-
-		logger.info("步骤6 - 读取工资表输出模板： " + payrollTemplateFile);
-		writePayrollSheet(payrollTemplateFile, outputPath, payrollSheetList);
-		logger.info(Constant.LINE1);
-		logger.info("步骤7 - 保存工资表输出： " + outputPath);
-	}
-	*/
+	
+	private int rosterFullUpTime = 0;
 	
 	public void processPayrollSheet(BillingPlanBook billingPlanBook, RosterProcesser rosterProcesser, String payrollFile,
 			String payrollTemplateFile) throws Exception {
@@ -62,18 +46,6 @@ public class PayrollSheetProcesser {
 			for (BillingPlan billingPlan : billingPlanList) {
 				buildPayrollSheetForSingleBillingPlan(billingPlan, payrollSheetList, rosterProcesser);				
 			}
-	
-			logger.info(Constant.LINE1);
-			
-			String outputPath = Constant.PAYROLL_FILE.replace("NNN", projectLeader);
-			outputPath = outputPath.replace("YYYY", String.valueOf(billingPlanList.get(0).getStartPayYear()));
-			
-			logger.info("读取工资表输出模板： " + Constant.PAYROLL_TEMPLATE_FILE);
-			writePayrollSheet(Constant.PAYROLL_TEMPLATE_FILE, outputPath, payrollSheetList);
-			logger.info(Constant.LINE1);
-			logger.info("保存工资表输出： " + outputPath);
-			
-			rosterProcesser.updateProjectMemberRoster();
 			
 		}	
 	}
@@ -88,47 +60,45 @@ public class PayrollSheetProcesser {
 
 		ProjectMemberRoster roster = rosterProcesser.getRoster();
 
-		buildPayrollSheet(billingPlan, roster, payrollSheetList);
-	}
-
-/*
-	public void buildPayrollSheet(BillingPlan billingPlan, ProjectMemberRoster roster,
-			List<PayrollSheet> payrollSheetList) {
-		// 决定工资表数量
-		// Todo: unit test
-
-		int payCount = billingPlan.getPayCount();
-		int memberCount = roster.getTotalMember();
-		int payrollSheetCount = 0;
-		if (payCount <= memberCount && payCount > 0) {
-			payrollSheetCount = 1;
-		} else if (memberCount > 0) {
-			payrollSheetCount = payCount / memberCount + 1;
+		int remainPayCount = buildPayrollSheet(billingPlan, roster, payrollSheetList);
+		
+		logger.info(Constant.LINE1);
+		
+		String outputPath = Constant.PAYROLL_FILE.replace("NNN", billingPlan.getProjectLeader());
+		outputPath = outputPath.replace("YYYY", String.valueOf(billingPlan.getStartPayYear()));
+		
+		logger.info("读取工资表输出模板： " + Constant.PAYROLL_TEMPLATE_FILE);
+		writePayrollSheet(Constant.PAYROLL_TEMPLATE_FILE, outputPath, payrollSheetList);
+		logger.info(Constant.LINE1);
+		logger.info("保存工资表输出： " + outputPath);
+		logger.info(Constant.LINE1);
+		rosterProcesser.updateProjectMemberRoster();
+		logger.info(Constant.LINE1);
+		if (remainPayCount > 0) {
+			handleRosterFullUp(billingPlan, rosterProcesser, remainPayCount);
 		}
-		// logger.debug("payrollSheetCount: " + payrollSheetCount);
-		logger.debug("工资单数量: " + payrollSheetCount);
-		// 决定工资表金额/人数/月份
-
-		int payYear = billingPlan.getPayYear();
-		int payMonth = billingPlan.getPayMonth();
-		if (payrollSheetCount > 1) {
-			for (int i = 0; i <= payrollSheetCount - 2; i++) {
-				buildPayrollSheet(roster, memberCount, payYear, payMonth, billingPlan, payrollSheetList);
-				if (payMonth == 12) {
-					payMonth = 1;
-					payYear++;
-				} else {
-					payMonth++;
-				}
-			}
-
-			buildPayrollSheet(roster, payCount % memberCount, payYear, payMonth, billingPlan, payrollSheetList);
-		}
-
-		// logger.debug("payrollSheetList: " + payrollSheetList);
-
 	}
-*/
+	
+	private void handleRosterFullUp(BillingPlan billingPlan,
+			RosterProcesser rosterProcesser, int remainPayCount) throws RosterProcessException, WriteException, IOException {
+		logger.info(billingPlan.getProjectLeader() + "花名册名额用完，借人开始...");
+		String alternatedProjectLeader = getAlternatedProjectLeader();
+		billingPlan.setTotalPay(calcPayrollSheetTotalAmount(remainPayCount, billingPlan));
+		billingPlan.setPayCount(remainPayCount);
+		billingPlan.setProjectLeader(alternatedProjectLeader);
+		rosterFullUpTime++;
+		List<PayrollSheet> payrollSheetList = new ArrayList<PayrollSheet>();
+		buildPayrollSheetForSingleBillingPlan(billingPlan, payrollSheetList, rosterProcesser);		
+	}
+	
+	private String getAlternatedProjectLeader() {
+		
+		String alternatedProjectLeader = "李一";
+		if(rosterFullUpTime > 0)
+			alternatedProjectLeader = "黄六";
+		logger.info("从" + alternatedProjectLeader + "花名册中借人");
+		return alternatedProjectLeader;
+	}
 	
 	public int buildPayrollSheet(BillingPlan billingPlan, ProjectMemberRoster roster,
 			List<PayrollSheet> payrollSheetList) {
@@ -159,6 +129,11 @@ public class PayrollSheetProcesser {
 		}
 		
 		logger.debug("工资单数量: " + payrollSheetList.size());
+		if(rosterFullUpTime == 0) {
+			billingPlan.setBillingID(payCount - remainPayCount);
+		} else {
+			billingPlan.setAlternatedProjectLeaderRemark(payCount - remainPayCount);
+		}
 
 //		logger.debug("payrollSheetList: " + payrollSheetList);
 
@@ -166,56 +141,20 @@ public class PayrollSheetProcesser {
 	}
 
 	protected void buildPayrollSheet(ProjectMemberRoster roster, int payrollCount, int payYear, int payMonth,
-			BillingPlan billing, List<PayrollSheet> payrollSheetList) {
+			BillingPlan billingPlan, List<PayrollSheet> payrollSheetList) {
 		logger.debug("payrollCount: " + payrollCount + ", year " + payYear + ", month " + payMonth);
 		PayrollSheet payrollSheet = new PayrollSheet();
 		payrollSheet.setPayrollNumber(payrollCount);
 		payrollSheet.setPayYear(payYear);
 		payrollSheet.setPayMonth(payMonth);
-		payrollSheet.setLeader(billing.getProjectLeader());
-		payrollSheet.setContractID(billing.getContractID());
-		payrollSheet.setTotalAmount(calcPayrollSheetTotalAmount(payrollCount, billing));
+		payrollSheet.setLeader(billingPlan.getProjectLeader());
+		payrollSheet.setContractID(billingPlan.getContractID());
+		payrollSheet.setTotalAmount(calcPayrollSheetTotalAmount(payrollCount, billingPlan));
 		buildPayrolls(payrollSheet, roster);
 		payrollSheetList.add(payrollSheet);
 		roster.setCurrentPayYear(payYear);
 		roster.setCurrentPayMonth(payMonth);
 	}
-
-/*
-	protected void buildPayrolls(PayrollSheet payrollSheet, ProjectMemberRoster roster) {
-		int payrollCount = payrollSheet.getPayrollNumber();
-		double totalAmount = payrollSheet.getTotalAmount();
-		int initWorkingDayCount = calcDraftWorkingDayCount(payrollCount, totalAmount);
-		double tempAmount = 0.0;
-		for (int i = 0; i < payrollCount; i++) {
-			ProjectMember member = roster.getMember(i);
-			Payroll payroll = new Payroll();
-			payroll.setOrderNumber(i + 1);
-			payroll.setName(member.getName());
-			payroll.setBasePay(member.getBasePay());
-			payroll.setDailyPay(member.getDailyPay());
-			payroll.setWorkingDays(initWorkingDayCount);
-			payrollSheet.addPayroll(payroll);
-			tempAmount += payroll.getTotalPay();
-		}
-
-		double remainAmount = totalAmount - tempAmount;
-		for (int i = 0; i < payrollCount; i++) {
-			if (remainAmount >= Constant.LOW_DAILY_PAY * 2 || remainAmount > Constant.HIGH_DAILY_PAY + 50) {
-				Payroll payroll = payrollSheet.getPayrollList().get(i);
-				payroll.increaseWorkingDays(1);
-				remainAmount -= payroll.getDailyPay();
-				if (i == payrollCount - 1) {
-					i = -1;
-				}
-			} else {
-				break;
-			}
-		}
-		payrollSheet.getPayrollList().get(0).setOvertimePay(remainAmount);
-		logger.debug("分表金额: " + totalAmount + ", 加班费: " + remainAmount);
-	}
-*/
 	
 	protected void buildPayrolls(PayrollSheet payrollSheet, ProjectMemberRoster roster) {
 		int payrollCount = payrollSheet.getPayrollNumber();
@@ -396,8 +335,8 @@ public class PayrollSheetProcesser {
 		return initWorkingDayCount;
 	}
 
-	private static double calcPayrollSheetTotalAmount(int payrollNumber, BillingPlan billing) {
-		return Math.round(billing.getTotalPay() / billing.getPayCount() * payrollNumber);
+	private static double calcPayrollSheetTotalAmount(int payrollNumber, BillingPlan billingPlan) {
+		return Math.round(billingPlan.getTotalPay() / billingPlan.getPayCount() * payrollNumber);
 	}
 
 }

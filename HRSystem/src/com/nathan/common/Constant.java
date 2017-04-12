@@ -15,6 +15,7 @@ public class Constant {
 	public static final String LINE1 = "------------------------------------------------------------------------";
 	
 	public static final String DELIMITER0 = "|";
+	public static final String DELIMITER1 = "-";
 	public static final String EMPTY_STRING = "";
 	
 	public static final String BILLING_STATUS_COMPLETED = "ÒÑÖÆ×÷";

@@ -19,6 +19,7 @@ public class BillingPlan {
 	private double totalPay;
 	private int payCount;
 	private double withdrawalFee;
+	private String alternatedProjectLeaderRemark;
 	private String billingStatus = null;
 	private String billingID = null;
 	private String startAndEndPayTime;
@@ -239,6 +240,34 @@ public class BillingPlan {
 		this.withdrawalFee = withdrawalFee;
 	}
 
+	/**
+	 * @return the alternatedProjectLeaderRemark
+	 */
+	public String getAlternatedProjectLeaderRemark() {
+		return alternatedProjectLeaderRemark;
+	}
+
+	/**
+	 * @param alternatedProjectLeaderRemark the alternatedProjectLeaderRemark to set
+	 */
+	public void setAlternatedProjectLeaderRemark(String alternatedProjectLeaderRemark) {
+		if (this.alternatedProjectLeaderRemark == null) {
+			this.alternatedProjectLeaderRemark = alternatedProjectLeaderRemark;
+		} else {
+			this.alternatedProjectLeaderRemark = this.alternatedProjectLeaderRemark + Constant.DELIMITER0 + alternatedProjectLeaderRemark;
+		}
+	}
+	
+	public void setAlternatedProjectLeaderRemark(int payCount) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(this.getProjectUnit());
+		sb.append(Constant.DELIMITER1);
+		sb.append(this.getProjectLeader());
+		sb.append(Constant.DELIMITER1);
+		sb.append(payCount);
+		this.setAlternatedProjectLeaderRemark(sb.toString());
+	}
+
 	public String getBillingStatusAfterBillingCompleted() {
 		this.billingStatus = Constant.BILLING_STATUS_COMPLETED;
 		return billingStatus;
@@ -260,9 +289,15 @@ public class BillingPlan {
 	}
 
 	public String getBillingIDAfterBillingCompleted() {
-		this.billingID = this.projectUnit + Constant.DELIMITER0 + this.projectLeader + Constant.DELIMITER0
-				+ this.contractID + Constant.DELIMITER0 + Util.getCurrentDateString();
+		if(billingID == null) {
+			setBillingID(this.payCount);
+		}	
 		return billingID;
+	}
+	
+	public void setBillingID(int payCount) {
+		this.billingID = this.projectUnit + Constant.DELIMITER0 + this.projectLeader + Constant.DELIMITER0
+				+ this.contractID + Constant.DELIMITER0 + payCount + Constant.DELIMITER0 + Util.getCurrentDateString();
 	}
 
 	/**
@@ -405,11 +440,11 @@ public class BillingPlan {
 				+ ", contractValue=" + contractValue + ", invoiceAmount=" + invoiceAmount + ", administrationExpenses="
 				+ administrationExpenses + ", administrationExpensesRate=" + administrationExpensesRate
 				+ ", totalAdministrationExpenses=" + totalAdministrationExpenses + ", totalPay=" + totalPay
-				+ ", payCount=" + payCount + ", withdrawalFee=" + withdrawalFee + ", billingStatus=" + billingStatus
-				+ ", billingID=" + billingID + ", startAndEndPayTime=" + startAndEndPayTime + ", startPayYear="
-				+ startPayYear + ", endPayYear=" + endPayYear + ", startPayMonth=" + startPayMonth + ", endPayMonth="
-				+ endPayMonth + "]";
-	}
-	
+				+ ", payCount=" + payCount + ", withdrawalFee=" + withdrawalFee + ", alternatedProjectLeaderRemark="
+				+ alternatedProjectLeaderRemark + ", billingStatus=" + billingStatus + ", billingID=" + billingID
+				+ ", startAndEndPayTime=" + startAndEndPayTime + ", startPayTimeInInteger=" + startPayTimeInInteger
+				+ ", endPayTimeInInteger=" + endPayTimeInInteger + ", startPayYear=" + startPayYear + ", endPayYear="
+				+ endPayYear + ", startPayMonth=" + startPayMonth + ", endPayMonth=" + endPayMonth + "]";
+	}	
 	
 }
