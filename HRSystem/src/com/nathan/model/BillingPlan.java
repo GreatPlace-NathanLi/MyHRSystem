@@ -29,6 +29,8 @@ public class BillingPlan {
 	private int endPayYear;
 	private int startPayMonth;
 	private int endPayMonth;
+	
+	private int rowIndex;
 
 	/**
 	 * @return the orderNumber
@@ -267,6 +269,28 @@ public class BillingPlan {
 		sb.append(payCount);
 		this.setAlternatedProjectLeaderRemark(sb.toString());
 	}
+	
+	public void resetAlternatedProjectLeaderRemark() {
+		this.alternatedProjectLeaderRemark = null;
+	}
+	
+	public int getAlternatedProjectLeaderRemarkSize() {
+		if(alternatedProjectLeaderRemark != null) {
+			String[] s = alternatedProjectLeaderRemark.split(Constant.DELIMITER00);
+			return s.length;
+		}
+		return 0;
+	}
+	
+	public String getProjectUnitFromAlternatedProjectLeaderRemark(int index) {
+		String[] s = alternatedProjectLeaderRemark.split(Constant.DELIMITER00);
+		return s[index].split(Constant.DELIMITER1)[0];
+	}
+	
+	public String getProjectLeaderFromAlternatedProjectLeaderRemark(int index) {
+		String[] s = alternatedProjectLeaderRemark.split(Constant.DELIMITER00);
+		return s[index].split(Constant.DELIMITER1)[1];
+	}
 
 	public String getBillingStatusAfterBillingCompleted() {
 		this.billingStatus = Constant.BILLING_STATUS_COMPLETED;
@@ -297,7 +321,11 @@ public class BillingPlan {
 	
 	public void setBillingID(int payCount) {
 		this.billingID = this.projectUnit + Constant.DELIMITER0 + this.projectLeader + Constant.DELIMITER0
-				+ this.contractID + Constant.DELIMITER0 + payCount + Constant.DELIMITER0 + Util.getCurrentDateString();
+				+ this.contractID + Constant.DELIMITER0 + this.startPayYear + Constant.DELIMITER0 + payCount + Constant.DELIMITER0 + Util.getCurrentDateString();
+	}
+	
+	public void resetBillingID() {
+		this.billingID = null;
 	}
 
 	/**
@@ -305,6 +333,51 @@ public class BillingPlan {
 	 */
 	public String getBillingID() {
 		return billingID;
+	}
+	
+	public String getProjectUnitFromBillingID() {
+		String projectUnit = null;
+		if (billingID != null) {
+			String[] s = billingID.split(Constant.DELIMITER00);
+			projectUnit = s[0];
+		}
+		return projectUnit;
+	}
+	
+	public String getProjectLeaderFromBillingID() {
+		String projectLeader = null;
+		if (billingID != null) {
+			String[] s = billingID.split(Constant.DELIMITER00);
+			projectLeader = s[1];
+		}
+		return projectLeader;
+	}
+	
+	public String getContractIDFromBillingID() {
+		String contractID = null;
+		if (billingID != null) {
+			String[] s = billingID.split(Constant.DELIMITER00);
+			contractID = s[2];
+		}
+		return contractID;
+	}
+	
+	public int getPayYearFromBillingID() {
+		int payYear = 0;
+		if (billingID != null) {
+			String[] s = billingID.split(Constant.DELIMITER00);
+			payYear = Integer.valueOf(s[3]);
+		}
+		return payYear;
+	}
+	
+	public int getPayCountFromBillingID() {
+		int payCount = 0;
+		if (billingID != null) {
+			String[] s = billingID.split(Constant.DELIMITER00);
+			payCount = Integer.valueOf(s[4]);
+		}
+		return payCount;
 	}
 
 	/**
@@ -430,6 +503,20 @@ public class BillingPlan {
 		this.endPayMonth = endPayMonth;
 	}
 
+	/**
+	 * @return the rowIndex
+	 */
+	public int getRowIndex() {
+		return rowIndex;
+	}
+
+	/**
+	 * @param rowIndex the rowIndex to set
+	 */
+	public void setRowIndex(int rowIndex) {
+		this.rowIndex = rowIndex;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -444,7 +531,7 @@ public class BillingPlan {
 				+ alternatedProjectLeaderRemark + ", billingStatus=" + billingStatus + ", billingID=" + billingID
 				+ ", startAndEndPayTime=" + startAndEndPayTime + ", startPayTimeInInteger=" + startPayTimeInInteger
 				+ ", endPayTimeInInteger=" + endPayTimeInInteger + ", startPayYear=" + startPayYear + ", endPayYear="
-				+ endPayYear + ", startPayMonth=" + startPayMonth + ", endPayMonth=" + endPayMonth + "]";
+				+ endPayYear + ", startPayMonth=" + startPayMonth + ", endPayMonth=" + endPayMonth + ", rowIndex=" + rowIndex + "]";
 	}	
 	
 }

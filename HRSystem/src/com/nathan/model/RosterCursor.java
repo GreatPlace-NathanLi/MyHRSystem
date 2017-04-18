@@ -11,7 +11,18 @@ public class RosterCursor {
 	private String identifier;
 	
 	private double amount;
+	
+	private int payCount;
+	
+	public RosterCursor() {
+		
+	}
 
+	public RosterCursor(int columnIndex, int rowIndex) {
+		this.columnIndex = columnIndex;
+		this.rowIndex = rowIndex;	
+	}
+	
 	/**
 	 * @return the rowIndex
 	 */
@@ -82,12 +93,27 @@ public class RosterCursor {
 		this.amount = amount;
 	}
 
+	/**
+	 * @return the payCount
+	 */
+	public int getPayCount() {
+		return payCount;
+	}
+
+	/**
+	 * @param payCount the payCount to set
+	 */
+	public void setPayCount(int payCount) {
+		this.payCount = payCount;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		return "RosterCursor [rowIndex=" + rowIndex + ", columnIndex=" + columnIndex + ", month=" + month
-				+ ", identifier=" + identifier + ", amount=" + amount + "]";
+				+ ", identifier=" + identifier + ", amount=" + amount + ", payCount=" + payCount + "]";
 	}
+
 }

@@ -9,7 +9,11 @@ public class ProjectMemberRoster extends AbstractBook {
 	
 	private ArrayList<ProjectMember> projectMemberList;
 	
-	private ArrayList<RosterCursor> cursorList;
+	private ArrayList<RosterCursor> existingCursorList;
+	
+	private ArrayList<RosterCursor> toAddCursorList;
+	
+	private ArrayList<RosterCursor> toDeleteCursorList;
 	
 	private RosterStatistics statistics;
 	
@@ -25,7 +29,9 @@ public class ProjectMemberRoster extends AbstractBook {
 	
 	public ProjectMemberRoster() {
 		this.projectMemberList = new ArrayList<ProjectMember>();
-		this.cursorList = new ArrayList<RosterCursor>();
+		this.existingCursorList = new ArrayList<RosterCursor>();
+		this.toAddCursorList = new ArrayList<RosterCursor>();
+		this.toDeleteCursorList = new ArrayList<RosterCursor>();
 	}
 
 	public void calcAvailablePayCount() {
@@ -58,20 +64,60 @@ public class ProjectMemberRoster extends AbstractBook {
 	} 
 	
 	/**
-	 * @return the cursorList
+	 * @return the existingCursorList
 	 */
-	public ArrayList<RosterCursor> getCursorList() {
-		return cursorList;
+	public ArrayList<RosterCursor> getExistingCursorList() {
+		return existingCursorList;
 	}
 
 	/**
-	 * @param cursorList the cursorList to set
+	 * @param existingCursorList the existingCursorList to set
 	 */
-	public void setCursorList(ArrayList<RosterCursor> cursorList) {
-		this.cursorList = cursorList;
+	public void setExistingCursorList(ArrayList<RosterCursor> existingCursorList) {
+		this.existingCursorList = existingCursorList;
+	}
+
+	public void addExistingCursor(RosterCursor rosterCursor) {
+		this.existingCursorList.add(rosterCursor);
 	}
 	
-	public void setCursor(int month, String identifier, double amount) {
+	/**
+	 * @return the toAddCursorList
+	 */
+	public ArrayList<RosterCursor> getToAddCursorList() {
+		return toAddCursorList;
+	}
+
+	/**
+	 * @param toAddCursorList the toAddCursorList to set
+	 */
+	public void setToAddCursorList(ArrayList<RosterCursor> toAddCursorList) {
+		this.toAddCursorList = toAddCursorList;
+	}
+
+	/**
+	 * @return the toDeleteCursorList
+	 */
+	public ArrayList<RosterCursor> getToDeleteCursorList() {
+		return toDeleteCursorList;
+	}
+	
+	public void resetToDeleteCursorList() {
+		this.toDeleteCursorList = new ArrayList<RosterCursor>();
+	}
+
+	/**
+	 * @param toDeleteCursorList the toDeleteCursorList to set
+	 */
+	public void setToDeleteCursorList(ArrayList<RosterCursor> toDeleteCursorList) {
+		this.toDeleteCursorList = toDeleteCursorList;
+	}
+	
+	public void addToDeleteCursor(RosterCursor rosterCursor) {
+		this.toDeleteCursorList.add(rosterCursor);
+	}
+
+	public void setNewCursor(int month, String identifier, double amount) {
 		RosterCursor cursor = new RosterCursor();
 		cursor.setMonth(month);
 		cursor.setIdentifier(identifier);
@@ -80,7 +126,7 @@ public class ProjectMemberRoster extends AbstractBook {
 		cursor.setRowIndex(lastPayIndex);
 		System.out.println(cursor);
 		
-		cursorList.add(cursor);
+		toAddCursorList.add(cursor);
 	}
 
 	public void addMember(ProjectMember member) {

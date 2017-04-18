@@ -1,9 +1,5 @@
 package com.nathan.controller;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -14,8 +10,10 @@ import com.nathan.model.ProjectMemberRoster;
 import com.nathan.model.RosterCursor;
 import com.nathan.model.RosterMonthStatistics;
 import com.nathan.model.RosterStatistics;
+import com.nathan.service.AbstractExcelOperater;
 
 import jxl.Cell;
+import jxl.CellType;
 import jxl.NumberCell;
 import jxl.Sheet;
 import jxl.Workbook;
@@ -27,13 +25,15 @@ import jxl.write.WritableWorkbook;
 import jxl.write.WriteException;
 import jxl.write.biff.RowsExceededException;
 
-public class RosterProcesser {
+public class RosterProcesser extends AbstractExcelOperater {
 
 	private static Logger logger = Logger.getLogger(RosterProcesser.class);
 
 	private ProjectMemberRoster roster;
 
 	private Map<String, ProjectMemberRoster> rosterCache;
+
+	private boolean isReconstruction;
 
 	public RosterProcesser() {
 		rosterCache = new ConcurrentHashMap<String, ProjectMemberRoster>();
@@ -47,16 +47,18 @@ public class RosterProcesser {
 		rosterCache.put(projectLeaderAndYear, roster);
 	}
 
-	public void processRoster(String projectLeader, int year)
-			throws RosterProcessException, WriteException, IOException {
+	public void processRoster(String projectLeader, int year, boolean isReconstruction) throws RosterProcessException {
 		roster = getRosterFormCache(projectLeader + year);
-		if (roster == null) {
+		if (roster == null || isReconstruction) {
 			String inputPath = Constant.ROSTER_FILE.replace("NNN", projectLeader).replace("YYYY", String.valueOf(year));
+			if (isReconstruction) {
+				inputPath = inputPath.replace("/in/", "/out/out");
+			}
 			logger.info("从本地读取花名册： " + inputPath);
 			roster = new ProjectMemberRoster();
 			roster.setLocation(inputPath);
 			roster.setCurrentPayYear(year);
-			readProjectMemberRoster(inputPath);
+			readProjectMemberRoster(inputPath, isReconstruction);
 
 			putRosterToCache(projectLeader + year, roster);
 
@@ -66,69 +68,106 @@ public class RosterProcesser {
 		logger.debug("花名册统计数据:" + roster.getStatistics());
 	}
 
-	public void updateProjectMemberRoster() throws RosterProcessException, WriteException, IOException {
+	public void updateProjectMemberRoster() throws RosterProcessException {
 		String inputPath = roster.getLocation();
 		String outputPath = inputPath.replace("/in/", "/out/out");
 		logger.info("保存花名册： " + outputPath);
 		writeProjectMemberRoster(inputPath, outputPath);
 	}
 
-	public void readProjectMemberRoster(String filePath) throws RosterProcessException {
+	public void readProjectMemberRoster(String filePath, boolean isReconstruction) throws RosterProcessException {
 
-		Workbook readwb = null;
+		this.isReconstruction = isReconstruction;
 
 		try {
-			// 直接从本地文件创建Workbook
-			InputStream instream = new FileInputStream(filePath);
-
-			readwb = Workbook.getWorkbook(instream);
-
-			Sheet readsheet = readwb.getSheet(0);
-
-			int rsColumns = readsheet.getColumns();
-
-			int rsRows = readsheet.getRows();
-
-			logger.debug("总列数：" + rsColumns + ", 总行数：" + rsRows);
-
-			int i = 0;
-			if (isRosterWithStatistics(readsheet)) {
-				i = 2;
-			} else {
-				i = 1;
-			}
-			for (; i < rsRows; i++) {
-				ProjectMember member = new ProjectMember();
-
-				member.setOrderNumber(Integer.valueOf(readsheet.getCell(0, i).getContents()));
-				member.setName(readsheet.getCell(1, i).getContents());
-				member.setBasePay(((NumberCell) readsheet.getCell(2, i)).getValue());
-				member.setContractStartAndEndTime(readsheet.getCell(3, i).getContents());
-				if (!Constant.EMPTY_STRING.equals(readsheet.getCell(4, i).getContents())) {
-					member.setOnJobStartAndEndTime(readsheet.getCell(4, i).getContents());
-				}
-
-//				logger.debug(member);
-				roster.addMember(member);
-			}
-
-			if (!isRosterWithStatistics(readsheet)) {
-				logger.debug("创建花名册统计数据");
-				buildRosterStatistics(readsheet);
-			} else {
-				logger.debug("读取花名册统计数据");
-				parseRosterStatistics(readsheet);
-			}
-
-			logger.debug("花名册： " + roster);
-			instream.close();
-
+			read(filePath);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RosterProcessException("读取花名册出错，" + e.getMessage());
-		} finally {
-			readwb.close();
 		}
+	}
+
+	protected void readContent(Workbook readwb) {
+		Sheet readsheet = readwb.getSheet(0);
+
+		int rsColumns = readsheet.getColumns();
+
+		int rsRows = readsheet.getRows();
+
+		logger.debug("总列数：" + rsColumns + ", 总行数：" + rsRows);
+
+		boolean isRosterWithStatistics = isRosterWithStatistics(readsheet);
+		int i = 0;
+		if (isRosterWithStatistics) {
+			i = 2;
+		} else {
+			i = 1;
+		}
+		for (; i < rsRows; i++) {
+			ProjectMember member = new ProjectMember();
+
+			member.setOrderNumber(Integer.valueOf(readsheet.getCell(0, i).getContents()));
+			member.setName(readsheet.getCell(1, i).getContents());
+			member.setBasePay(((NumberCell) readsheet.getCell(2, i)).getValue());
+			member.setContractStartAndEndTime(readsheet.getCell(3, i).getContents());
+			if (!Constant.EMPTY_STRING.equals(readsheet.getCell(4, i).getContents())) {
+				member.setOnJobStartAndEndTime(readsheet.getCell(4, i).getContents());
+			}
+
+			// logger.debug(member);
+			roster.addMember(member);
+		}
+
+		if (!isRosterWithStatistics) {
+			logger.debug("创建花名册统计数据");
+			buildRosterStatistics(readsheet);
+		} else {
+			logger.debug("读取花名册统计数据");
+			parseRosterStatistics(readsheet);
+		}
+
+		if (isReconstruction) {
+			parseCursors(readsheet, isRosterWithStatistics);
+		}
+
+		logger.debug("花名册： " + roster);
+	}
+
+	private void parseCursors(Sheet readsheet, boolean isRosterWithStatistics) {
+		int rsColumns = readsheet.getColumns();
+		int rsRows = readsheet.getRows();
+		int payYear = roster.getCurrentPayYear();
+		Cell cell = null;
+		int r = 0;
+		for (int c = 5; c < rsColumns; c += 2) {
+			if (isRosterWithStatistics) {
+				r = 2;
+			} else {
+				r = 1;
+			}
+			int payMonth = Integer.valueOf(readsheet.getCell(c + 1, r - 1).getContents().split("月")[0]);
+			int payCount = 1;
+			for (; r < rsRows; r++) {
+				cell = readsheet.getCell(c, r);
+				if (!Constant.EMPTY_STRING.equals(cell.getContents())) {
+					RosterCursor cursor = new RosterCursor(c, isRosterWithStatistics ? r : r + 1);
+					cursor.setIdentifier(cell.getContents());
+					cell = readsheet.getCell(c + 1, r);
+					if (CellType.NUMBER.equals(cell.getType())) {
+						cursor.setAmount(((NumberCell) cell).getValue());
+					}
+					cursor.setMonth(payMonth);
+					cursor.setPayCount(payCount);
+					roster.addExistingCursor(cursor);
+					payCount = 1;
+				} else {
+					if (isAvailable(r - 1, payYear, payMonth)) {
+						payCount++;
+					}
+				}
+			}
+		}
+		logger.debug("parseCursors(): " + roster.getExistingCursorList());
 	}
 
 	private void buildRosterStatistics(Sheet readsheet) {
@@ -193,30 +232,20 @@ public class RosterProcesser {
 		return true;
 	}
 
-	public void writeProjectMemberRoster(String inputFilePath, String outputFilePath)
-			throws RosterProcessException, WriteException, IOException {
-		Workbook rwb = null;
-		WritableWorkbook wwb = null;
+	public void writeProjectMemberRoster(String inputFilePath, String outputFilePath) throws RosterProcessException {
 		try {
-			File inputFile = new File(inputFilePath);
-			File outputFille = new File(outputFilePath);
-			rwb = Workbook.getWorkbook(inputFile);
-
-			wwb = Workbook.createWorkbook(outputFille, rwb);// copy
-			WritableSheet sheet = wwb.getSheet(0);
-
-			writeRosterStatistics(sheet);
-			writeCursor(sheet);
-
-			wwb.write();
-
+			write(inputFilePath, outputFilePath);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RosterProcessException("保存花名册出错，" + e.getMessage());
-		} finally {
-			rwb.close();
-			wwb.close();
 		}
+	}
+
+	protected void writeContent(WritableWorkbook wwb) throws Exception {
+		WritableSheet sheet = wwb.getSheet(0);
+
+		writeRosterStatistics(sheet);
+		writeCursor(sheet);
 	}
 
 	private void writeRosterStatistics(WritableSheet sheet) throws RowsExceededException, WriteException {
@@ -237,12 +266,70 @@ public class RosterProcesser {
 	}
 
 	private void writeCursor(WritableSheet sheet) throws RowsExceededException, WriteException {
-		for (RosterCursor cursor : roster.getCursorList()) {
+		for (RosterCursor cursor : roster.getToAddCursorList()) {
 			Label identifier = new Label(cursor.getColumnIndex(), cursor.getRowIndex(), cursor.getIdentifier());
 			sheet.addCell(identifier);
 			Number amount = new Number(cursor.getColumnIndex() + 1, cursor.getRowIndex(), cursor.getAmount());
 			sheet.addCell(amount);
 		}
+		for (RosterCursor cursor : roster.getToDeleteCursorList()) {
+			Label identifier = new Label(cursor.getColumnIndex(), cursor.getRowIndex(), Constant.EMPTY_STRING);
+			sheet.addCell(identifier);
+			Label amount = new Label(cursor.getColumnIndex() + 1, cursor.getRowIndex(), Constant.EMPTY_STRING);
+			sheet.addCell(amount);
+		}
+	}
+
+	public void deleteRosterCursorsByContractID(String contractID) throws RosterProcessException {
+		logger.info("删除花名册游标编号为： " + contractID);
+		for (RosterCursor cursor : roster.getExistingCursorList()) {
+			if (cursor.getIdentifier().equals(contractID)) {
+				logger.info("删除游标：" + cursor);
+				roster.addToDeleteCursor(cursor);
+				updateRosterStatisticsOnceDeleteCursor(cursor);
+			}
+		}
+
+		if (roster.getToDeleteCursorList().size() > 0) {
+			logger.debug(roster.getToDeleteCursorList());
+			String inputPath = roster.getLocation();
+			String outputPath = inputPath.replace("/in/", "/out/out");
+			logger.info("删除花名册游标： " + outputPath);
+			writeProjectMemberRoster(outputPath, outputPath);
+			roster.resetToDeleteCursorList();
+		}
+	}
+
+	private void updateRosterStatisticsOnceDeleteCursor(RosterCursor cursor) {
+		int month = cursor.getMonth();
+		int payCount = cursor.getPayCount();
+		int monthAvailableIndex = 2;
+		RosterCursor preCursor = getLastCursor(cursor);
+		logger.debug("updateRosterStatisticsOnceDeleteCursor()－preCursor:" + preCursor);
+		if (preCursor != null && preCursor.getMonth() == month) {
+			int preCursorIndex = preCursor.getRowIndex();
+			for (int i = 1; i <= payCount; i++) {
+				if (isAvailable(preCursorIndex + i - 1, roster.getCurrentPayYear(), month)) {
+					monthAvailableIndex = preCursorIndex + i;
+					break;
+				}
+			}
+		}
+		int monthAvailableCount = roster.getStatistics().getMonthAvailableCount(month);
+		roster.getStatistics().setMonthAvailableCount(month, monthAvailableCount + payCount);
+		roster.getStatistics().setMonthAvaiableIndex(month, monthAvailableIndex);
+	}
+
+	private RosterCursor getLastCursor(RosterCursor currentCursor) {
+		RosterCursor cursor = null;
+		for (int i = 1; i < roster.getExistingCursorList().size(); i++) {
+			cursor = roster.getExistingCursorList().get(i);
+			if (cursor != null && cursor.getColumnIndex() == currentCursor.getColumnIndex()
+					&& cursor.getRowIndex() == currentCursor.getRowIndex()) {
+				return roster.getExistingCursorList().get(i - 1);
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -260,4 +347,28 @@ public class RosterProcesser {
 		this.roster = roster;
 	}
 
+	public static void main(String[] args) throws Exception {
+		RosterProcesser rosterProcesser = new RosterProcesser();
+
+		long startTime = System.nanoTime();
+		logger.info(Constant.LINE0);
+		logger.info("读写花名册开始...");
+		logger.info(Constant.LINE0);
+
+		String projectLeader = "张一";
+		int year = 2016;
+		rosterProcesser.processRoster(projectLeader, year, false);
+
+		logger.info(Constant.LINE1);
+		rosterProcesser.updateProjectMemberRoster();
+		logger.info(Constant.LINE1);
+
+		rosterProcesser.processRoster(projectLeader, year, true);
+		rosterProcesser.deleteRosterCursorsByContractID("14-019补");
+
+		long endTime = System.nanoTime();
+		logger.info(Constant.LINE0);
+		logger.info("读写花名册结束， 用时：" + (endTime - startTime) / 1000000 + "毫秒");
+		logger.info(Constant.LINE0);
+	}
 }

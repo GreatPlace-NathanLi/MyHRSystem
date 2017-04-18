@@ -18,7 +18,7 @@ public class BillingPlanBook extends AbstractBook {
 	}
 
 	public void addBillingPlan(BillingPlan billingPlan) {
-		this.billingPlanList.add(billingPlan.getOrderNumber()-1, billingPlan);
+		this.billingPlanList.add(billingPlan);
 	}
 	
 	public int getTotalBillingPlanSize() {

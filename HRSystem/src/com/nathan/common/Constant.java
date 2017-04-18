@@ -15,8 +15,11 @@ public class Constant {
 	public static final String LINE1 = "------------------------------------------------------------------------";
 	
 	public static final String DELIMITER0 = "|";
+	public static final String DELIMITER00 = "\\|";
 	public static final String DELIMITER1 = "-";
 	public static final String EMPTY_STRING = "";
 	
 	public static final String BILLING_STATUS_COMPLETED = "ряжфвВ";
+	
+	public static final String MATCHES = "[A-Za-z]:\\\\[^:?\"><*]*";  
 }

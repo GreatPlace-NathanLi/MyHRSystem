@@ -1,14 +1,10 @@
 package com.nathan.controller;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
 import com.nathan.common.Constant;
 import com.nathan.exception.BillingPlanProcessException;
 import com.nathan.model.BillingPlan;
 import com.nathan.model.BillingPlanBook;
+import com.nathan.service.AbstractExcelOperater;
 
 import jxl.Cell;
 import jxl.CellType;
@@ -20,9 +16,8 @@ import jxl.write.Label;
 import jxl.write.Number;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
-import jxl.write.WriteException;
 
-public class BillingPlanProcesser {
+public class BillingPlanProcesser extends AbstractExcelOperater {
 	
 	private static Logger logger = Logger.getLogger(BillingPlanProcesser.class);
 	
@@ -52,58 +47,25 @@ public class BillingPlanProcesser {
 	}
 
 	public void readBillingInput(String filePath) throws BillingPlanProcessException {
-		
-		Workbook readwb = null;
-
-		try {
-			// 直接从本地文件创建Workbook
-			InputStream instream = new FileInputStream(filePath);
-
-			readwb = Workbook.getWorkbook(instream);
-			Sheet readsheet = readwb.getSheet(0);
-			
-			int rsColumns = readsheet.getColumns();
-			int rsRows = readsheet.getRows();
-
-			logger.debug("总列数：" + rsColumns + ", 总行数：" + rsRows);
-
-//			// 获取指定单元格的对象引用
-//
-//			for (int i = 0; i < rsRows; i++)
-//
-//			{
-//
-//				for (int j = 0; j < rsColumns; j++)
-//
-//				{
-//
-//					Cell cell = readsheet.getCell(j, i);
-//
-//					System.out.print(cell.getContents() + " ");
-//
-//					// System.out.println(cell.getType());
-//
-//				}
-//
-//				System.out.println();
-//
-//			}
-			
-			for (int r = 2; r < rsRows; r++) {
-				createBillingPlanFromInputSheet(readsheet, r);
-			}
-
-			
-
-			instream.close();
-
+		try {			
+			read(filePath);			
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new BillingPlanProcessException("读取开票计划出错，" + e.getMessage());
-		} finally {
-			readwb.close();
-		}
+		} 
+	}
+	
+	protected void readContent(Workbook readwb) throws Exception {
+		Sheet readsheet = readwb.getSheet(0);
+		
+		int rsColumns = readsheet.getColumns();
+		int rsRows = readsheet.getRows();
 
+		logger.debug("总列数：" + rsColumns + ", 总行数：" + rsRows);
+		
+		for (int r = 2; r < rsRows; r++) {
+			createBillingPlanFromInputSheet(readsheet, r);
+		}
 	}
 
 	/**
@@ -125,6 +87,7 @@ public class BillingPlanProcesser {
 	private void createBillingPlanFromInputSheet(Sheet readsheet, int rowIndex) throws BillingPlanProcessException {
 		if(isNewBillingPlan(readsheet, rowIndex)) {
 			BillingPlan billingPLan = new BillingPlan();
+			billingPLan.setRowIndex(rowIndex);
 
 			Cell cell = readsheet.getCell(0, rowIndex);
 			billingPLan.setOrderNumber(Integer.valueOf(cell.getContents()));
@@ -181,7 +144,7 @@ public class BillingPlanProcesser {
 			}	
 			
 			cell = readsheet.getCell(35, rowIndex);
-			billingPLan.setBillingStatus(isEmpty(cell) ? null : cell.getContents());
+			billingPLan.setAlternatedProjectLeaderRemark(isEmpty(cell) ? null : cell.getContents());
 			
 			cell = readsheet.getCell(36, rowIndex);
 			billingPLan.setBillingStatus(isEmpty(cell) ? null : cell.getContents());
@@ -264,52 +227,62 @@ public class BillingPlanProcesser {
 	}
 	
 	public void writeBillingOutput(String inputFilePath, String outputFilePath)
-			throws WriteException, IOException {
-		Workbook rwb = null;
-		WritableWorkbook wwb = null;
-		try {
-			File inputFile = new File(inputFilePath);
-			File outputFille = new File(outputFilePath);
-			rwb = Workbook.getWorkbook(inputFile);
-
-			wwb = Workbook.createWorkbook(outputFille, rwb);// copy
-			WritableSheet sheet = wwb.getSheet(0);
-			
-			int rsRows = sheet.getRows();
-			for (int r = 2; r < rsRows; r++) {
-				BillingPlan billingPlan = billingPlanBook.getBillingPlanList().get(r - 2);
-				if (!bypassBillingOutputCalculation) {
-					Number payCount = new Number(17, r, billingPlan.getPayCount(), sheet.getCell(17, r).getCellFormat());
-					sheet.addCell(payCount);
-
-					Number totalAdministrationExpenses = new Number(19, r, billingPlan.getTotalAdministrationExpenses(),
-							sheet.getCell(19, r).getCellFormat());
-					sheet.addCell(totalAdministrationExpenses);
-
-					Number totalPay = new Number(20, r, billingPlan.getTotalPay(), sheet.getCell(20, r).getCellFormat());
-					sheet.addCell(totalPay);
-
-					Number withdrawalFee = new Number(28, r, billingPlan.getWithdrawalFee(), sheet.getCell(28, r).getCellFormat());
-					sheet.addCell(withdrawalFee);
-				}	
-				
-				Label alternatedProjectLeaderRemark = new Label(35,r,billingPlan.getAlternatedProjectLeaderRemark(), sheet.getCell(35, r).getCellFormat());
-				sheet.addCell(alternatedProjectLeaderRemark);
-				
-				Label billingStatus = new Label(36,r,billingPlan.getBillingStatusAfterBillingCompleted(), sheet.getCell(36, r).getCellFormat());
-				sheet.addCell(billingStatus);
-				
-				Label billingID = new Label(38,r,billingPlan.getBillingID(), sheet.getCell(38, r).getCellFormat());
-				sheet.addCell(billingID);
-			}		
-	
-			wwb.write();
-
+			throws BillingPlanProcessException {
+		try {			
+			write(inputFilePath, outputFilePath);			
 		} catch (Exception e) {
 			e.printStackTrace();
-		} finally {
-			rwb.close();
-			wwb.close();
-		}
+			throw new BillingPlanProcessException("保存开票计划出错，" + e.getMessage());
+		} 
+	}
+	
+	protected void writeContent(WritableWorkbook wwb) throws Exception {
+		WritableSheet sheet = wwb.getSheet(0);
+		
+		for (BillingPlan billingPlan : billingPlanBook.getBillingPlanList()) {
+			int r = billingPlan.getRowIndex();
+			if (!bypassBillingOutputCalculation) {
+				Number payCount = new Number(17, r, billingPlan.getPayCount(), sheet.getCell(17, r).getCellFormat());
+				sheet.addCell(payCount);
+
+				Number totalAdministrationExpenses = new Number(19, r, billingPlan.getTotalAdministrationExpenses(),
+						sheet.getCell(19, r).getCellFormat());
+				sheet.addCell(totalAdministrationExpenses);
+
+				Number totalPay = new Number(20, r, billingPlan.getTotalPay(), sheet.getCell(20, r).getCellFormat());
+				sheet.addCell(totalPay);
+
+				Number withdrawalFee = new Number(28, r, billingPlan.getWithdrawalFee(), sheet.getCell(28, r).getCellFormat());
+				sheet.addCell(withdrawalFee);
+			}	
+			
+			Label alternatedProjectLeaderRemark = new Label(35,r,billingPlan.getAlternatedProjectLeaderRemark(), sheet.getCell(35, r).getCellFormat());
+			sheet.addCell(alternatedProjectLeaderRemark);
+			
+			Label billingStatus = new Label(36,r,billingPlan.getBillingStatusAfterBillingCompleted(), sheet.getCell(36, r).getCellFormat());
+			sheet.addCell(billingStatus);
+			
+			Label billingID = new Label(38,r,billingPlan.getBillingID(), sheet.getCell(38, r).getCellFormat());
+			sheet.addCell(billingID);
+		}	
+	}
+	
+	public static void main(String[] args) throws Exception {
+		BillingPlanProcesser billingPlanProcesser = new BillingPlanProcesser();
+
+		long startTime = System.nanoTime();
+
+		logger.info("步骤1 - 读取开票计划输入： " + Constant.BILLING_INPUT_FILE);
+		billingPlanProcesser.processBillingPlanInput(Constant.BILLING_INPUT_FILE);
+		logger.info(Constant.LINE1);
+
+		
+		logger.info("步骤2 - 保存开票计划输出： " + Constant.BILLING_OUTPUT_FILE);
+		billingPlanProcesser.writeBillingOutput(Constant.BILLING_INPUT_FILE, Constant.BILLING_OUTPUT_FILE);
+
+		long endTime = System.nanoTime();
+		logger.info(Constant.LINE0);
+		logger.info("开票计划读写结束， 用时：" + (endTime - startTime) / 1000000 + "毫秒");
+		logger.info(Constant.LINE0);
 	}
 }
