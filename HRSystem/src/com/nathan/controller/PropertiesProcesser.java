@@ -10,7 +10,7 @@ import java.io.OutputStream;
 import java.util.Enumeration;
 import java.util.Properties;
 
-import jxl.common.Logger;
+import org.apache.log4j.Logger;
 
 public class PropertiesProcesser {
 	

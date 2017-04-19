@@ -7,7 +7,7 @@ import com.nathan.model.BillingPlan;
 import com.nathan.model.BillingPlanBook;
 import com.nathan.service.AbstractExcelOperater;
 
-import jxl.common.Logger;
+import org.apache.log4j.Logger;
 import jxl.write.Label;
 import jxl.write.Number;
 import jxl.write.WritableCell;
@@ -20,7 +20,7 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 
 	private BillingPlan billingPlan;
 	
-	private String paymentDocumentTemplateFile = Constant.PAYMENT_DOC_TEMPLATE_FILE;
+	private String paymentDocumentTemplateFile = Constant.propUtil.getStringValue("user.付款手续单据模板路径",Constant.PAYMENT_DOC_TEMPLATE_FILE);
 
 	public void processPaymentDocument(BillingPlanBook billingPlanBook) throws PaymentDocumentProcessException {
 		for (BillingPlan billingPlan : billingPlanBook.getBillingPlanList()) {
@@ -56,7 +56,7 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 
 		logInfo(sheet);
 
-		Label tabulator = new Label(3, 2, getTabulator(), sheet.getCell(3, 2).getCellFormat());
+		Label tabulator = new Label(3, 2, Util.getTabulator(), sheet.getCell(3, 2).getCellFormat());
 		sheet.addCell(tabulator);
 
 		Label contractID = new Label(1, 3, billingPlan.getContractID(), sheet.getCell(1, 3).getCellFormat());
@@ -77,10 +77,6 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 		Number totalAdministrationExpenses = new Number(5, 6, billingPlan.getTotalAdministrationExpenses(),
 				sheet.getCell(5, 6).getCellFormat());
 		sheet.addCell(totalAdministrationExpenses);
-	}
-
-	private String getTabulator() {
-		return Constant.TABULATOR;
 	}
 
 	private void writeExpenditureProof(WritableWorkbook wwb) throws Exception {
@@ -105,7 +101,7 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 
 		cell = sheet.getWritableCell(0, 6);
 		String tabulator = ((Label) cell).getString();
-		tabulator = tabulator.replace("NNN", getTabulator());
+		tabulator = tabulator.replace("NNN", Util.getTabulator());
 		((Label) cell).setString(tabulator);
 
 		Label projectUnit = new Label(0, 2, billingPlan.getProjectUnit(), sheet.getCell(0, 2).getCellFormat());
@@ -129,7 +125,8 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 	}
 	
 	private String buildPaymentDocumentFilePath(BillingPlan billingPlan) {
-		String filePath = Constant.PAYMENT_DOC_FILE.replace("NNN", billingPlan.getProjectLeader());
+		String paymentDocFile = Constant.propUtil.getStringValue("user.付款手续单据输出路径", Constant.PAYMENT_DOC_FILE);
+		String filePath = paymentDocFile.replace("NNN", billingPlan.getProjectLeader());
 		filePath = filePath.replace("CCCCC", billingPlan.getContractID());
 		return filePath;
 	}
@@ -138,6 +135,7 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 		BillingPlanProcesser billingPlanProcesser = new BillingPlanProcesser();
 		PaymentDocumentProcesser paymentDocumentProcesser = new PaymentDocumentProcesser();
 
+		Constant.propUtil.init();
 		long startTime = System.nanoTime();
 
 		logger.info("步骤1 - 读取开票计划输入： " + Constant.BILLING_INPUT_FILE);

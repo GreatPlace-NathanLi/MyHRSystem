@@ -17,7 +17,7 @@ import jxl.CellType;
 import jxl.NumberCell;
 import jxl.Sheet;
 import jxl.Workbook;
-import jxl.common.Logger;
+import org.apache.log4j.Logger;
 import jxl.write.Label;
 import jxl.write.Number;
 import jxl.write.WritableSheet;
@@ -50,7 +50,8 @@ public class RosterProcesser extends AbstractExcelOperater {
 	public void processRoster(String projectLeader, int year, boolean isReconstruction) throws RosterProcessException {
 		roster = getRosterFormCache(projectLeader + year);
 		if (roster == null || isReconstruction) {
-			String inputPath = Constant.ROSTER_FILE.replace("NNN", projectLeader).replace("YYYY", String.valueOf(year));
+			String rosterFile = Constant.propUtil.getStringValue("user.花名册路径", Constant.ROSTER_FILE);
+			String inputPath = rosterFile.replace("NNN", projectLeader).replace("YYYY", String.valueOf(year));
 //			if (isReconstruction) {
 //				inputPath = inputPath.replace("/in/", "/out/out");
 //			}
@@ -355,6 +356,7 @@ public class RosterProcesser extends AbstractExcelOperater {
 		logger.info("读写花名册开始...");
 		logger.info(Constant.LINE0);
 
+		Constant.propUtil.init();
 		String projectLeader = "张一";
 		int year = 2016;
 		rosterProcesser.processRoster(projectLeader, year, false);

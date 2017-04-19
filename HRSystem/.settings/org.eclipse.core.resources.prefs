@@ -1,4 +1,6 @@
 eclipse.preferences.version=1
+encoding//properties/log4j.properties=UTF-8
 encoding//properties/setting.properties=UTF-8
 encoding//properties/setting.properties.backup=UTF-8
 encoding//src/beans/excel/CopyXLS.java=UTF-8
+encoding//src/log4j.properties=UTF-8

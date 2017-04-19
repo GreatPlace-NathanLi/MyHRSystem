@@ -11,7 +11,7 @@ import jxl.CellType;
 import jxl.NumberCell;
 import jxl.Sheet;
 import jxl.Workbook;
-import jxl.common.Logger;
+import org.apache.log4j.Logger;
 import jxl.write.Label;
 import jxl.write.Number;
 import jxl.write.WritableSheet;

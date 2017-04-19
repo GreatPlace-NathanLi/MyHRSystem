@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.nathan.common.Constant;
+import com.nathan.common.Util;
 import com.nathan.exception.PayrollSheetProcessException;
 import com.nathan.exception.RosterProcessException;
 import com.nathan.model.BillingPlan;
@@ -19,7 +20,7 @@ import jxl.FormulaCell;
 import jxl.Sheet;
 import jxl.biff.EmptyCell;
 import jxl.biff.formula.FormulaException;
-import jxl.common.Logger;
+import org.apache.log4j.Logger;
 import jxl.write.Blank;
 import jxl.write.Formula;
 import jxl.write.Label;
@@ -164,9 +165,9 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		if (payrollSheetList.size() > 0) {
 			String outputPath = buildPayrollSheetFilePath(processingProjectLeader,
 					billingPlan.getStartPayYear());
-
-			logger.info("读取工资表输出模板： " + Constant.PAYROLL_TEMPLATE_FILE);
-			writePayrollSheet(Constant.PAYROLL_TEMPLATE_FILE, outputPath, payrollSheetList);
+			String payrollTemplateFile = Constant.propUtil.getStringValue("user.工资表模板路径", Constant.PAYROLL_TEMPLATE_FILE);
+			logger.info("读取工资表输出模板： " + payrollTemplateFile);
+			writePayrollSheet(payrollTemplateFile, outputPath, payrollSheetList);
 			logger.info(Constant.LINE1);
 			logger.info("保存工资表输出： " + outputPath);
 			logger.info(Constant.LINE1);
@@ -347,7 +348,14 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		leaderAndContract = leaderAndContract.replace("CCCCC", payrollSheet.getContractID());
 		((Label) cell).setString(leaderAndContract);
 		
+		cell = sheet.getWritableCell(0, 6);
+		String tabulator = ((Label) cell).getString();
+		tabulator = tabulator.replace("NNN", Util.getTabulator());
+		((Label) cell).setString(tabulator);
+		
 	}
+	
+	
 
 	private void fillPayrollSheet(PayrollSheet payrollSheet, WritableSheet sheet)
 			throws RowsExceededException, WriteException, FormulaException {
@@ -454,7 +462,8 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	}
 
 	private String buildPayrollSheetFilePath(String projectLeader, int payYear) {
-		String filePath = Constant.PAYROLL_FILE.replace("NNN", projectLeader);
+		String payrollFile = Constant.propUtil.getStringValue("user.工资表输出路径", Constant.PAYROLL_FILE);
+		String filePath = payrollFile.replace("NNN", projectLeader);
 		filePath = filePath.replace("YYYY", String.valueOf(payYear));
 		return filePath;
 	}

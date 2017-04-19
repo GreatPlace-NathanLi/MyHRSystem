@@ -11,7 +11,7 @@ import java.io.OutputStream;
 import jxl.Cell;
 import jxl.Sheet;
 import jxl.Workbook;
-import jxl.common.Logger;
+import org.apache.log4j.Logger;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
 

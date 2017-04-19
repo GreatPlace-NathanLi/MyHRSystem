@@ -7,7 +7,7 @@ import java.io.InputStreamReader;
 import java.util.Enumeration;
 import java.util.Properties;
 
-import jxl.common.Logger;
+import org.apache.log4j.Logger;
 
 /**
  * 从properties配置中取值并打印日志，注意:读取完毕要手动调用close方法.
@@ -36,7 +36,7 @@ public class PropertiesUtils {
 		_inputStream = new FileInputStream(_confName);
 		_properties = new Properties();
 		_properties.load(new InputStreamReader(_inputStream, "UTF-8"));
-		
+		close();
 		Enumeration<?> en = _properties.propertyNames(); // 得到配置文件的名字
 
 		while (en.hasMoreElements()) {
@@ -236,7 +236,7 @@ public class PropertiesUtils {
 	}
 
 	public static void main(String[] args) {
-		PropertiesUtils proputil = new PropertiesUtils("properties/setting.properties");
+		PropertiesUtils proputil = new PropertiesUtils("F:/work/project/conf/setting.properties");
 		try {
 			proputil.init();
 			

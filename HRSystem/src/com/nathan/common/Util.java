@@ -13,14 +13,18 @@ public class Util {
 	}
 	
 	public static String getCurrentDateString() {
+        String dateInInteger = String.valueOf(getCurrentDateInt());
+        //System.out.println("日期: " + dateInInteger);  
+        	
+        return dateInInteger;
+	}
+	
+	public static int getCurrentDateInt() {
 		Calendar now = Calendar.getInstance();  
         int year = now.get(Calendar.YEAR);
         int month = now.get(Calendar.MONTH) + 1;
         int day = now.get(Calendar.DAY_OF_MONTH);
-        String dateInInteger = String.valueOf(year * 10000 + month * 100 + day);
-        //System.out.println("日期: " + dateInInteger);  
-        	
-        return dateInInteger;
+        return year * 10000 + month * 100 + day;
 	}
 
 	public static String getCurrentYear() {
@@ -33,5 +37,9 @@ public class Util {
 		Calendar now = Calendar.getInstance();  
 		int month = now.get(Calendar.MONTH) + 1;
         return String.valueOf(month);
+	}
+	
+	public static String getTabulator() {
+		return Constant.propUtil.getStringValue("user.制表人", Constant.TABULATOR);
 	}
 }
