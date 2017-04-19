@@ -12,6 +12,7 @@ public class SingleBillingOperater {
 		BillingPlanProcesser billingPlanProcesser = new BillingPlanProcesser();
 		RosterProcesser rosterProcesser = new RosterProcesser();
 		PayrollSheetProcesser payrollSheetProcesser = new PayrollSheetProcesser();
+		PaymentDocumentProcesser paymentDocumentProcesser = new PaymentDocumentProcesser(); 
 
 		long startTime = System.nanoTime();
 		logger.info(Constant.LINE0);
@@ -29,6 +30,10 @@ public class SingleBillingOperater {
 		
 		logger.info("步骤3 - 保存开票计划输出： " + Constant.BILLING_OUTPUT_FILE);
 		billingPlanProcesser.writeBillingOutput(Constant.BILLING_INPUT_FILE, Constant.BILLING_OUTPUT_FILE);
+		logger.info(Constant.LINE1);
+		
+		logger.info("步骤4 - 开始制作付款手续单据...");
+		paymentDocumentProcesser.processPaymentDocument(billingPlanProcesser.getBillingPlanBook());
 
 		long endTime = System.nanoTime();
 		logger.info(Constant.LINE0);

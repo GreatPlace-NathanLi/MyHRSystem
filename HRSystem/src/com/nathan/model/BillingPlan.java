@@ -12,6 +12,9 @@ public class BillingPlan {
 	private String projectID;
 	private String projectLeader;
 	private double contractValue;
+	private int billingYear;
+	private int billingMonth;
+	private int billingDay;
 	private double invoiceAmount;
 	private double administrationExpenses;
 	private double administrationExpensesRate;
@@ -31,6 +34,9 @@ public class BillingPlan {
 	private int endPayMonth;
 	
 	private int rowIndex;
+	private transient int processingPayCount;
+	private transient double processingTotalPay;
+	private transient String processingProjectLeader;
 
 	/**
 	 * @return the orderNumber
@@ -120,6 +126,7 @@ public class BillingPlan {
 	 */
 	public void setProjectLeader(String projectLeader) {
 		this.projectLeader = projectLeader;
+		this.processingProjectLeader = this.projectLeader;
 	}
 
 	/**
@@ -137,6 +144,51 @@ public class BillingPlan {
 		this.contractValue = contractValue;
 	}
 
+	/**
+	 * @return the billingYear
+	 */
+	public int getBillingYear() {
+		return billingYear;
+	}
+
+	/**
+	 * @param billingYear the billingYear to set
+	 */
+	public void setBillingYear(int billingYear) {
+		this.billingYear = billingYear;
+	}
+
+	/**
+	 * @return the billingMonth
+	 */
+	public int getBillingMonth() {
+		return billingMonth;
+	}
+
+	/**
+	 * @param billingMonth the billingMonth to set
+	 */
+	public void setBillingMonth(int billingMonth) {
+		this.billingMonth = billingMonth;
+	}
+
+	/**
+	 * @return the billingDay
+	 */
+	public int getBillingDay() {
+		return billingDay;
+	}
+
+	/**
+	 * @param billingDay the billingDay to set
+	 */
+	public void setBillingDay(int billingDay) {
+		this.billingDay = billingDay;
+	}
+
+	public String getBillingDateString() {
+		return String.valueOf(billingYear * 10000 + billingMonth * 100 + billingDay);
+	}
 	/**
 	 * @return the invoiceAmount
 	 */
@@ -210,6 +262,7 @@ public class BillingPlan {
 	 */
 	public void setTotalPay(double totalPay) {
 		this.totalPay = totalPay;
+		this.processingTotalPay = this.totalPay;
 	}
 
 	/**
@@ -225,6 +278,7 @@ public class BillingPlan {
 	 */
 	public void setPayCount(int payCount) {
 		this.payCount = payCount;
+		this.processingPayCount = this.payCount;
 	}
 
 	/**
@@ -517,6 +571,48 @@ public class BillingPlan {
 		this.rowIndex = rowIndex;
 	}
 
+	/**
+	 * @return the processingPayCount
+	 */
+	public int getProcessingPayCount() {
+		return processingPayCount;
+	}
+
+	/**
+	 * @param processingPayCount the processingPayCount to set
+	 */
+	public void setProcessingPayCount(int processingPayCount) {
+		this.processingPayCount = processingPayCount;
+	}
+
+	/**
+	 * @return the processingTotalPay
+	 */
+	public double getProcessingTotalPay() {
+		return processingTotalPay;
+	}
+
+	/**
+	 * @param processingTotalPay the processingTotalPay to set
+	 */
+	public void setProcessingTotalPay(double processingTotalPay) {
+		this.processingTotalPay = processingTotalPay;
+	}
+
+	/**
+	 * @return the processingProjectLeader
+	 */
+	public String getProcessingProjectLeader() {
+		return processingProjectLeader;
+	}
+
+	/**
+	 * @param processingProjectLeader the processingProjectLeader to set
+	 */
+	public void setProcessingProjectLeader(String processingProjectLeader) {
+		this.processingProjectLeader = processingProjectLeader;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -524,14 +620,16 @@ public class BillingPlan {
 	public String toString() {
 		return "BillingPlan [orderNumber=" + orderNumber + ", projectUnit=" + projectUnit + ", contractID=" + contractID
 				+ ", projectName=" + projectName + ", projectID=" + projectID + ", projectLeader=" + projectLeader
-				+ ", contractValue=" + contractValue + ", invoiceAmount=" + invoiceAmount + ", administrationExpenses="
+				+ ", contractValue=" + contractValue + ", billingYear=" + billingYear + ", billingMonth=" + billingMonth
+				+ ", billingDay=" + billingDay + ", invoiceAmount=" + invoiceAmount + ", administrationExpenses="
 				+ administrationExpenses + ", administrationExpensesRate=" + administrationExpensesRate
 				+ ", totalAdministrationExpenses=" + totalAdministrationExpenses + ", totalPay=" + totalPay
 				+ ", payCount=" + payCount + ", withdrawalFee=" + withdrawalFee + ", alternatedProjectLeaderRemark="
 				+ alternatedProjectLeaderRemark + ", billingStatus=" + billingStatus + ", billingID=" + billingID
 				+ ", startAndEndPayTime=" + startAndEndPayTime + ", startPayTimeInInteger=" + startPayTimeInInteger
 				+ ", endPayTimeInInteger=" + endPayTimeInInteger + ", startPayYear=" + startPayYear + ", endPayYear="
-				+ endPayYear + ", startPayMonth=" + startPayMonth + ", endPayMonth=" + endPayMonth + ", rowIndex=" + rowIndex + "]";
-	}	
+				+ endPayYear + ", startPayMonth=" + startPayMonth + ", endPayMonth=" + endPayMonth + ", rowIndex="
+				+ rowIndex + "]";
+	}
 	
 }

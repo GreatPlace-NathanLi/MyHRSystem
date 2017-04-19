@@ -8,6 +8,7 @@ import jxl.Cell;
 import jxl.Sheet;
 import jxl.Workbook;
 import jxl.common.Logger;
+import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
 
 public abstract class AbstractExcelOperater implements ExcelOperater {
@@ -38,28 +39,36 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 	}
 
 	protected void readContent(Workbook readwb) throws Exception {
-		Sheet readsheet = readwb.getSheet(0);
+		for (Sheet readsheet : readwb.getSheets()) {
 
-		int rsColumns = readsheet.getColumns();
-		int rsRows = readsheet.getRows();
+			int rsColumns = readsheet.getColumns();
+			int rsRows = readsheet.getRows();
+			logger.debug("读取表格：" + readsheet.getName());
+			logger.debug("总列数：" + rsColumns + ", 总行数：" + rsRows);
 
-		logger.debug("总列数：" + rsColumns + ", 总行数：" + rsRows);
+			// 遍历所有单元格
 
-		// 遍历所有单元格
+			for (int i = 0; i < rsRows; i++) {
 
-		for (int i = 0; i < rsRows; i++) {
+				for (int j = 0; j < rsColumns; j++) {
 
-			for (int j = 0; j < rsColumns; j++) {
+					Cell cell = readsheet.getCell(j, i);
 
-				Cell cell = readsheet.getCell(j, i);
+					logger.debug(cell.getContents() + " c:" + j + " r:" + i);
 
-				logger.debug(cell.getContents() + " ");
-
-				logger.debug(cell.getType());
+					logger.debug(cell.getType());
+				}
 			}
-		}
+		}	
 	}
 
+	protected void logInfo(WritableSheet sheet) {
+		int rsColumns = sheet.getColumns();
+		int rsRows = sheet.getRows();
+		logger.debug("创建表格：" + sheet.getName());
+		logger.debug("总列数：" + rsColumns + ", 总行数：" + rsRows);
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.nathan.service.ExcelOperater#write(java.lang.String)
 	 */

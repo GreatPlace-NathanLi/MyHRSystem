@@ -147,7 +147,9 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		logger.info(Constant.LINE1);
 		logger.info("制作工资表 - 开票计划序号：" + billingPlan.getOrderNumber());
 
-		rosterProcesser.processRoster(billingPlan.getProjectLeader(), billingPlan.getStartPayYear(), false);
+		String processingProjectLeader = billingPlan.getProcessingProjectLeader();
+		
+		rosterProcesser.processRoster(processingProjectLeader, billingPlan.getStartPayYear(), false);
 
 		ProjectMemberRoster roster = rosterProcesser.getRoster();
 		List<PayrollSheet> payrollSheetList = new ArrayList<PayrollSheet>();
@@ -157,7 +159,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		logger.info(Constant.LINE1);
 
 		if (payrollSheetList.size() > 0) {
-			String outputPath = buildPayrollSheetFilePath(billingPlan.getProjectLeader(),
+			String outputPath = buildPayrollSheetFilePath(processingProjectLeader,
 					billingPlan.getStartPayYear());
 
 			logger.info("读取工资表输出模板： " + Constant.PAYROLL_TEMPLATE_FILE);
@@ -176,11 +178,11 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 	private void handleRosterFullUp(BillingPlan billingPlan, RosterProcesser rosterProcesser, int remainPayCount)
 			throws RosterProcessException, PayrollSheetProcessException {
-		logger.info(billingPlan.getProjectLeader() + "花名册名额用完，借人开始...");
+		logger.info(billingPlan.getProcessingProjectLeader() + "花名册名额用完，借人开始...");
 		String alternatedProjectLeader = getAlternatedProjectLeader();
-		billingPlan.setTotalPay(calcPayrollSheetTotalAmount(remainPayCount, billingPlan));
-		billingPlan.setPayCount(remainPayCount);
-		billingPlan.setProjectLeader(alternatedProjectLeader);
+		billingPlan.setProcessingTotalPay(calcPayrollSheetTotalAmount(remainPayCount, billingPlan));
+		billingPlan.setProcessingPayCount(remainPayCount);
+		billingPlan.setProcessingProjectLeader(alternatedProjectLeader);
 		rosterFullUpTime++;
 
 		buildPayrollSheetForSingleBillingPlan(billingPlan, rosterProcesser);
@@ -206,8 +208,8 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		if (billingPlan.getStartPayYear() < billingPlan.getEndPayYear()) {
 			endPayMonth = 12;
 		}
-		int payCount = billingPlan.getPayCount();
-		int remainPayCount = payCount;
+		
+		int remainPayCount = billingPlan.getProcessingPayCount();
 
 		for (int month = startPayMonth; month <= endPayMonth; month++) {
 			int monthAvailableCount = roster.getStatistics().getMonthAvailableCount(month);
@@ -228,9 +230,9 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 		logger.debug("工资单数量: " + sheetSize);
 		if (rosterFullUpTime == 0) {
-			billingPlan.setBillingID(payCount - remainPayCount);
+			billingPlan.setBillingID(billingPlan.getPayCount() - remainPayCount);
 		} else if (sheetSize > 0) {
-			billingPlan.setAlternatedProjectLeaderRemark(payCount - remainPayCount);
+			billingPlan.setAlternatedProjectLeaderRemark(billingPlan.getProcessingPayCount() - remainPayCount);
 		}
 
 		logger.debug("AlternatedProjectLeaderRemark: " + billingPlan.getAlternatedProjectLeaderRemark());
@@ -311,13 +313,17 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 		for (int i = 0; i < payrollSheetList.size(); i++) {
 			PayrollSheet payrollSheet = payrollSheetList.get(i);
-			wwb.copySheet(0, "表" + payrollSheet.getPayMonth() + "-" + payrollSheet.getContractID(), i + 1);
+			wwb.copySheet(0, getPayrollSheetName(payrollSheet.getPayMonth(), payrollSheet.getContractID()), i + 1);
 			WritableSheet newSheet = wwb.getSheet(i + 1);
 			updatePayrollInfo(payrollSheet, newSheet);
 			fillPayrollSheet(payrollSheet, newSheet);
 		}
 
 		wwb.removeSheet(0);
+	}
+	
+	private String getPayrollSheetName(int month, String contractID) {
+		return "工" + month + "-" + contractID;
 	}
 
 	private void updatePayrollInfo(PayrollSheet payrollSheet, WritableSheet sheet) {
@@ -333,13 +339,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		leaderAndContract = leaderAndContract.replace("NNN", payrollSheet.getLeader());
 		leaderAndContract = leaderAndContract.replace("CCCCC", payrollSheet.getContractID());
 		((Label) cell).setString(leaderAndContract);
-
-		// int rsColumns = sheet.getColumns();
-		// for (int c = 0; c < rsColumns; c++) {
-		// cell = sheet.getWritableCell(c, 2);
-		// logger.debug("c" + c + ",r" + 0 + ", cellType: " + cell.getType() +
-		// ", value: " + cell.getContents());
-		// }
+		
 	}
 
 	private void fillPayrollSheet(PayrollSheet payrollSheet, WritableSheet sheet)

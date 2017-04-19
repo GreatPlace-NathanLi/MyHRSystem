@@ -23,4 +23,15 @@ public class Util {
         return dateInInteger;
 	}
 
+	public static String getCurrentYear() {
+		Calendar now = Calendar.getInstance();  
+        int year = now.get(Calendar.YEAR);
+        return String.valueOf(year);
+	}
+	
+	public static String getCurrentMonth() {
+		Calendar now = Calendar.getInstance();  
+		int month = now.get(Calendar.MONTH) + 1;
+        return String.valueOf(month);
+	}
 }

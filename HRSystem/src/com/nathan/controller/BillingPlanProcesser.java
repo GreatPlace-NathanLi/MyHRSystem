@@ -109,6 +109,15 @@ public class BillingPlanProcesser extends AbstractExcelOperater {
 
 			NumberCell numCell = (NumberCell) readsheet.getCell(6, rowIndex);
 			billingPLan.setContractValue(numCell.getValue());
+			
+			cell = readsheet.getCell(10, rowIndex);
+			billingPLan.setBillingYear(Integer.valueOf(cell.getContents()));
+			
+			cell = readsheet.getCell(11, rowIndex);
+			billingPLan.setBillingMonth(Integer.valueOf(cell.getContents()));
+			
+			cell = readsheet.getCell(12, rowIndex);
+			billingPLan.setBillingDay(Integer.valueOf(cell.getContents()));
 
 			cell = readsheet.getCell(13, rowIndex);
 			if (cell.getType().equals(CellType.NUMBER)) {

@@ -10,7 +10,10 @@ public class Constant {
 	public static final String ROSTER_FILE = WORK_PATH + "in/NNNYYYY年花名册.xls";
 	public static final String PAYROLL_FILE = WORK_PATH + "out/NNNYYYY年工资表.xls";
 	public static final String PAYROLL_TEMPLATE_FILE = WORK_PATH + "template/工资表模板.xls";
-	
+	public static final String PAYMENT_DOC_FILE = WORK_PATH + "out/NNNCCCCC付款手续单据.xlsx";
+	public static final String PAYMENT_DOC_TEMPLATE_FILE = WORK_PATH + "template/付款手续单据模板.xls";
+	public static final String TABULATOR = "谢少芹";
+
 	public static final String LINE0 = "========================================================================";
 	public static final String LINE1 = "------------------------------------------------------------------------";
 	
