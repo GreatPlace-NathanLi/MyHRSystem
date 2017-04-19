@@ -15,6 +15,12 @@ import jxl.common.Logger;
 public class PropertiesProcesser {
 	
 	private static Logger logger = Logger.getLogger(PropertiesProcesser.class);
+//	user.highTemperatureAllowance=90
+//			user.highTemperatureAllowanceMonths=6,7,8,9,10
+//			user.individualIncomeTaxThreshold=3500
+//			user.billingWay=A
+//			user.\u5236\u8868\u4EBA=\u4F55\u5A1C
+//			user.socialSecurityAmount=300
 	
 	private Properties prop;
 	

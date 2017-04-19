@@ -47,6 +47,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			List<BillingPlan> billingPlanList = billingPlanBook.getBillingByProjectLeader(projectLeader);
 
 			for (BillingPlan billingPlan : billingPlanList) {
+				rosterFullUpTime = 0;
 				if (isReconstruction(billingPlan)) {
 					deleteOldBillingInfoForSingleBillingPlan(billingPlan, rosterProcesser);
 				}
@@ -127,6 +128,8 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			if (sheet.getName().contains(contractIDToDelete)) {
 				wwb.removeSheet(i);
 				sheetIndex = i;
+			} else {
+				sheetIndex++;
 			}
 		}
 
@@ -178,6 +181,9 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 	private void handleRosterFullUp(BillingPlan billingPlan, RosterProcesser rosterProcesser, int remainPayCount)
 			throws RosterProcessException, PayrollSheetProcessException {
+		if(rosterFullUpTime > 4) {
+			throw new PayrollSheetProcessException("花名册人数不足");
+		}
 		logger.info(billingPlan.getProcessingProjectLeader() + "花名册名额用完，借人开始...");
 		String alternatedProjectLeader = getAlternatedProjectLeader();
 		billingPlan.setProcessingTotalPay(calcPayrollSheetTotalAmount(remainPayCount, billingPlan));
@@ -247,7 +253,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		payrollSheet.setPayrollNumber(payrollCount);
 		payrollSheet.setPayYear(payYear);
 		payrollSheet.setPayMonth(payMonth);
-		payrollSheet.setLeader(billingPlan.getProjectLeader());
+		payrollSheet.setLeader(billingPlan.getProcessingProjectLeader());
 		payrollSheet.setContractID(billingPlan.getContractID());
 		payrollSheet.setTotalAmount(calcPayrollSheetTotalAmount(payrollCount, billingPlan));
 		buildPayrolls(payrollSheet, roster);
@@ -311,15 +317,16 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 		logger.debug("总列数：" + rsColumns + ", 总行数：" + rsRows);
 
+		int sheetNumber = wwb.getNumberOfSheets();
 		for (int i = 0; i < payrollSheetList.size(); i++) {
 			PayrollSheet payrollSheet = payrollSheetList.get(i);
-			wwb.copySheet(0, getPayrollSheetName(payrollSheet.getPayMonth(), payrollSheet.getContractID()), i + 1);
-			WritableSheet newSheet = wwb.getSheet(i + 1);
+			wwb.copySheet(0, getPayrollSheetName(payrollSheet.getPayMonth(), payrollSheet.getContractID()), i + sheetNumber);
+			WritableSheet newSheet = wwb.getSheet(i + sheetNumber);
 			updatePayrollInfo(payrollSheet, newSheet);
 			fillPayrollSheet(payrollSheet, newSheet);
 		}
 
-		wwb.removeSheet(0);
+//		wwb.removeSheet(0);
 	}
 	
 	private String getPayrollSheetName(int month, String contractID) {
@@ -437,8 +444,8 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		logger.info("删除工资表开始...");
 		logger.info(Constant.LINE0);
 
-		String filePath = payrollSheetProcesser.buildPayrollSheetFilePath("张一", 2016);
-		payrollSheetProcesser.deletePayrollSheetByContractID(filePath, "14-219补");
+		String filePath = payrollSheetProcesser.buildPayrollSheetFilePath("李一", 2016);
+		payrollSheetProcesser.deletePayrollSheetByContractID(filePath, "14-289补");
 
 		long endTime = System.nanoTime();
 		logger.info(Constant.LINE0);

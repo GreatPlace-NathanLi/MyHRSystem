@@ -144,8 +144,8 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 		billingPlanProcesser.processBillingPlanInput(Constant.BILLING_INPUT_FILE);
 		logger.info(Constant.LINE1);
 
-		logger.info("步骤2 - 保存开票计划输出： " + Constant.BILLING_OUTPUT_FILE);
-		billingPlanProcesser.writeBillingOutput(Constant.BILLING_INPUT_FILE, Constant.BILLING_OUTPUT_FILE);
+		logger.info("步骤2 - 保存开票计划输出： " + Constant.BILLING_INPUT_FILE);
+		billingPlanProcesser.writeBillingOutput(Constant.BILLING_INPUT_FILE);
 		logger.info(Constant.LINE1);
 		
 //		paymentDocumentProcesser.readPaymentDocumentTemplate(Constant.PAYMENT_DOC_TEMPLATE_FILE);

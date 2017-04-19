@@ -2,7 +2,11 @@ package com.nathan.service;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import jxl.Cell;
 import jxl.Sheet;
@@ -14,6 +18,12 @@ import jxl.write.WritableWorkbook;
 public abstract class AbstractExcelOperater implements ExcelOperater {
 
 	private static Logger logger = Logger.getLogger(AbstractExcelOperater.class);
+	
+	private boolean backupFlag = false;
+	
+	protected void setBackupFlag(boolean flag) {
+		this.backupFlag = flag;
+	}
 
 	@Override
 	public void read(String filePath) {
@@ -83,13 +93,22 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 		Workbook rwb = null;
 		WritableWorkbook wwb = null;
 		try {
-			File inputFile = new File(inFile);
-			rwb = Workbook.getWorkbook(inputFile);
+			try {
+				File inputFile = new File(outFile);
+				rwb = Workbook.getWorkbook(inputFile);
+			} catch(FileNotFoundException e) {
+				rwb = Workbook.getWorkbook(new File(inFile));
+			}
+			
 			File outputFille = new File(outFile);
 			wwb = Workbook.createWorkbook(outputFille, rwb);// copy
 			
 			writeContent(wwb);
-	
+			
+			if (backupFlag) {
+				backup(inFile);
+			}
+			
 			wwb.write();
 
 		} catch (Exception e) {
@@ -152,6 +171,39 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 //			logger.debug(flag + "删除文件：" + fillPath);
 		}
 		return flag;
+	}
+	
+	public void backup(String filePath) {	
+		int byteread = 0; // 读取的字节数  
+        InputStream in = null;  
+        OutputStream out = null;  
+  
+        try {  
+            in = new FileInputStream(filePath);  
+            
+            String outputPath = filePath.replace("/in/", "/backup/") + ".backup." + System.currentTimeMillis();
+            logger.info("备份文件：" + outputPath);
+            out = new FileOutputStream(outputPath);  
+            byte[] buffer = new byte[1024];  
+  
+            while ((byteread = in.read(buffer)) != -1) {  
+                out.write(buffer, 0, byteread);  
+            }  
+        } catch (FileNotFoundException e) {  
+        	e.printStackTrace();
+        } catch (IOException e) {  
+        	e.printStackTrace();
+        } finally { 
+        	backupFlag = false;
+            try {  
+                if (out != null)  
+                    out.close();  
+                if (in != null)  
+                    in.close();  
+            } catch (IOException e) {  
+                e.printStackTrace();  
+            }  
+        } 
 	}
 	
 }

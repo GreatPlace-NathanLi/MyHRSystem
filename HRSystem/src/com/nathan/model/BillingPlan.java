@@ -318,7 +318,7 @@ public class BillingPlan {
 		StringBuilder sb = new StringBuilder();
 		sb.append(this.getProjectUnit());
 		sb.append(Constant.DELIMITER1);
-		sb.append(this.getProjectLeader());
+		sb.append(this.getProcessingProjectLeader());
 		sb.append(Constant.DELIMITER1);
 		sb.append(payCount);
 		this.setAlternatedProjectLeaderRemark(sb.toString());

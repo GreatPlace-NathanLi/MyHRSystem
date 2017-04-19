@@ -235,10 +235,11 @@ public class BillingPlanProcesser extends AbstractExcelOperater {
 		}	
 	}
 	
-	public void writeBillingOutput(String inputFilePath, String outputFilePath)
+	public void writeBillingOutput(String inputFilePath)
 			throws BillingPlanProcessException {
-		try {			
-			write(inputFilePath, outputFilePath);			
+		try {
+			setBackupFlag(true);
+			write(inputFilePath, inputFilePath);			
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new BillingPlanProcessException("保存开票计划出错，" + e.getMessage());
@@ -287,7 +288,7 @@ public class BillingPlanProcesser extends AbstractExcelOperater {
 
 		
 		logger.info("步骤2 - 保存开票计划输出： " + Constant.BILLING_OUTPUT_FILE);
-		billingPlanProcesser.writeBillingOutput(Constant.BILLING_INPUT_FILE, Constant.BILLING_OUTPUT_FILE);
+		billingPlanProcesser.writeBillingOutput(Constant.BILLING_INPUT_FILE);
 
 		long endTime = System.nanoTime();
 		logger.info(Constant.LINE0);

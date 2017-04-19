@@ -51,9 +51,9 @@ public class RosterProcesser extends AbstractExcelOperater {
 		roster = getRosterFormCache(projectLeader + year);
 		if (roster == null || isReconstruction) {
 			String inputPath = Constant.ROSTER_FILE.replace("NNN", projectLeader).replace("YYYY", String.valueOf(year));
-			if (isReconstruction) {
-				inputPath = inputPath.replace("/in/", "/out/out");
-			}
+//			if (isReconstruction) {
+//				inputPath = inputPath.replace("/in/", "/out/out");
+//			}
 			logger.info("从本地读取花名册： " + inputPath);
 			roster = new ProjectMemberRoster();
 			roster.setLocation(inputPath);
@@ -70,9 +70,8 @@ public class RosterProcesser extends AbstractExcelOperater {
 
 	public void updateProjectMemberRoster() throws RosterProcessException {
 		String inputPath = roster.getLocation();
-		String outputPath = inputPath.replace("/in/", "/out/out");
-		logger.info("保存花名册： " + outputPath);
-		writeProjectMemberRoster(inputPath, outputPath);
+		logger.info("保存花名册： " + inputPath);
+		writeProjectMemberRoster(inputPath, inputPath);
 	}
 
 	public void readProjectMemberRoster(String filePath, boolean isReconstruction) throws RosterProcessException {
@@ -161,7 +160,7 @@ public class RosterProcesser extends AbstractExcelOperater {
 					roster.addExistingCursor(cursor);
 					payCount = 1;
 				} else {
-					if (isAvailable(r - 1, payYear, payMonth)) {
+					if (isAvailable(r - 1, payYear, payMonth, isRosterWithStatistics)) {
 						payCount++;
 					}
 				}
@@ -183,7 +182,7 @@ public class RosterProcesser extends AbstractExcelOperater {
 			for (int r = 1; r < rsRows; r++) {
 				cell = readsheet.getCell(c, r);
 				if (Constant.EMPTY_STRING.equals(cell.getContents())) {
-					if (isAvailable(r, payYear, payMonth)) {
+					if (isAvailable(r, payYear, payMonth, true)) {
 						availableCount++;
 						if (currentAvailableIndex == -1) {
 							currentAvailableIndex = r + 1;
@@ -219,8 +218,9 @@ public class RosterProcesser extends AbstractExcelOperater {
 		roster.setStatistics(statistics);
 	}
 
-	private boolean isAvailable(int rowIndex, int year, int month) {
-		ProjectMember member = roster.getMember(rowIndex - 1);
+	private boolean isAvailable(int rowIndex, int year, int month, boolean isRosterWithStatistics ) {
+		int memberIndex = isRosterWithStatistics ? rowIndex - 1 : rowIndex;
+		ProjectMember member = roster.getMember(memberIndex);
 		return member.isAvailable(year, month);
 	}
 
@@ -234,6 +234,7 @@ public class RosterProcesser extends AbstractExcelOperater {
 
 	public void writeProjectMemberRoster(String inputFilePath, String outputFilePath) throws RosterProcessException {
 		try {
+			setBackupFlag(true);
 			write(inputFilePath, outputFilePath);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -293,9 +294,8 @@ public class RosterProcesser extends AbstractExcelOperater {
 		if (roster.getToDeleteCursorList().size() > 0) {
 			logger.debug(roster.getToDeleteCursorList());
 			String inputPath = roster.getLocation();
-			String outputPath = inputPath.replace("/in/", "/out/out");
-			logger.info("删除花名册游标： " + outputPath);
-			writeProjectMemberRoster(outputPath, outputPath);
+			logger.info("删除花名册游标： " + inputPath);
+			writeProjectMemberRoster(inputPath, inputPath);
 			roster.resetToDeleteCursorList();
 		}
 	}
@@ -309,7 +309,7 @@ public class RosterProcesser extends AbstractExcelOperater {
 		if (preCursor != null && preCursor.getMonth() == month) {
 			int preCursorIndex = preCursor.getRowIndex();
 			for (int i = 1; i <= payCount; i++) {
-				if (isAvailable(preCursorIndex + i - 1, roster.getCurrentPayYear(), month)) {
+				if (isAvailable(preCursorIndex + i - 1, roster.getCurrentPayYear(), month, true)) {
 					monthAvailableIndex = preCursorIndex + i;
 					break;
 				}
