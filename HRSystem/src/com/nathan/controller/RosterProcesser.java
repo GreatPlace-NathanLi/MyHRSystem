@@ -47,11 +47,10 @@ public class RosterProcesser extends AbstractExcelOperater {
 		rosterCache.put(projectLeaderAndYear, roster);
 	}
 
-	public void processRoster(String projectLeader, int year, boolean isReconstruction) throws RosterProcessException {
+	public void processRoster(String projectUnit, String projectLeader, int year, boolean isReconstruction) throws RosterProcessException {
 		roster = getRosterFormCache(projectLeader + year);
 		if (roster == null || isReconstruction) {
-			String rosterFile = Constant.propUtil.getStringValue("user.花名册路径", Constant.ROSTER_FILE);
-			String inputPath = rosterFile.replace("NNN", projectLeader).replace("YYYY", String.valueOf(year));
+			String inputPath = getRosterFilePath(projectUnit, projectLeader, year);
 //			if (isReconstruction) {
 //				inputPath = inputPath.replace("/in/", "/out/out");
 //			}
@@ -67,6 +66,12 @@ public class RosterProcesser extends AbstractExcelOperater {
 			logger.info("从缓存中读取花名册：" + roster.getName());
 		}
 		logger.debug("花名册统计数据:" + roster.getStatistics());
+	}
+	
+	private String getRosterFilePath(String company, String projectLeader, int year) {
+		String rosterFile = Constant.propUtil.getStringValue("user.花名册路径", Constant.ROSTER_FILE);
+		String filePath = rosterFile.replaceAll("NNN", projectLeader).replaceAll("YYYY", String.valueOf(year)).replace("UUUU", company);
+		return filePath;
 	}
 
 	public void updateProjectMemberRoster() throws RosterProcessException {
@@ -357,15 +362,16 @@ public class RosterProcesser extends AbstractExcelOperater {
 		logger.info(Constant.LINE0);
 
 		Constant.propUtil.init();
+		String company = "湛江雷能";
 		String projectLeader = "张一";
 		int year = 2016;
-		rosterProcesser.processRoster(projectLeader, year, false);
+		rosterProcesser.processRoster(company, projectLeader, year, false);
 
 		logger.info(Constant.LINE1);
 		rosterProcesser.updateProjectMemberRoster();
 		logger.info(Constant.LINE1);
 
-		rosterProcesser.processRoster(projectLeader, year, true);
+		rosterProcesser.processRoster(company, projectLeader, year, true);
 		rosterProcesser.deleteRosterCursorsByContractID("14-019补");
 
 		long endTime = System.nanoTime();

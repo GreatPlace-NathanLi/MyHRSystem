@@ -159,7 +159,7 @@ public class BillingPlanProcesser extends AbstractExcelOperater {
 			billingPLan.setBillingStatus(isEmpty(cell) ? null : cell.getContents());
 			
 			cell = readsheet.getCell(37, rowIndex);
-			billingPLan.setStartAndEndPayTime(isEmpty(cell) ? null : cell.getContents());
+			billingPLan.setStartAndEndPayTime(isEmpty(cell) ? getDefaultStartAndEndPayTime() : cell.getContents());
 			
 			cell = readsheet.getCell(38, rowIndex);
 			billingPLan.setBillingID(isEmpty(cell) ? null : cell.getContents());
@@ -169,6 +169,10 @@ public class BillingPlanProcesser extends AbstractExcelOperater {
 			billingPlanBook.addBillingPlan(billingPLan);
 		}			
 		
+	}
+	
+	private String getDefaultStartAndEndPayTime() {
+		return Constant.propUtil.getStringEnEmpty("user.默认工资表指定月份");
 	}
 	
 	private boolean isNewBillingPlan(Sheet readsheet, int rowIndex) {

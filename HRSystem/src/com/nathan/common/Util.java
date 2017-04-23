@@ -42,4 +42,9 @@ public class Util {
 	public static String getTabulator() {
 		return Constant.propUtil.getStringValue("user.÷∆±Ì»À", Constant.TABULATOR);
 	}
+	
+	public static String getFileNameFromPath(String filePath) {
+		String[] s = filePath.split("/");
+		return s[s.length - 1];
+	}
 }

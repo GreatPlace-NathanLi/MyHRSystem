@@ -18,6 +18,7 @@ public class SingleBillingOperater {
 
 	public static void main(String[] args) throws Exception {
 		try {
+//			String path = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
 			if (Util.getCurrentDateInt() > expireDate) {
 				logger.error("Exception: 本测试版本已经超过有效期，请使用最新版本。");
 				JOptionPane.showMessageDialog(null, "本测试版本已经超过有效期，请使用最新版本。", "警告", JOptionPane.ERROR_MESSAGE);		

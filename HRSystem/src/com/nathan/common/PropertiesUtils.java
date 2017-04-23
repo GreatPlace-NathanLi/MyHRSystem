@@ -236,24 +236,24 @@ public class PropertiesUtils {
 	}
 
 	public static void main(String[] args) {
-		PropertiesUtils proputil = new PropertiesUtils("F:/work/project/conf/setting.properties");
+//		PropertiesUtils proputil = new PropertiesUtils("F:/work/project/conf/setting.properties");
 		try {
-			proputil.init();
+			Constant.propUtil.init();
 			
 			// 取key为"key1"的值，取不到则默认为"all"
-			proputil.getStringValue("user.个税起征点", "all");
+			Constant.propUtil.getStringValue("user.个税起征点", "all");
 			// 取key为"name"的值，该值不能为空
-			proputil.getStringDisEmpty("user.高温补贴月份");
+			Constant.propUtil.getStringDisEmpty("user.高温补贴月份");
 
-			proputil.getIntValue("user.高温补贴金额");
+			Constant.propUtil.getIntValue("user.高温补贴金额");
 
-			proputil.getStringEnEmpty("user.制表人");
+			Constant.propUtil.getStringEnEmpty("user.制表人");
 		} catch (Exception e) {
 			e.printStackTrace();
 			// 配置文件读取异常，程序退出
 			return;
 		} finally {
-			proputil.close();
+			Constant.propUtil.close();
 		}
 	}
 

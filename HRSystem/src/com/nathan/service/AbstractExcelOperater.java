@@ -3,24 +3,25 @@ package com.nathan.service;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+
+import org.apache.log4j.Logger;
+
+import com.nathan.common.Constant;
+import com.nathan.common.Util;
 
 import jxl.Cell;
 import jxl.Sheet;
 import jxl.Workbook;
-import org.apache.log4j.Logger;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
 
 public abstract class AbstractExcelOperater implements ExcelOperater {
 
 	private static Logger logger = Logger.getLogger(AbstractExcelOperater.class);
-	
+
 	private boolean backupFlag = false;
-	
+
 	protected void setBackupFlag(boolean flag) {
 		this.backupFlag = flag;
 	}
@@ -69,7 +70,7 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 					logger.debug(cell.getType());
 				}
 			}
-		}	
+		}
 	}
 
 	protected void logInfo(WritableSheet sheet) {
@@ -78,37 +79,38 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 		logger.debug("创建表格：" + sheet.getName());
 		logger.debug("总列数：" + rsColumns + ", 总行数：" + rsRows);
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.nathan.service.ExcelOperater#write(java.lang.String)
 	 */
 	@Override
 	public void write(String outFile) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void write(String inFile, String outFile) throws Exception {
+		if (backupFlag) {
+			backup(inFile);
+		}
 		Workbook rwb = null;
 		WritableWorkbook wwb = null;
 		try {
 			try {
 				File inputFile = new File(outFile);
 				rwb = Workbook.getWorkbook(inputFile);
-			} catch(FileNotFoundException e) {
+			} catch (FileNotFoundException e) {
 				rwb = Workbook.getWorkbook(new File(inFile));
 			}
-			
+
 			File outputFille = new File(outFile);
 			wwb = Workbook.createWorkbook(outputFille, rwb);// copy
-			
+
 			writeContent(wwb);
-			
-			if (backupFlag) {
-				backup(inFile);
-			}
-			
+
 			wwb.write();
 
 		} catch (Exception e) {
@@ -116,30 +118,30 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 		} finally {
 			rwb.close();
 			wwb.close();
-		}	
+		}
 	}
-	
+
 	protected void writeContent(WritableWorkbook wwb) throws Exception {
-		
+
 	}
 
 	@Override
-	public void modify(String destFile) throws Exception {	
-        Workbook rwb = null;
+	public void modify(String destFile) throws Exception {
+		Workbook rwb = null;
 		WritableWorkbook wwb = null;
 		boolean needToDelete = false;
 		try {
 			rwb = Workbook.getWorkbook(new File(destFile));
 			wwb = Workbook.createWorkbook(new File(destFile), rwb);
-			
+
 			modifyContent(wwb);
-			
-			if(wwb.getNumberOfSheets() == 0) {
+
+			if (wwb.getNumberOfSheets() == 0) {
 				logger.info("表数量为零，删除文件：" + destFile);
 				needToDelete = true;
 				return;
 			}
-	
+
 			wwb.write();
 
 		} catch (Exception e) {
@@ -150,60 +152,56 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 			if (needToDelete) {
 				delete(destFile);
 			}
-		}	
+		}
 	}
-	
+
 	protected void modifyContent(WritableWorkbook wwb) throws Exception {
-		
+
 	}
 
 	@Override
 	public boolean delete(String fillPath) {
 		boolean flag = false;
-//		boolean isFilePathValid = fillPath.matches(Constant.MATCHES);
-//		logger.debug("是否为正确的路径名:" + isFilePathValid);
-//		if (!isFilePathValid) {
-//			fillPath = fillPath.replaceAll("/", "\\\\");
-//		}
+		// boolean isFilePathValid = fillPath.matches(Constant.MATCHES);
+		// logger.debug("是否为正确的路径名:" + isFilePathValid);
+		// if (!isFilePathValid) {
+		// fillPath = fillPath.replaceAll("/", "\\\\");
+		// }
 		File file = new File(fillPath);
 		if (file.isFile() && file.exists()) {
 			flag = file.delete();
-//			logger.debug(flag + "删除文件：" + fillPath);
+			// logger.debug(flag + "删除文件：" + fillPath);
 		}
 		return flag;
 	}
-	
-	public void backup(String filePath) {	
-		int byteread = 0; // 读取的字节数  
-        InputStream in = null;  
-        OutputStream out = null;  
-  
-        try {  
-            in = new FileInputStream(filePath);  
-            
-            String outputPath = filePath.replace("/in/", "/backup/") + ".backup." + System.currentTimeMillis();
-            logger.info("备份文件：" + outputPath);
-            out = new FileOutputStream(outputPath);  
-            byte[] buffer = new byte[1024];  
-  
-            while ((byteread = in.read(buffer)) != -1) {  
-                out.write(buffer, 0, byteread);  
-            }  
-        } catch (FileNotFoundException e) {  
-        	e.printStackTrace();
-        } catch (IOException e) {  
-        	e.printStackTrace();
-        } finally { 
-        	backupFlag = false;
-            try {  
-                if (out != null)  
-                    out.close();  
-                if (in != null)  
-                    in.close();  
-            } catch (IOException e) {  
-                e.printStackTrace();  
-            }  
-        } 
+
+	public void backup(String filePath) throws Exception {
+
+		String outFile = getBackupFilePath(filePath);
+		logger.info("备份文件：" + outFile);
+
+		Workbook rwb = null;
+		WritableWorkbook wwb = null;
+		try {
+			File inputFile = new File(filePath);
+			rwb = Workbook.getWorkbook(inputFile);
+
+			File outputFille = new File(outFile);
+			wwb = Workbook.createWorkbook(outputFille, rwb);// copy
+
+			wwb.write();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			rwb.close();
+			wwb.close();
+		}
 	}
-	
+
+	private String getBackupFilePath(String filePath) {
+		String backupPath = Constant.propUtil.getStringEnEmpty("user.文件备份路径");
+		return backupPath + Util.getFileNameFromPath(filePath) + ".backup." + System.currentTimeMillis();
+	}
+
 }

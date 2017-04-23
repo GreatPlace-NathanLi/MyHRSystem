@@ -103,7 +103,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		String filePath = buildPayrollSheetFilePath(projectLeader, payYear);
 		deletePayrollSheetByContractID(filePath, contractID);
 
-		rosterProcesser.processRoster(projectLeader, payYear, true);
+		rosterProcesser.processRoster(company, projectLeader, payYear, true);
 		rosterProcesser.deleteRosterCursorsByContractID(contractID);
 
 	}
@@ -153,7 +153,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 		String processingProjectLeader = billingPlan.getProcessingProjectLeader();
 		
-		rosterProcesser.processRoster(processingProjectLeader, billingPlan.getStartPayYear(), false);
+		rosterProcesser.processRoster(billingPlan.getProjectUnit(), processingProjectLeader, billingPlan.getStartPayYear(), false);
 
 		ProjectMemberRoster roster = rosterProcesser.getRoster();
 		List<PayrollSheet> payrollSheetList = new ArrayList<PayrollSheet>();
