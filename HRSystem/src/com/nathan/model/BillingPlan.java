@@ -1,5 +1,7 @@
 package com.nathan.model;
 
+import java.util.ArrayList;
+
 import com.nathan.common.Constant;
 import com.nathan.common.Util;
 
@@ -37,7 +39,30 @@ public class BillingPlan {
 	private transient int processingPayCount;
 	private transient double processingTotalPay;
 	private transient String processingProjectLeader;
+	
+	private ArrayList<SubBillingPlan> subPlanList;
+	
+	public BillingPlan() {
+		this.subPlanList = new ArrayList<SubBillingPlan>();
+	}
+	
+	public SubBillingPlan createSubPlan(String subPlanProjectUnit, String subPlanProjectLeader, int subPlanPayYear, int subPlanStartMonth, int subPlanEndMonth, int subPlanPayCount) {
+		SubBillingPlan subPlan = new SubBillingPlan();
+		subPlan.setSubPlanProjectUnit(subPlanProjectUnit);
+		subPlan.setSubPlanProjectLeader(subPlanProjectLeader);
+		subPlan.setSubPlanPayYear(subPlanPayYear);
+		subPlan.setSubPlanStartMonth(subPlanStartMonth);
+		subPlan.setSubPlanEndMonth(subPlanEndMonth);
+		subPlan.setSubPlanPayCount(subPlanPayCount);
+		subPlanList.add(subPlan);
+		System.out.println(subPlan);
+		return subPlan;
+	}
 
+	public ArrayList<SubBillingPlan> getSubPlanList() {
+		return this.subPlanList;
+	}
+	
 	/**
 	 * @return the orderNumber
 	 */
@@ -318,7 +343,19 @@ public class BillingPlan {
 		StringBuilder sb = new StringBuilder();
 		sb.append(this.getProjectUnit());
 		sb.append(Constant.DELIMITER1);
-		sb.append(this.getProcessingProjectLeader());
+		sb.append(this.getProjectLeader());
+		sb.append(Constant.DELIMITER1);
+		sb.append(payCount);
+		this.setAlternatedProjectLeaderRemark(sb.toString());
+	}
+	
+	public void setAlternatedProjectLeaderRemark(String company, String alternatedProjectLeader, int payYear, int payCount) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(company);
+		sb.append(Constant.DELIMITER1);
+		sb.append(alternatedProjectLeader);
+		sb.append(Constant.DELIMITER1);
+		sb.append(payYear);
 		sb.append(Constant.DELIMITER1);
 		sb.append(payCount);
 		this.setAlternatedProjectLeaderRemark(sb.toString());
@@ -344,6 +381,16 @@ public class BillingPlan {
 	public String getProjectLeaderFromAlternatedProjectLeaderRemark(int index) {
 		String[] s = alternatedProjectLeaderRemark.split(Constant.DELIMITER00);
 		return s[index].split(Constant.DELIMITER1)[1];
+	}
+	
+	public int getPayYearFromAlternatedProjectLeaderRemark(int index) {
+		String[] s = alternatedProjectLeaderRemark.split(Constant.DELIMITER00);
+		return Integer.valueOf(s[index].split(Constant.DELIMITER1)[2]);
+	}
+	
+	public int getPayCountFromAlternatedProjectLeaderRemark(int index) {
+		String[] s = alternatedProjectLeaderRemark.split(Constant.DELIMITER00);
+		return Integer.valueOf(s[index].split(Constant.DELIMITER1)[3]);
 	}
 
 	public String getBillingStatusAfterBillingCompleted() {
@@ -374,8 +421,12 @@ public class BillingPlan {
 	}
 	
 	public void setBillingID(int payCount) {
+		this.setBillingID(this.startPayYear, payCount);
+	}
+	
+	public void setBillingID(int payYear, int payCount) {
 		this.billingID = this.projectUnit + Constant.DELIMITER0 + this.projectLeader + Constant.DELIMITER0
-				+ this.contractID + Constant.DELIMITER0 + this.startPayYear + Constant.DELIMITER0 + payCount + Constant.DELIMITER0 + Util.getCurrentDateString();
+				+ this.contractID + Constant.DELIMITER0 + payYear + Constant.DELIMITER0 + payCount + Constant.DELIMITER0 + Util.getCurrentDateString();
 	}
 	
 	public void resetBillingID() {

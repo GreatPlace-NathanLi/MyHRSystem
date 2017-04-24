@@ -44,6 +44,10 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 			throw new PaymentDocumentProcessException("付款手续单据出错，" + e.getMessage());
 		}
 	}
+	
+	protected void preWrite(String filePath) {
+		delete(filePath);
+	}
 
 	protected void writeContent(WritableWorkbook wwb) throws Exception {
 		writePaymentVoucher(wwb);
@@ -126,7 +130,8 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 	
 	private String buildPaymentDocumentFilePath(BillingPlan billingPlan) {
 		String paymentDocFile = Constant.propUtil.getStringValue("user.付款手续单据输出路径", Constant.PAYMENT_DOC_FILE);
-		String filePath = paymentDocFile.replace("NNN", billingPlan.getProjectLeader());
+		String filePath = paymentDocFile.replace("UUUU", billingPlan.getProjectUnit());
+		filePath = filePath.replace("NNN", billingPlan.getProjectLeader());
 		filePath = filePath.replace("CCCCC", billingPlan.getContractID());
 		return filePath;
 	}

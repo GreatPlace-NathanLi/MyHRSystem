@@ -22,6 +22,14 @@ public class RosterStatistics {
 		return totalAvailableCount;
 	}
 
+	public int getAvailableCount(int startMonth, int endMonth) {
+		int availableCount = 0;
+		for(int i = startMonth; i <= endMonth; i++) {
+			availableCount += getMonthAvailableCount(i);
+		}
+		return availableCount;
+	}
+	
 	/**
 	 * @param totalAvailableCount the totalAvailableCount to set
 	 */

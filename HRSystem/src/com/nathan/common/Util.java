@@ -1,6 +1,9 @@
 package com.nathan.common;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 public class Util {
 	
@@ -46,5 +49,23 @@ public class Util {
 	public static String getFileNameFromPath(String filePath) {
 		String[] s = filePath.split("/");
 		return s[s.length - 1];
+	}
+	
+	public static List<String> getFoldersUnderPath(String path) {
+		File file = new File(path);
+		File[] array = file.listFiles();
+		ArrayList<String> folderList = new ArrayList<String>();
+
+		for (int i = 0; i < array.length; i++) {
+			if (array[i].isDirectory()) {
+				folderList.add(array[i].getName());
+			}
+		}
+
+		return folderList;
+	}
+	
+	public static void main(String[] args) {
+		Util.getFoldersUnderPath("F:/work/project/德盛人力项目管理系统/in/湛江雷能/2015/");
 	}
 }

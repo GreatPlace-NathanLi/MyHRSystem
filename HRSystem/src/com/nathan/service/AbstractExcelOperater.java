@@ -96,6 +96,7 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 		if (backupFlag) {
 			backup(inFile);
 		}
+		preWrite(outFile);
 		Workbook rwb = null;
 		WritableWorkbook wwb = null;
 		try {
@@ -120,6 +121,10 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 			wwb.close();
 		}
 	}
+	
+	protected void preWrite(String outFile) {
+		
+	}
 
 	protected void writeContent(WritableWorkbook wwb) throws Exception {
 
@@ -136,7 +141,7 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 
 			modifyContent(wwb);
 
-			if (wwb.getNumberOfSheets() == 0) {
+			if (isNeededToDeleteFile(wwb)) {
 				logger.info("表数量为零，删除文件：" + destFile);
 				needToDelete = true;
 				return;
@@ -157,6 +162,10 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 
 	protected void modifyContent(WritableWorkbook wwb) throws Exception {
 
+	}
+	
+	protected boolean isNeededToDeleteFile(WritableWorkbook wwb) {
+		return false;
 	}
 
 	@Override

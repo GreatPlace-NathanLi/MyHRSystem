@@ -47,20 +47,18 @@ public class RosterProcesser extends AbstractExcelOperater {
 		rosterCache.put(projectLeaderAndYear, roster);
 	}
 
-	public void processRoster(String projectUnit, String projectLeader, int year, boolean isReconstruction) throws RosterProcessException {
-		roster = getRosterFormCache(projectLeader + year);
+	public void processRoster(String company, String projectLeader, int year, boolean isReconstruction) throws RosterProcessException {
+		String key = company + projectLeader + year;
+		roster = getRosterFormCache(key);
 		if (roster == null || isReconstruction) {
-			String inputPath = getRosterFilePath(projectUnit, projectLeader, year);
-//			if (isReconstruction) {
-//				inputPath = inputPath.replace("/in/", "/out/out");
-//			}
+			String inputPath = getRosterFilePath(company, projectLeader, year);
 			logger.info("从本地读取花名册： " + inputPath);
 			roster = new ProjectMemberRoster();
 			roster.setLocation(inputPath);
 			roster.setCurrentPayYear(year);
 			readProjectMemberRoster(inputPath, isReconstruction);
 
-			putRosterToCache(projectLeader + year, roster);
+			putRosterToCache(key, roster);
 
 		} else {
 			logger.info("从缓存中读取花名册：" + roster.getName());
@@ -287,13 +285,15 @@ public class RosterProcesser extends AbstractExcelOperater {
 		}
 	}
 
-	public void deleteRosterCursorsByContractID(String contractID) throws RosterProcessException {
+	public int deleteRosterCursorsByContractID(String contractID) throws RosterProcessException {
 		logger.info("删除花名册游标编号为： " + contractID);
+		int releasedPayCount = 0;
 		for (RosterCursor cursor : roster.getExistingCursorList()) {
 			if (cursor.getIdentifier().equals(contractID)) {
 				logger.info("删除游标：" + cursor);
 				roster.addToDeleteCursor(cursor);
 				updateRosterStatisticsOnceDeleteCursor(cursor);
+				releasedPayCount += cursor.getPayCount();
 			}
 		}
 
@@ -304,6 +304,8 @@ public class RosterProcesser extends AbstractExcelOperater {
 			writeProjectMemberRoster(inputPath, inputPath);
 			roster.resetToDeleteCursorList();
 		}
+		
+		return releasedPayCount;
 	}
 
 	private void updateRosterStatisticsOnceDeleteCursor(RosterCursor cursor) {
