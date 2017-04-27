@@ -24,22 +24,36 @@ public class Util {
 	
 	public static int getCurrentDateInt() {
 		Calendar now = Calendar.getInstance();  
-        int year = now.get(Calendar.YEAR);
-        int month = now.get(Calendar.MONTH) + 1;
         int day = now.get(Calendar.DAY_OF_MONTH);
-        return year * 10000 + month * 100 + day;
-	}
-
-	public static String getCurrentYear() {
-		Calendar now = Calendar.getInstance();  
-        int year = now.get(Calendar.YEAR);
-        return String.valueOf(year);
+        return getCurrentYearMonthInt() * 100 + day;
 	}
 	
-	public static String getCurrentMonth() {
+	public static int getCurrentYearMonthInt() {
+		Calendar now = Calendar.getInstance();  
+        int year = now.get(Calendar.YEAR);
+        int month = now.get(Calendar.MONTH) + 1;
+
+        return year * 100 + month;
+	}
+	
+	public static int getCurrentYear() {
+		Calendar now = Calendar.getInstance();  
+        int year = now.get(Calendar.YEAR);
+        return year;
+	}
+	
+	public static int getCurrentMonth() {
 		Calendar now = Calendar.getInstance();  
 		int month = now.get(Calendar.MONTH) + 1;
-        return String.valueOf(month);
+        return month;
+	}
+
+	public static String getCurrentYearString() {
+        return String.valueOf(getCurrentYear());
+	}
+	
+	public static String getCurrentMonthString() {
+        return String.valueOf(getCurrentMonth());
 	}
 	
 	public static String getTabulator() {
@@ -55,6 +69,9 @@ public class Util {
 		File file = new File(path);
 		File[] array = file.listFiles();
 		ArrayList<String> folderList = new ArrayList<String>();
+		if (array == null) {
+			return folderList;
+		}	
 
 		for (int i = 0; i < array.length; i++) {
 			if (array[i].isDirectory()) {

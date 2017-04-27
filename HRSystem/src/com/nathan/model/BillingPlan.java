@@ -521,6 +521,22 @@ public class BillingPlan {
 		if(endPayTimeInInteger > 0) {
 			this.endPayYear = endPayTimeInInteger/100;
 			this.endPayMonth = endPayTimeInInteger%100;
+
+			int currentYearMonth = Util.getCurrentYearMonthInt();
+			int currentYear = Util.getCurrentYear();
+			int currentMonth = Util.getCurrentMonth();
+			if (endPayTimeInInteger >= currentYearMonth) {
+				if (currentMonth == 1) {
+					this.endPayYear = currentYear - 1;
+					this.endPayMonth = 12;
+					this.endPayTimeInInteger = this.endPayYear * 100 + this.endPayMonth;
+				} else {
+					this.endPayTimeInInteger = currentYearMonth - 1;
+					this.endPayYear = currentYear;
+					this.endPayMonth = currentMonth - 1;
+				}
+				
+			}
 		}
 	}
 

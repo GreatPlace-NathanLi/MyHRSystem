@@ -32,4 +32,6 @@ public class Constant {
 	
 	public static final String MATCHES = "[A-Za-z]:\\\\[^:?\"><*]*";  
 	
+	public static final String FULLUP_HANDLE_AUTO = "自动";
+	public static final String FULLUP_HANDLE_MANUAL = "人工";
 }

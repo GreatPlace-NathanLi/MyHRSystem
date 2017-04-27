@@ -1,7 +1,11 @@
 package com.nathan.controller;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+
+import org.apache.log4j.Logger;
 
 import com.nathan.common.Constant;
 import com.nathan.common.Util;
@@ -11,17 +15,19 @@ import com.nathan.model.BillingPlan;
 import com.nathan.model.BillingPlanBook;
 import com.nathan.model.Payroll;
 import com.nathan.model.PayrollSheet;
+import com.nathan.model.ProjectLeader;
 import com.nathan.model.ProjectMember;
 import com.nathan.model.ProjectMemberRoster;
 import com.nathan.model.SubBillingPlan;
 import com.nathan.service.AbstractExcelOperater;
+import com.nathan.view.InteractionHandler;
+import com.nathan.view.InteractionInput;
 
 import jxl.CellType;
 import jxl.FormulaCell;
 import jxl.Sheet;
 import jxl.biff.EmptyCell;
 import jxl.biff.formula.FormulaException;
-import org.apache.log4j.Logger;
 import jxl.write.Blank;
 import jxl.write.Formula;
 import jxl.write.Label;
@@ -100,21 +106,49 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		billingPlan.setBillingID(Math.max(startPayYear, firstProcessingYear), billingPlan.getPayCount() - remainPayCount);
 		
 		if (remainPayCount > 0) {
-			//Popup: 自动借人 or 指定借人		
-			remainPayCount = handleFullUpAuto(billingPlan, rosterProcesser, remainPayCount);
+			
+			if (isFullUpManualHandling()) {
+				InteractionInput input = null;
+				do {
+					input = InteractionHandler.handleFullUpManual(remainPayCount);
+					remainPayCount = handleFullUpManual(billingPlan, rosterProcesser, remainPayCount, input);
+				} while(input != null && remainPayCount > 0);
+				
+				if (input == null) {
+					remainPayCount = handleFullUpAuto(billingPlan, rosterProcesser, remainPayCount);
+				}
+				
+			} else {
+				remainPayCount = handleFullUpAuto(billingPlan, rosterProcesser, remainPayCount);
+			}
+		
 		}
 		
 		logger.debug(billingPlan.getSubPlanList() + billingPlan.getBillingID() + billingPlan.getAlternatedProjectLeaderRemark());
 
 		if (remainPayCount > 0) {
 			throw new PayrollSheetProcessException("花名册人数不足，无法开票！");
+		} else {
+			InteractionHandler.handleFullUpHandlingCompleted();
 		}
 	}
 	
-	private int handleFullUpAuto(BillingPlan billingPlan, RosterProcesser rosterProcesser, int remainPayCount) throws RosterProcessException {
-		logger.info("自动借人预处理...");
-		for(int processingYear = billingPlan.getStartPayYear(); processingYear <= billingPlan.getEndPayYear(); processingYear++) {
-			remainPayCount = handleFullUpByYear(billingPlan, rosterProcesser, processingYear, remainPayCount);
+	private boolean isFullUpManualHandling() {
+		String fullUpHandling = Constant.propUtil.getStringValue("user.默认借人处理方式", Constant.FULLUP_HANDLE_AUTO);
+		return Constant.FULLUP_HANDLE_MANUAL.equals(fullUpHandling);
+	}
+	
+	private int handleFullUpManual(BillingPlan billingPlan, RosterProcesser rosterProcesser, int remainPayCount, InteractionInput input) throws RosterProcessException {		
+		if (remainPayCount <= 0 || input == null) {
+			return remainPayCount;
+		}
+		logger.info("人工指定借人预处理：" + input);
+		int startPayYear = billingPlan.getStartPayYear();
+		int endPayYear = billingPlan.getEndPayYear();
+		for(int processingYear = startPayYear; processingYear <= endPayYear; processingYear++) {		
+			int startPayMonth = startPayYear < processingYear ? 1 : billingPlan.getStartPayMonth();
+			int endPayMonth = processingYear < endPayYear ? 12 : billingPlan.getEndPayMonth();
+			remainPayCount = handleFullUpByProjectLeader(billingPlan, rosterProcesser, remainPayCount, input.getCompany(), input.getProjectLeader(), processingYear, startPayMonth, endPayMonth);
 			if (remainPayCount <= 0) {
 				break;
 			}
@@ -122,16 +156,60 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		return remainPayCount;
 	}
 	
-	private int handleFullUpByYear(BillingPlan billingPlan, RosterProcesser rosterProcesser, int processingYear, int remainPayCount) throws RosterProcessException {
+	private int handleFullUpByProjectLeader(BillingPlan billingPlan, RosterProcesser rosterProcesser, int remainPayCount, String company, String alternatedProjectLeader, int processingYear, int startPayMonth, int endPayMonth) throws RosterProcessException {
+		rosterProcesser.processRoster(company, alternatedProjectLeader, processingYear, false);
+		
+		int availablePayCount = rosterProcesser.getRoster().getAvailablePayCount(startPayMonth, endPayMonth);
+		logger.debug("availablePayCount1:" + availablePayCount);
+		if (availablePayCount <= 0) {
+			return remainPayCount;
+		}
+		logger.info("向其他领队借人：" + alternatedProjectLeader);
+		int currentProcessingCount = Math.min(availablePayCount, remainPayCount);
+		billingPlan.createSubPlan(company, alternatedProjectLeader, processingYear, startPayMonth, endPayMonth, currentProcessingCount);
+		billingPlan.setAlternatedProjectLeaderRemark(company, alternatedProjectLeader, processingYear, currentProcessingCount);
+		
+		remainPayCount -= currentProcessingCount;
+		
+		return remainPayCount;
+	}
+	
+	private int handleFullUpAuto(BillingPlan billingPlan, RosterProcesser rosterProcesser, int remainPayCount) throws RosterProcessException {
+		if (remainPayCount <= 0) {
+			return remainPayCount;
+		}
+		logger.info("自动借人预处理...");
 		String company = billingPlan.getProjectUnit();
+		remainPayCount = handleFullUpByCompany(billingPlan, rosterProcesser, remainPayCount, company);
+		if (remainPayCount > 0) {
+			InteractionInput input = null;
+			do {
+				input = InteractionHandler.handleFullUpFromOtherCompany(company, remainPayCount);
+				remainPayCount = handleFullUpByCompany(billingPlan, rosterProcesser, remainPayCount, input.getCompany());
+			} while(input != null && remainPayCount > 0);
+		}
+		return remainPayCount;
+	}
+	
+	private int handleFullUpByCompany(BillingPlan billingPlan, RosterProcesser rosterProcesser, int remainPayCount, String company) throws RosterProcessException {		
+		logger.info("自动在单位范围内借人：" + company);
+		for(int processingYear = billingPlan.getStartPayYear(); processingYear <= billingPlan.getEndPayYear(); processingYear++) {
+			remainPayCount = handleFullUpByYear(billingPlan, rosterProcesser, remainPayCount, company, processingYear);
+			if (remainPayCount <= 0) {
+				break;
+			}
+		}
+		return remainPayCount;
+	}
+	
+	private int handleFullUpByYear(BillingPlan billingPlan, RosterProcesser rosterProcesser, int remainPayCount, String company, int processingYear) throws RosterProcessException {
 		String processingProjectLeader = billingPlan.getProjectLeader();
 		int startPayYear = billingPlan.getStartPayYear();
 		int endPayYear = billingPlan.getEndPayYear();
 		int startPayMonth = startPayYear < processingYear ? 1 : billingPlan.getStartPayMonth();
 		int endPayMonth = processingYear < endPayYear ? 12 : billingPlan.getEndPayMonth();
 		
-		String maxCountAlternatedProjectLeader = null;
-		int maxAvailablePayCount = 0;
+		ArrayList<ProjectLeader> availableProjectLeaderList = new ArrayList<ProjectLeader>();
 		
 		for(String alternatedProjectLeader : getAlternatedProjectLeaderList(company, processingYear)) {
 			if (processingProjectLeader.equals(alternatedProjectLeader)) {
@@ -150,18 +228,38 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 				billingPlan.setAlternatedProjectLeaderRemark(company, alternatedProjectLeader, processingYear, remainPayCount);
 				return 0;
 			} else {
-				if (availablePayCount > maxAvailablePayCount) {
-					maxAvailablePayCount = availablePayCount;
-					maxCountAlternatedProjectLeader = alternatedProjectLeader;
-				}
+				availableProjectLeaderList.add(new ProjectLeader(alternatedProjectLeader, company, availablePayCount));
 			}		
 		}
-		if(maxAvailablePayCount > 0) {
-			billingPlan.createSubPlan(company, maxCountAlternatedProjectLeader, processingYear, startPayMonth, endPayMonth, maxAvailablePayCount);
-			billingPlan.setAlternatedProjectLeaderRemark(company, maxCountAlternatedProjectLeader, processingYear, maxAvailablePayCount);
-			
+		
+		if(remainPayCount > 0 && availableProjectLeaderList.size() > 0) {
+			Comparator<ProjectLeader> comparator = new Comparator<ProjectLeader>() {
+
+				@Override
+				public int compare(ProjectLeader o1, ProjectLeader o2) {
+					return o2.getAvailablePayCount() - o1.getAvailablePayCount();
+				}
+				
+			};
+			Collections.sort(availableProjectLeaderList, comparator);
+			for(ProjectLeader projectLeader : availableProjectLeaderList) {
+				logger.info("向其他领队借人：" + projectLeader);
+				int currentProcessingCount = Math.min(projectLeader.getAvailablePayCount(), remainPayCount);
+				if (currentProcessingCount == 0) {
+					continue;
+				}
+				billingPlan.createSubPlan(company, projectLeader.getName(), processingYear, startPayMonth, endPayMonth, currentProcessingCount);
+				billingPlan.setAlternatedProjectLeaderRemark(company, projectLeader.getName(), processingYear, currentProcessingCount);
+				
+				remainPayCount -= currentProcessingCount;
+				
+				if (remainPayCount == 0) {
+					break;
+				}
+			}			
 		}
-		return remainPayCount - maxAvailablePayCount;
+		
+		return remainPayCount;
 	}
 	
 	private List<String> getAlternatedProjectLeaderList(String company, int year) {

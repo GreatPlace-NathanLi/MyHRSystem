@@ -1,5 +1,7 @@
 package com.nathan.controller;
 
+import org.apache.log4j.Logger;
+
 import com.nathan.common.Constant;
 import com.nathan.exception.BillingPlanProcessException;
 import com.nathan.model.BillingPlan;
@@ -11,7 +13,6 @@ import jxl.CellType;
 import jxl.NumberCell;
 import jxl.Sheet;
 import jxl.Workbook;
-import org.apache.log4j.Logger;
 import jxl.write.Label;
 import jxl.write.Number;
 import jxl.write.WritableSheet;
@@ -283,14 +284,13 @@ public class BillingPlanProcesser extends AbstractExcelOperater {
 	
 	public static void main(String[] args) throws Exception {
 		BillingPlanProcesser billingPlanProcesser = new BillingPlanProcesser();
-
+	
 		long startTime = System.nanoTime();
 
 		logger.info("步骤1 - 读取开票计划输入： " + Constant.BILLING_INPUT_FILE);
 		billingPlanProcesser.processBillingPlanInput(Constant.BILLING_INPUT_FILE);
 		logger.info(Constant.LINE1);
 
-		
 		logger.info("步骤2 - 保存开票计划输出： " + Constant.BILLING_OUTPUT_FILE);
 		billingPlanProcesser.writeBillingOutput(Constant.BILLING_INPUT_FILE);
 

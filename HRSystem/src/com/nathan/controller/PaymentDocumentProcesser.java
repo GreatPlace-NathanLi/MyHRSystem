@@ -99,8 +99,8 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 		
 		WritableCell cell = sheet.getWritableCell(0, 0);
 		String title = ((Label) cell).getString();
-		title = title.replace("YYYY", Util.getCurrentYear());
-		title = title.replace("MM", Util.getCurrentMonth());
+		title = title.replace("YYYY", Util.getCurrentYearString());
+		title = title.replace("MM", Util.getCurrentMonthString());
 		((Label) cell).setString(title);
 
 		cell = sheet.getWritableCell(0, 6);
