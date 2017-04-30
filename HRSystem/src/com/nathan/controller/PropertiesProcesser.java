@@ -1,14 +1,12 @@
 package com.nathan.controller;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.channels.FileChannel;
 import java.util.Enumeration;
 import java.util.Properties;
 
@@ -42,7 +40,7 @@ public class PropertiesProcesser {
 			in.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		}
 
 		Enumeration<?> en = prop.propertyNames(); // 得到配置文件的名字
@@ -69,7 +67,7 @@ public class PropertiesProcesser {
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		}
 	}
 	
@@ -87,9 +85,9 @@ public class PropertiesProcesser {
                 out.write(buffer, 0, byteread);  
             }  
         } catch (FileNotFoundException e) {  
-        	e.printStackTrace();
+        	logger.error(e.getMessage(), e);
         } catch (IOException e) {  
-        	e.printStackTrace();
+        	logger.error(e.getMessage(), e);
         } finally {  
             try {  
                 if (out != null)  
@@ -97,36 +95,36 @@ public class PropertiesProcesser {
                 if (in != null)  
                     in.close();  
             } catch (IOException e) {  
-                e.printStackTrace();  
+            	logger.error(e.getMessage(), e);
             }  
         } 
 	}
 	
-	private void nioTransferCopy(File source, File target) {
-		FileChannel in = null;
-		FileChannel out = null;
-		FileInputStream inStream = null;
-		FileOutputStream outStream = null;
-		try {
-			inStream = new FileInputStream(source);
-			outStream = new FileOutputStream(target);
-			in = inStream.getChannel();
-			out = outStream.getChannel();
-			in.transferTo(0, in.size(), out);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				inStream.close();
-				in.close();
-				outStream.close();
-				out.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
-		}
-	}
+//	private void nioTransferCopy(File source, File target) {
+//		FileChannel in = null;
+//		FileChannel out = null;
+//		FileInputStream inStream = null;
+//		FileOutputStream outStream = null;
+//		try {
+//			inStream = new FileInputStream(source);
+//			outStream = new FileOutputStream(target);
+//			in = inStream.getChannel();
+//			out = outStream.getChannel();
+//			in.transferTo(0, in.size(), out);
+//		} catch (IOException e) {
+//			logger.error(e.getMessage(), e);
+//		} finally {
+//			try {
+//				inStream.close();
+//				in.close();
+//				outStream.close();
+//				out.close();
+//			} catch (IOException e) {
+//				logger.error(e.getMessage(), e);
+//			}
+//
+//		}
+//	}
 
 	public static void main(String[] args) {
 		PropertiesProcesser processer = new PropertiesProcesser();

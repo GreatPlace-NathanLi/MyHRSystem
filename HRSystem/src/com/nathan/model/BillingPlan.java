@@ -25,7 +25,7 @@ public class BillingPlan {
 	private int payCount;
 	private double withdrawalFee;
 	private String alternatedProjectLeaderRemark;
-	private String billingStatus = null;
+	private BillingStatus billingStatus = null;
 	private String billingID = null;
 	private String startAndEndPayTime;
 	private int startPayTimeInInteger;
@@ -40,7 +40,33 @@ public class BillingPlan {
 	private transient double processingTotalPay;
 	private transient String processingProjectLeader;
 	
+	private boolean isToCreate = false;
+	private boolean isReconstruction = false;
+	private boolean isToDelete = false;
+	
 	private ArrayList<SubBillingPlan> subPlanList;
+	
+	public enum BillingStatus {
+		待制作, 已制作, 待删除, 已删除
+	};
+	
+	public void initBillingStatus() {
+		isToCreate = BillingStatus.待制作.equals(billingStatus);
+		isReconstruction = isToCreate() && billingID != null;
+		isToDelete = BillingStatus.待删除.equals(billingStatus);
+	}
+	
+	public boolean isToCreate() {
+		return isToCreate;
+	}
+
+	public boolean isReconstruction() {
+		return isReconstruction;
+	}
+	
+	public boolean isToDelete() {
+		return isToDelete;
+	}
 	
 	public BillingPlan() {
 		this.subPlanList = new ArrayList<SubBillingPlan>();
@@ -393,15 +419,15 @@ public class BillingPlan {
 		return Integer.valueOf(s[index].split(Constant.DELIMITER1)[3]);
 	}
 
-	public String getBillingStatusAfterBillingCompleted() {
-		this.billingStatus = Constant.BILLING_STATUS_COMPLETED;
+	public BillingStatus getBillingStatusAfterBillingCompleted() {
+		this.billingStatus = BillingStatus.已制作;
 		return billingStatus;
 	}
 
 	/**
 	 * @return the billingStatus
 	 */
-	public String getBillingStatus() {
+	public BillingStatus getBillingStatus() {
 		return billingStatus;
 	}
 
@@ -409,7 +435,7 @@ public class BillingPlan {
 	 * @param billingStatus
 	 *            the billingStatus to set
 	 */
-	public void setBillingStatus(String billingStatus) {
+	public void setBillingStatus(BillingStatus billingStatus) {
 		this.billingStatus = billingStatus;
 	}
 

@@ -1,13 +1,13 @@
 package com.nathan.common;
 
 public class Constant {
-
-	public static final PropertiesUtils propUtil = new PropertiesUtils("F:/work/project/德盛人力项目管理系统/conf/setting.properties");
-	
+		
 	public static final double LOW_DAILY_PAY = 150;
 	public static final double HIGH_DAILY_PAY = 170;
-	public static final String WORK_PATH = "F:/work/project/";
+	public static final String WORK_PATH = "F:/work/project/德盛人力项目管理系统/";
 	public static final String BACKUP_PATH = WORK_PATH + "backup/";
+	public static final String CONFIG_PATH = WORK_PATH + "conf/";
+	public static final String CONFIG_FILE = CONFIG_PATH + "setting.properties";
 	public static final String BILLING_INPUT_FILE = WORK_PATH + "in/开票计划.xls";
 	public static final String BILLING_OUTPUT_FILE = WORK_PATH + "out/开票计划.xls";
 	public static final String ROSTER_FILE = WORK_PATH + "in/花名册/NNNYYYY年花名册.xls";
@@ -28,10 +28,10 @@ public class Constant {
 	public static final String DELIMITER1 = "-";
 	public static final String EMPTY_STRING = "";
 	
-	public static final String BILLING_STATUS_COMPLETED = "已制作";
-	
 	public static final String MATCHES = "[A-Za-z]:\\\\[^:?\"><*]*";  
 	
-	public static final String FULLUP_HANDLE_AUTO = "自动";
-	public static final String FULLUP_HANDLE_MANUAL = "人工";
+	public static final String HANDLE_AUTO = "自动";
+	public static final String HANDLE_MANUAL = "人工";
+	
+	public static PropertiesUtils propUtil = new PropertiesUtils(CONFIG_FILE);
 }

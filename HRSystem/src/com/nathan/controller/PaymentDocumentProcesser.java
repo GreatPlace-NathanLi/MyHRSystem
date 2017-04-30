@@ -19,19 +19,25 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 	private static Logger logger = Logger.getLogger(PaymentDocumentProcesser.class);
 
 	private BillingPlan billingPlan;
-	
-	private String paymentDocumentTemplateFile = Constant.propUtil.getStringValue("user.付款手续单据模板路径",Constant.PAYMENT_DOC_TEMPLATE_FILE);
 
 	public void processPaymentDocument(BillingPlanBook billingPlanBook) throws PaymentDocumentProcessException {
 		for (BillingPlan billingPlan : billingPlanBook.getBillingPlanList()) {
-			String paymentDocumentFile = buildPaymentDocumentFilePath(billingPlan);
-			logger.info("创建付款手续单据：" + paymentDocumentFile);
-			writePaymentDocument(paymentDocumentTemplateFile, paymentDocumentFile, billingPlan);
+			if (billingPlan.isToCreate()) {
+				String paymentDocumentFile = buildPaymentDocumentFilePath(billingPlan);
+				String paymentDocumentTemplateFile = buildPaymentDocumentTemplatePath(billingPlan);
+				logger.info("创建付款手续单据：" + paymentDocumentFile);
+				writePaymentDocument(paymentDocumentTemplateFile, paymentDocumentFile, billingPlan);
+			}		
 		}
 	}
 
-	public void readPaymentDocumentTemplate(String templatePath) {
-		read(templatePath);
+	public void readPaymentDocumentTemplate(String templatePath) throws PaymentDocumentProcessException {
+		try {
+			read(templatePath);
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new PaymentDocumentProcessException("读取付款手续单据模板出错，" + e.getMessage());
+		}
 	}
 
 	public void writePaymentDocument(String templatePath, String filePath, BillingPlan billingPlan)
@@ -40,8 +46,8 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 			this.billingPlan = billingPlan;
 			write(templatePath, filePath);
 		} catch (Exception e) {
-			e.printStackTrace();
-			throw new PaymentDocumentProcessException("付款手续单据出错，" + e.getMessage());
+			logger.error(e.getMessage(), e);
+			throw new PaymentDocumentProcessException("保存付款手续单据出错，" + e.getMessage());
 		}
 	}
 	
@@ -134,6 +140,11 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 		filePath = filePath.replace("NNN", billingPlan.getProjectLeader());
 		filePath = filePath.replace("CCCCC", billingPlan.getContractID());
 		return filePath;
+	}
+	
+	private String buildPaymentDocumentTemplatePath(BillingPlan billingPlan) {
+		String paymentDocumentTemplateFile = Constant.propUtil.getStringValue("user.付款手续单据模板路径",Constant.PAYMENT_DOC_TEMPLATE_FILE);
+		return paymentDocumentTemplateFile;
 	}
 
 	public static void main(String[] args) throws Exception {

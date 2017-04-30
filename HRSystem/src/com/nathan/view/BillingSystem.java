@@ -1,17 +1,37 @@
 package com.nathan.view;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
-import java.util.Scanner;
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.event.ActionEvent;
 
-import javax.swing.*;
-import javax.swing.text.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JTextPane;
+import javax.swing.JToolBar;
+import javax.swing.text.DefaultStyledDocument;
 
+import org.apache.log4j.Logger;
+
+import com.nathan.common.Constant;
+import com.nathan.common.PropertiesUtils;
+
+@SuppressWarnings("serial")
 public class BillingSystem extends JFrame {
     
-	private static final long serialVersionUID = 8944798469568082934L;
+	private static Logger logger = Logger.getLogger(BillingSystem.class);
+	
+	private static int expireDate = 20170620;
 
+//	private static final long serialVersionUID = 8944798469568082934L;
+//
 	JTextPane textPane = new JTextPane(); // ÎÄ±¾´°¸ñ£¬±à¼­´°¿Ú
 
     JLabel statusBar = new JLabel(); // ×´Ì¬À¸
@@ -144,6 +164,21 @@ public class BillingSystem extends JFrame {
     }
 
     public static void main(String[] args) {
-        new BillingSystem();
+//        new BillingSystem();
+        
+        try {
+			InteractionHandler.handleExpireChecking(expireDate);
+
+			String configFile = InteractionHandler.handleConfigPath();
+			Constant.propUtil = new PropertiesUtils(configFile);
+			Constant.propUtil.init();
+
+			InteractionHandler.setActionCallback(new BillingCallback());
+			InteractionHandler.showMenu();
+
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			InteractionHandler.handleException(e.getMessage());
+		}
     }
 }

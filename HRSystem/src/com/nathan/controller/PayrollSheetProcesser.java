@@ -12,6 +12,7 @@ import com.nathan.common.Util;
 import com.nathan.exception.PayrollSheetProcessException;
 import com.nathan.exception.RosterProcessException;
 import com.nathan.model.BillingPlan;
+import com.nathan.model.BillingPlan.BillingStatus;
 import com.nathan.model.BillingPlanBook;
 import com.nathan.model.Payroll;
 import com.nathan.model.PayrollSheet;
@@ -47,25 +48,54 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	private List<PayrollSheet> payrollSheetList;
 
 	private String contractIDToDelete;
+	
+	private boolean isNeededToUpdateBillingPlanBook = false;
+	
+	private boolean isBillingManualHandling = true;
+	private boolean isFullUpManualHandling = true;
 
-	public void processPayrollSheet(BillingPlanBook billingPlanBook, RosterProcesser rosterProcesser,
-			String payrollFile, String payrollTemplateFile) throws Exception {
+	public void processPayrollSheet(BillingPlanBook billingPlanBook, RosterProcesser rosterProcesser) throws Exception {
+		
+		isBillingManualHandling = isBillingManualHandling();
+		isFullUpManualHandling = isFullUpManualHandling();
 
+		int totalToDo = billingPlanBook.getTotalBillingPlanSize();
+		int totalDone = 0;
 		for (String projectLeader : billingPlanBook.getProjectLeaderBillingPlanMap().keySet()) {
 			List<BillingPlan> billingPlanList = billingPlanBook.getBillingByProjectLeader(projectLeader);
 
-			for (BillingPlan billingPlan : billingPlanList) {				
-				if (isReconstruction(billingPlan)) {
+			for (BillingPlan billingPlan : billingPlanList) {	
+				totalDone++;
+				billingPlan.initBillingStatus();
+				logger.debug("isReconstruction: " + billingPlan.isReconstruction());
+				logger.debug("isToDelete: " + billingPlan.isToDelete());
+				if (billingPlan.isReconstruction() || billingPlan.isToDelete()) {
 					deleteOldBillingInfoForSingleBillingPlan(billingPlan, rosterProcesser);
+					billingPlan.setBillingStatus(BillingStatus.已删除);
+					isNeededToUpdateBillingPlanBook = true;
+					if (isBillingManualHandling) {
+						InteractionHandler.handleBillingProgressReport(billingPlan.getContractID(), billingPlan.getBillingStatus().name(), totalToDo, totalDone);
+					}
 				}
-				preProcess(billingPlan, rosterProcesser);
-				buildPayrollSheetForSingleBillingPlan(billingPlan, rosterProcesser);
+				logger.debug("isToCreate: " + billingPlan.isToCreate());
+				if (billingPlan.isToCreate()) {
+					preProcess(billingPlan, rosterProcesser);
+					buildPayrollSheetForSingleBillingPlan(billingPlan, rosterProcesser);
+					billingPlan.setBillingStatus(BillingStatus.已制作);
+					isNeededToUpdateBillingPlanBook = true;
+					if (isBillingManualHandling) {
+						InteractionHandler.handleBillingProgressReport(billingPlan.getContractID(), billingPlan.getBillingStatus().name(), totalToDo, totalDone);
+					}
+				}		
 			}
-
 		}
 	}
 	
-	public void preProcess(BillingPlan billingPlan, RosterProcesser rosterProcesser) throws PayrollSheetProcessException, RosterProcessException {
+	public boolean isNeededToUpdateBillingPlanBook() {
+		return isNeededToUpdateBillingPlanBook;
+	}
+	
+	public void preProcess(BillingPlan billingPlan, RosterProcesser rosterProcesser) throws Exception {
 		logger.info("制作工资表预处理...");
 		String company = billingPlan.getProjectUnit();
 		String processingProjectLeader = billingPlan.getProcessingProjectLeader();
@@ -107,7 +137,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		
 		if (remainPayCount > 0) {
 			
-			if (isFullUpManualHandling()) {
+			if (isFullUpManualHandling) {
 				InteractionInput input = null;
 				do {
 					input = InteractionHandler.handleFullUpManual(remainPayCount);
@@ -122,6 +152,9 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 				remainPayCount = handleFullUpAuto(billingPlan, rosterProcesser, remainPayCount);
 			}
 		
+			if (remainPayCount <= 0 && isBillingManualHandling) {
+				InteractionHandler.handleProcessCompleted(billingPlan.getContractID(), "借人已完成");
+			}
 		}
 		
 		logger.debug(billingPlan.getSubPlanList() + billingPlan.getBillingID() + billingPlan.getAlternatedProjectLeaderRemark());
@@ -129,13 +162,20 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		if (remainPayCount > 0) {
 			throw new PayrollSheetProcessException("花名册人数不足，无法开票！");
 		} else {
-			InteractionHandler.handleFullUpHandlingCompleted();
+			if (isBillingManualHandling) {
+				InteractionHandler.handleProcessCompleted(billingPlan.getContractID(), "有足够人数开票");
+			}
 		}
 	}
 	
+	private boolean isBillingManualHandling() {
+		String billingHandling = Constant.propUtil.getStringValue("user.默认开票处理方式", Constant.HANDLE_MANUAL);
+		return Constant.HANDLE_MANUAL.equals(billingHandling);
+	}
+	
 	private boolean isFullUpManualHandling() {
-		String fullUpHandling = Constant.propUtil.getStringValue("user.默认借人处理方式", Constant.FULLUP_HANDLE_AUTO);
-		return Constant.FULLUP_HANDLE_MANUAL.equals(fullUpHandling);
+		String fullUpHandling = Constant.propUtil.getStringValue("user.默认借人处理方式", Constant.HANDLE_MANUAL);
+		return Constant.HANDLE_MANUAL.equals(fullUpHandling);
 	}
 	
 	private int handleFullUpManual(BillingPlan billingPlan, RosterProcesser rosterProcesser, int remainPayCount, InteractionInput input) throws RosterProcessException {		
@@ -269,9 +309,12 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	}
 
 	private void deleteOldBillingInfoForSingleBillingPlan(BillingPlan billingPlan, RosterProcesser rosterProcesser)
-			throws PayrollSheetProcessException, RosterProcessException {
-		logger.info("处理重新开票...");
-
+			throws Exception {
+		if (isBillingManualHandling) {
+			InteractionHandler.handleProcessCompleted(billingPlan.getContractID(), "开票信息即将被删除");
+		}
+		logger.info("删除开票信息：" + billingPlan.getContractID());
+	
 		deleteOldBillingInfoForPorjectLeader(billingPlan, rosterProcesser);
 
 		deleteOldBillingInfoForAlternatedPorjectLeader(billingPlan, rosterProcesser);
@@ -330,9 +373,10 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		this.contractIDToDelete = contractID;
 		logger.info("删除合同号为" + contractID + "的工资表: " + filePath);
 		try {
+			setBackupFlag(true);
 			modify(filePath);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			throw new PayrollSheetProcessException("删除工资表出错，" + e.getMessage());
 		}
 	}
@@ -344,26 +388,19 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		for (int i = 0; i < numberOfSheets; i++) {
 			Sheet sheet = wwb.getSheet(sheetIndex);
 			if (sheet.getName().contains(contractIDToDelete)) {
-				wwb.removeSheet(i);
-				sheetIndex = i;
+				logger.debug("删除工资表" + sheet.getName() + ", sheetIndex:" + sheetIndex);
+				wwb.removeSheet(sheetIndex);
+//				sheetIndex = i;
 			} else {
 				sheetIndex++;
 			}
+			logger.debug("sheetIndex:" + sheetIndex + ", index:" + i);
 		}
 
 	}
 	
 	protected boolean isNeededToDeleteFile(WritableWorkbook wwb) {
 		if (wwb.getNumberOfSheets() <= 1) {
-			return true;
-		}
-		return false;
-	}
-
-	private boolean isReconstruction(BillingPlan billingPlan) {
-		String billingID = billingPlan.getBillingID();
-		logger.debug("isReconstruction(): " + billingID);
-		if (billingID != null) {
 			return true;
 		}
 		return false;
@@ -438,7 +475,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 		if (payrollSheetList.size() > 0) {
 			String outputPath = buildPayrollSheetFilePath(subPlan.getSubPlanProjectUnit(), processingProjectLeader, processingPayYear);
-			String payrollTemplateFile = Constant.propUtil.getStringValue("user.工资表模板路径", Constant.PAYROLL_TEMPLATE_FILE);
+			String payrollTemplateFile = buildPayrollSheetTemplatePath();
 			logger.info("读取工资表输出模板： " + payrollTemplateFile);
 			writePayrollSheet(payrollTemplateFile, outputPath, payrollSheetList);
 			logger.info(Constant.LINE1);
@@ -586,7 +623,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		try {
 			write(templatePath, filePath);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			throw new PayrollSheetProcessException("保存工资表出错，" + e.getMessage());
 		}
 	}
@@ -733,6 +770,10 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		return filePath;
 	}
 	
+	private String buildPayrollSheetTemplatePath() {
+		return Constant.propUtil.getStringValue("user.工资表模板路径", Constant.PAYROLL_TEMPLATE_FILE);
+	}
+	
 	public static void main(String[] args) throws Exception {
 		PayrollSheetProcesser payrollSheetProcesser = new PayrollSheetProcesser();
 		BillingPlanProcesser billingPlanProcesser = new BillingPlanProcesser();
@@ -745,13 +786,8 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		logger.info("步骤1 - 读取开票计划输入： " + billingFile);
 		billingPlanProcesser.processBillingPlanInput(billingFile);
 		logger.info(Constant.LINE1);
-		
-		logger.info("步骤2 - 开始制作工资表...");
-		String payrollFile = Constant.propUtil.getStringValue("user.工资表输出路径", Constant.PAYROLL_FILE);
-		String payrollTemplateFile = Constant.propUtil.getStringValue("user.工资表模板路径",
-				Constant.PAYROLL_TEMPLATE_FILE);
-		payrollSheetProcesser.processPayrollSheet(billingPlanProcesser.getBillingPlanBook(), rosterProcesser,
-				payrollFile, payrollTemplateFile);
+
+		payrollSheetProcesser.processPayrollSheet(billingPlanProcesser.getBillingPlanBook(), rosterProcesser);
 		logger.info(Constant.LINE1);
 		
 //		logger.info(Constant.LINE0);

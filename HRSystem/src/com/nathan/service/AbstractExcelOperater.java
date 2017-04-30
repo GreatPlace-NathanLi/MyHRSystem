@@ -27,7 +27,7 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 	}
 
 	@Override
-	public void read(String filePath) {
+	public void read(String filePath) throws Exception {
 
 		Workbook readwb = null;
 
@@ -41,10 +41,8 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 
 			instream.close();
 
-		} catch (Exception e) {
-			e.printStackTrace();
 		} finally {
-			readwb.close();
+			close(readwb, null);
 		}
 
 	}
@@ -114,12 +112,18 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 
 			wwb.write();
 
-		} catch (Exception e) {
-			e.printStackTrace();
 		} finally {
-			rwb.close();
-			wwb.close();
+			close(rwb, wwb);
 		}
+	}
+	
+	private void close(Workbook rwb, WritableWorkbook wwb) throws Exception {
+		if (rwb != null) {
+			rwb.close();
+		}
+		if (wwb != null) {
+			wwb.close();
+		}	
 	}
 	
 	protected void preWrite(String outFile) {
@@ -132,6 +136,9 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 
 	@Override
 	public void modify(String destFile) throws Exception {
+		if (backupFlag) {
+			backup(destFile);
+		}
 		Workbook rwb = null;
 		WritableWorkbook wwb = null;
 		boolean needToDelete = false;
@@ -149,11 +156,8 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 
 			wwb.write();
 
-		} catch (Exception e) {
-			e.printStackTrace();
 		} finally {
-			rwb.close();
-			wwb.close();
+			close(rwb, wwb);
 			if (needToDelete) {
 				delete(destFile);
 			}
@@ -200,11 +204,10 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 
 			wwb.write();
 
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (FileNotFoundException e) {
+			logger.error(e.getMessage(), e);
 		} finally {
-			rwb.close();
-			wwb.close();
+			close(rwb, wwb);
 		}
 	}
 

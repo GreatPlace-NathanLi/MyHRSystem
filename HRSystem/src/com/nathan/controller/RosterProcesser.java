@@ -85,7 +85,7 @@ public class RosterProcesser extends AbstractExcelOperater {
 		try {
 			read(filePath);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			throw new RosterProcessException("读取花名册出错，" + e.getMessage());
 		}
 	}
@@ -241,7 +241,7 @@ public class RosterProcesser extends AbstractExcelOperater {
 			setBackupFlag(true);
 			write(inputFilePath, outputFilePath);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 			throw new RosterProcessException("保存花名册出错，" + e.getMessage());
 		}
 	}
