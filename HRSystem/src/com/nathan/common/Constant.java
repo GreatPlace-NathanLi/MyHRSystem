@@ -4,6 +4,7 @@ public class Constant {
 		
 	public static final double LOW_DAILY_PAY = 150;
 	public static final double HIGH_DAILY_PAY = 170;
+	public static final double DEFAULT_OVERTIME_PAY = 70;
 	public static final String WORK_PATH = "F:/work/project/德盛人力项目管理系统/";
 	public static final String BACKUP_PATH = WORK_PATH + "backup/";
 	public static final String CONFIG_PATH = WORK_PATH + "conf/";

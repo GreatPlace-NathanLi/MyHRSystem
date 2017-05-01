@@ -27,6 +27,10 @@ public class Payroll {
 	public void increaseWorkingDays(int days) {
 		this.workingDays+=days;
 	}
+	
+	public void decreaseWorkingDays(int days) {
+		this.workingDays-=days;
+	}
 
 	public double getTotalPay() {
 		return workingDays * dailyPay;

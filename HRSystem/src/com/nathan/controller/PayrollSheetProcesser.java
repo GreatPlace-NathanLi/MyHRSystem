@@ -604,7 +604,10 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	protected void buildPayrolls(PayrollSheet payrollSheet, ProjectMemberRoster roster) {
 		int payrollCount = payrollSheet.getPayrollNumber();
 		double totalAmount = payrollSheet.getTotalAmount();
-		int initWorkingDayCount = calcDraftWorkingDayCount(payrollCount, totalAmount);
+		double highTemperatureAllowance = Util.getHighTemperatureAllowance(payrollSheet.getPayMonth());
+		double socialSecurityAmount = Util.getSocialSecurityAmount();
+		double taxThreshold = Util.getIndividualIncomeTaxThreshold();
+		int initWorkingDayCount = calcDraftWorkingDayCount(payrollCount, totalAmount, taxThreshold);
 		double tempAmount = 0.0;
 		for (int i = 0; i < payrollCount; i++) {
 			ProjectMember member = roster.getMemberByMonth(payrollSheet.getPayMonth());
@@ -613,31 +616,56 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			payroll.setName(member.getName());
 			payroll.setBasePay(member.getBasePay());
 			payroll.setDailyPay(member.getDailyPay());
-			payroll.setHighTemperatureAllowance(Util.getHighTemperatureAllowance(payrollSheet.getPayMonth()));
-			payroll.setSocialSecurityAmount(Util.getSocialSecurityAmount());
+			payroll.setHighTemperatureAllowance(highTemperatureAllowance);
+			payroll.setSocialSecurityAmount(socialSecurityAmount);
 			payroll.setWorkingDays(initWorkingDayCount);
 			payrollSheet.addPayroll(payroll);
 			tempAmount += payroll.getTotalPay();
-			logger.debug(payroll);
 		}
 
 		roster.setNewCursor(payrollSheet.getPayMonth(), payrollSheet.getContractID(), totalAmount);
 
 		double remainAmount = totalAmount - tempAmount;
+		int loop = 0;
 		for (int i = 0; i < payrollCount; i++) {
-			if (remainAmount >= Constant.LOW_DAILY_PAY * 2 || remainAmount > Constant.HIGH_DAILY_PAY + 50) {
+			if (isRemainAmountTooBig(remainAmount)) {
 				Payroll payroll = payrollSheet.getPayrollList().get(i);
 				payroll.increaseWorkingDays(1);
-				remainAmount -= payroll.getDailyPay();
+				if (payroll.getTotalPay() > taxThreshold) {
+					payroll.decreaseWorkingDays(1);
+				} else {
+					remainAmount -= payroll.getDailyPay();
+				}
+				
 				if (i == payrollCount - 1) {
 					i = -1;
+					loop++;
+					logger.debug("loop:" + loop);
+				}
+				if (loop > 5) {
+					break;
 				}
 			} else {
 				break;
 			}
 		}
-		payrollSheet.getPayrollList().get(0).setOvertimePay(remainAmount);
+		for (int i = 0; i < payrollCount; i++) {
+			if (isRemainAmountTooBig(remainAmount) || remainAmount >= Constant.DEFAULT_OVERTIME_PAY * 2) {
+				if (payrollSheet.getPayrollList().get(i).getTotalPay() + Constant.DEFAULT_OVERTIME_PAY > taxThreshold) {
+					continue;
+				}
+				payrollSheet.getPayrollList().get(i).setOvertimePay(Constant.DEFAULT_OVERTIME_PAY);
+				remainAmount -= Constant.DEFAULT_OVERTIME_PAY;
+			} else if (payrollSheet.getPayrollList().get(i).getTotalPay() + remainAmount < taxThreshold) {
+				payrollSheet.getPayrollList().get(i).setOvertimePay(remainAmount);
+				break;
+			}
+		}	
 		logger.debug("分表金额: " + totalAmount + ", 加班费: " + remainAmount);
+	}
+	
+	private boolean isRemainAmountTooBig(double remainAmount) {
+		return remainAmount >= Constant.LOW_DAILY_PAY * 2 || remainAmount > Constant.HIGH_DAILY_PAY + 50;
 	}
 
 	public void writePayrollSheet(String templatePath, String filePath, List<PayrollSheet> payrollSheetList)
@@ -778,9 +806,12 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		}
 	}
 
-	protected int calcDraftWorkingDayCount(int payrollCount, double totalAmount) {
+	protected int calcDraftWorkingDayCount(int payrollCount, double totalAmount, double taxThreshold) {
 		int initWorkingDayCount = (int) Math.floor(totalAmount / payrollCount / Constant.HIGH_DAILY_PAY);
-		// logger.debug("initWorkingDayCount: " + initWorkingDayCount);
+		while(Constant.HIGH_DAILY_PAY * initWorkingDayCount > taxThreshold) {
+			logger.debug("initWorkingDayCount: " + initWorkingDayCount + ", draft total:" + Constant.HIGH_DAILY_PAY * initWorkingDayCount);
+			initWorkingDayCount--;
+		}
 		return initWorkingDayCount;
 	}
 
