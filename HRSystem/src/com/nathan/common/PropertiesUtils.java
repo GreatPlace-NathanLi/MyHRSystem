@@ -126,6 +126,14 @@ public class PropertiesUtils {
 		logger.info("Read [" + key + "] ==> [" + num + "]");
 		return num;
 	}
+	
+	public double getDoubleValue(String key) {
+		String tmpvalue = getTrimValue(key);
+		double num = 0;
+		num = Double.parseDouble(tmpvalue);
+		logger.info("Read [" + key + "] ==> [" + num + "]");
+		return num;
+	}
 
 	/**
 	 * 取整形，带默认值.取不到或者不合法则取默认值

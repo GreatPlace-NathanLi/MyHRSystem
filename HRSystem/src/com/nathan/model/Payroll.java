@@ -14,7 +14,7 @@ public class Payroll {
 	
 	private double highTemperatureAllowance;
 	
-	private double socialSecurity;
+	private double socialSecurityAmount;
 	
 	private double actualPay;
 	
@@ -117,17 +117,17 @@ public class Payroll {
 	}
 
 	/**
-	 * @return the socialSecurity
+	 * @return the socialSecurityAmount
 	 */
-	public double getSocialSecurity() {
-		return socialSecurity;
+	public double getSocialSecurityAmount() {
+		return socialSecurityAmount;
 	}
 
 	/**
-	 * @param socialSecurity the socialSecurity to set
+	 * @param socialSecurityAmount the socialSecurityAmount to set
 	 */
-	public void setSocialSecurity(double socialSecurity) {
-		this.socialSecurity = socialSecurity;
+	public void setSocialSecurityAmount(double socialSecurityAmount) {
+		this.socialSecurityAmount = socialSecurityAmount;
 	}
 
 	/**
@@ -194,7 +194,7 @@ public class Payroll {
 	public String toString() {
 		return "Payroll [orderNumber=" + orderNumber + ", name=" + name + ", basePay=" + basePay + ", performancePay="
 				+ performancePay + ", overtimePay=" + overtimePay + ", highTemperatureAllowance="
-				+ highTemperatureAllowance + ", socialSecurity=" + socialSecurity + ", actualPay=" + actualPay
+				+ highTemperatureAllowance + ", socialSecurityAmount=" + socialSecurityAmount + ", actualPay=" + actualPay
 				+ ", dailyPay=" + dailyPay + ", workingDays=" + workingDays + ", administrationExpenses="
 				+ administrationExpenses + "]";
 	}

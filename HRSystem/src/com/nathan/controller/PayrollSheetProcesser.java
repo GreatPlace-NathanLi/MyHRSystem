@@ -600,7 +600,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		roster.setCurrentPayYear(payYear);
 		roster.setCurrentPayMonth(payMonth);
 	}
-
+	
 	protected void buildPayrolls(PayrollSheet payrollSheet, ProjectMemberRoster roster) {
 		int payrollCount = payrollSheet.getPayrollNumber();
 		double totalAmount = payrollSheet.getTotalAmount();
@@ -613,9 +613,12 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			payroll.setName(member.getName());
 			payroll.setBasePay(member.getBasePay());
 			payroll.setDailyPay(member.getDailyPay());
+			payroll.setHighTemperatureAllowance(Util.getHighTemperatureAllowance(payrollSheet.getPayMonth()));
+			payroll.setSocialSecurityAmount(Util.getSocialSecurityAmount());
 			payroll.setWorkingDays(initWorkingDayCount);
 			payrollSheet.addPayroll(payroll);
 			tempAmount += payroll.getTotalPay();
+			logger.debug(payroll);
 		}
 
 		roster.setNewCursor(payrollSheet.getPayMonth(), payrollSheet.getContractID(), totalAmount);
@@ -739,6 +742,10 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 					((Label) newCell).setString(payroll.getName());
 				} else if (c == 2) {
 					((Number) newCell).setValue(payroll.getBasePay());
+				} else if (c == 5) {
+					((Number) newCell).setValue(payroll.getHighTemperatureAllowance());
+				} else if (c == 6) {
+					((Number) newCell).setValue(payroll.getSocialSecurityAmount());
 				} else if (c == 13) {
 					((Number) newCell).setValue(payroll.getWorkingDays());
 				} else if (c == 15) {

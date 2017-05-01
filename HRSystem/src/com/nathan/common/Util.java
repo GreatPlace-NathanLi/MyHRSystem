@@ -60,6 +60,26 @@ public class Util {
 		return Constant.propUtil.getStringValue("user.制表人", Constant.TABULATOR);
 	}
 	
+	public static double getHighTemperatureAllowance(int month) {
+		double highTemperatureAllowance = Constant.propUtil.getDoubleValue("user.高温补贴金额");
+		String highTemperatureAllowanceMonths = Constant.propUtil.getStringEnEmpty("user.高温补贴月份");
+		String[] months = highTemperatureAllowanceMonths.split(Constant.DELIMITER2);
+		for (String m : months) {
+			if (Integer.valueOf(m) == month) {
+				return highTemperatureAllowance;
+			}
+		}
+		return 0;
+	}
+	
+	public static double getSocialSecurityAmount() {
+		return Constant.propUtil.getDoubleValue("user.社保金额");
+	}
+	
+	public static double getIndividualIncomeTaxThreshold() {
+		return Constant.propUtil.getDoubleValue("user.个税起征点");
+	}
+	
 	public static String getFileNameFromPath(String filePath) {
 		String[] s = filePath.split("/");
 		return s[s.length - 1];
