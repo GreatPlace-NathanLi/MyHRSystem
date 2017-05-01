@@ -164,6 +164,9 @@ public class BillingPlanProcesser extends AbstractExcelOperater {
 
 			cell = readsheet.getCell(38, rowIndex);
 			billingPLan.setBillingID(isEmpty(cell) ? null : cell.getContents());
+			
+			cell = readsheet.getCell(39, rowIndex);
+			billingPLan.setAttendanceSheetFlag(isEmpty(cell) ? null : cell.getContents());
 
 			validateBillingPlan(billingPLan);
 

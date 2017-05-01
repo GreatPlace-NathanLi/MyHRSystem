@@ -34,6 +34,7 @@ public class BillingPlan {
 	private int endPayYear;
 	private int startPayMonth;
 	private int endPayMonth;
+	private String attendanceSheetFlag;
 	
 	private int rowIndex;
 	private transient int processingPayCount;
@@ -43,6 +44,8 @@ public class BillingPlan {
 	private boolean isToCreate = false;
 	private boolean isReconstruction = false;
 	private boolean isToDelete = false;
+	
+	private boolean isAttendanceSheetRequired = false;
 	
 	private ArrayList<SubBillingPlan> subPlanList;
 	
@@ -66,6 +69,10 @@ public class BillingPlan {
 	
 	public boolean isToDelete() {
 		return isToDelete;
+	}
+	
+	public boolean isAttendanceSheetRequired() {
+		return isAttendanceSheetRequired;
 	}
 	
 	public BillingPlan() {
@@ -648,6 +655,21 @@ public class BillingPlan {
 	 */
 	public void setEndPayMonth(int endPayMonth) {
 		this.endPayMonth = endPayMonth;
+	}
+
+	/**
+	 * @return the attendanceSheetFlag
+	 */
+	public String getAttendanceSheetFlag() {
+		return attendanceSheetFlag;
+	}
+
+	/**
+	 * @param attendanceSheetFlag the attendanceSheetFlag to set
+	 */
+	public void setAttendanceSheetFlag(String attendanceSheetFlag) {
+		this.attendanceSheetFlag = attendanceSheetFlag;
+		this.isAttendanceSheetRequired = Constant.ATTENDANCE_SHEET_FLAG.equals(attendanceSheetFlag);
 	}
 
 	/**

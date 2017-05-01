@@ -39,6 +39,12 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 			throw new PaymentDocumentProcessException("读取付款手续单据模板出错，" + e.getMessage());
 		}
 	}
+	
+	public void removePaymentDocumentIfExists(String filePath) {
+		if(delete(filePath)) {
+			logger.debug("删除文件：" + filePath);
+		}
+	}
 
 	public void writePaymentDocument(String templatePath, String filePath, BillingPlan billingPlan)
 			throws PaymentDocumentProcessException {
@@ -52,7 +58,7 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 	}
 	
 	protected void preWrite(String filePath) {
-		delete(filePath);
+		removePaymentDocumentIfExists(filePath);
 	}
 
 	protected void writeContent(WritableWorkbook wwb) throws Exception {

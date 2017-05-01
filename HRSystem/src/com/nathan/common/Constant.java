@@ -14,11 +14,10 @@ public class Constant {
 	public static final String PAYROLL_FILE = WORK_PATH + "out/NNNYYYY年工资表.xls";
 	public static final String PAYROLL_TEMPLATE_FILE = WORK_PATH + "template/工资表模板.xls";
 	public static final String PAYMENT_DOC_FILE = WORK_PATH + "out/NNNCCCCC付款手续单据.xls";
-//	public static final String PAYMENT_DOC_FILE = propUtil.getStringValue("user.付款手续单据输出路径", WORK_PATH + "out/NNNCCCCC付款手续单据.xls");
 	public static final String PAYMENT_DOC_TEMPLATE_FILE = WORK_PATH + "template/付款手续单据模板.xls";
-//	public static final String PAYMENT_DOC_TEMPLATE_FILE = propUtil.getStringValue("user.付款手续单据模板路径", WORK_PATH + "template/付款手续单据模板.xls");
+	public static final String ATTENDANCE_SHEET_FILE = WORK_PATH + "out/NNNCCCCC考勤表.xls";
+	public static final String ATTENDANCE_SHEET_TEMPLATE_FILE = WORK_PATH + "template/考勤表模板.xls";
 	public static final String TABULATOR = "谢少芹";
-//	public static final String TABULATOR = propUtil.getStringValue("user.制表人", "谢少芹");
 
 	public static final String LINE0 = "========================================================================";
 	public static final String LINE1 = "------------------------------------------------------------------------";
@@ -32,6 +31,8 @@ public class Constant {
 	
 	public static final String HANDLE_AUTO = "自动";
 	public static final String HANDLE_MANUAL = "人工";
+	
+	public static final String ATTENDANCE_SHEET_FLAG = "是";
 	
 	public static PropertiesUtils propUtil = new PropertiesUtils(CONFIG_FILE);
 }

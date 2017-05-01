@@ -3,6 +3,7 @@ package com.nathan.service;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.log4j.Logger;
@@ -11,10 +12,17 @@ import com.nathan.common.Constant;
 import com.nathan.common.Util;
 
 import jxl.Cell;
+import jxl.CellType;
+import jxl.Range;
 import jxl.Sheet;
 import jxl.Workbook;
+import jxl.format.CellFormat;
+import jxl.write.Label;
+import jxl.write.WritableCellFormat;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
+import jxl.write.WriteException;
+import jxl.write.biff.RowsExceededException;
 
 public abstract class AbstractExcelOperater implements ExcelOperater {
 
@@ -63,9 +71,10 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 
 					Cell cell = readsheet.getCell(j, i);
 
-					logger.debug(cell.getContents() + " c:" + j + " r:" + i);
-
-					logger.debug(cell.getType());
+					if (cell.getType() != CellType.EMPTY) {
+						logger.debug(cell.getContents() + " c:" + j + " r:" + i);
+						logger.debug(cell.getType());
+					}
 				}
 			}
 		}
@@ -116,18 +125,18 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 			close(rwb, wwb);
 		}
 	}
-	
+
 	private void close(Workbook rwb, WritableWorkbook wwb) throws Exception {
 		if (rwb != null) {
 			rwb.close();
 		}
 		if (wwb != null) {
 			wwb.close();
-		}	
+		}
 	}
-	
+
 	protected void preWrite(String outFile) {
-		
+
 	}
 
 	protected void writeContent(WritableWorkbook wwb) throws Exception {
@@ -167,7 +176,7 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 	protected void modifyContent(WritableWorkbook wwb) throws Exception {
 
 	}
-	
+
 	protected boolean isNeededToDeleteFile(WritableWorkbook wwb) {
 		return false;
 	}
@@ -216,4 +225,101 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 		return backupPath + Util.getFileNameFromPath(filePath) + ".backup." + System.currentTimeMillis();
 	}
 
+	/**
+	 * 
+	 * @param sheet
+	 *            操作对象
+	 * @param mergedCell
+	 *            所有合并单元格范围
+	 * 
+	 *            考虑到该方法可能被循环调用多次，而且是复制同一个表格到不同地方，因此本参数记录的原始
+	 * 
+	 *            被拷贝表格中的单元格，避免在多次循环后，本参数数据量不断增加，导致遍历时间太长。即本参数值需在调用
+	 * 
+	 *            本方法的循环外就已经获得。
+	 *
+	 * 
+	 * @param from1Cols
+	 *            被复制表格开始列
+	 * @param from1Row
+	 *            被复制表格开始行
+	 * @param to1Col
+	 *            被复制表格结束列
+	 * @param to1Row
+	 *            被复制表格结束行
+	 * @param from2Col
+	 *            复制到表格开始列
+	 * @param from2Row
+	 *            复制到表格开始行
+	 * @return boolean 是否完整
+	 * @throws IOException
+	 */
+	@SuppressWarnings("deprecation")
+	public static boolean copyCells(WritableSheet sheet, Range[] mergedCell, int from1Col, int from1Row, int to1Col,
+			int to1Row, int from2Col, int from2Row) throws IOException {
+
+		try {
+			// 制作表格，先合并单元格
+			for (int i = 0; i < (to1Row - from1Row + 1); i++) {
+
+				// 选中区域下一行
+				sheet.insertRow(from2Row + i);
+				sheet.setRowView(from2Row + i, sheet.getRowHeight(from1Row + i));
+				// 对插入行的列进行处理，即单元格
+				for (int j = 0; j < (to1Col - from1Col); j++) {
+
+					CellFormat cf = sheet.getWritableCell(from1Col + j, from1Row + i).getCellFormat();
+
+					String content = sheet.getCell(from1Col + j, from1Row + i).getContents();
+
+					if (cf == null) {
+						sheet.addCell(new Label(from1Col + j, from2Row + i, content));
+					} else {
+						sheet.addCell(new Label(from1Col + j, from2Row + i, content, cf));
+					}
+				}
+			}
+
+			// 合并单元格
+
+			for (int i = 0; i < mergedCell.length; i++) {
+				int fromRow = mergedCell[i].getTopLeft().getRow();
+				int fromCol = mergedCell[i].getTopLeft().getColumn();
+
+				int toRow = mergedCell[i].getBottomRight().getRow();
+				int toCol = mergedCell[i].getBottomRight().getColumn();
+
+				// 如果检测到的合并单元格，在复制表格内，则将对应粘贴表的单元格合并。列数=原列数+表高，列数=原列数
+				if (fromRow >= from1Row && fromCol >= from1Col && toRow <= to1Row && toCol <= to1Col) {
+					sheet.mergeCells(fromCol, fromRow + from2Row, toCol, toRow + from2Row);
+				}
+			}
+
+		} catch (RowsExceededException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		} catch (WriteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	
+	public void copyCell(WritableSheet sheet, int fromCol, int fromRow, int toCol, int toRow) throws Exception {
+		CellFormat cf = sheet.getWritableCell(fromCol, fromRow).getCellFormat();
+		WritableCellFormat wcf;
+		if (cf != null) {
+			wcf = new WritableCellFormat(cf);
+		} else {
+			wcf = new WritableCellFormat();
+		}
+		formatCell(wcf);
+		String content = sheet.getCell(fromCol, fromRow).getContents();
+		sheet.addCell(new Label(toCol, toRow, content, wcf));
+	}
+	
+	protected void formatCell(WritableCellFormat wcf) throws Exception {
+	}
 }
