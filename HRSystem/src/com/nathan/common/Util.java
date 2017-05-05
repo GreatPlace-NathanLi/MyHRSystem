@@ -102,7 +102,29 @@ public class Util {
 		return folderList;
 	}
 	
+	public static List<String> parseProjectLeadersUnderPath(String path) {
+		File file = new File(path);
+		File[] array = file.listFiles();
+		ArrayList<String> folderList = new ArrayList<String>();
+		if (array == null) {
+			return folderList;
+		}	
+
+		for (int i = 0; i < array.length; i++) {
+			String name = array[i].getName();
+			if (array[i].isDirectory()) {
+				folderList.add(name);
+			}
+			if (array[i].isFile()) {
+				folderList.add(name.substring(0, name.length()-12));
+			}
+		}
+		System.out.println("parseProjectLeadersUnderPath():" + folderList);
+		return folderList;
+	}
+	
 	public static void main(String[] args) {
-		Util.getFoldersUnderPath("F:/work/project/德盛人力项目管理系统/in/湛江雷能/2015/");
+		System.out.println(Util.getFoldersUnderPath("F:/work/project/德盛人力项目管理系统/in/湛江雷能/2015/"));
+		Util.parseProjectLeadersUnderPath("F:/work/project/德盛人力项目管理系统/in/雷能电力/2016/");
 	}
 }

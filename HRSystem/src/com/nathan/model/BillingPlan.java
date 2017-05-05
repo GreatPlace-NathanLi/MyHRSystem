@@ -40,6 +40,7 @@ public class BillingPlan {
 	private transient int processingPayCount;
 	private transient double processingTotalPay;
 	private transient String processingProjectLeader;
+	private transient double remainTotalPay;
 	
 	private boolean isToCreate = false;
 	private boolean isReconstruction = false;
@@ -321,6 +322,7 @@ public class BillingPlan {
 	public void setTotalPay(double totalPay) {
 		this.totalPay = totalPay;
 		this.processingTotalPay = this.totalPay;
+		this.remainTotalPay = this.totalPay;
 	}
 
 	/**
@@ -726,6 +728,20 @@ public class BillingPlan {
 	 */
 	public void setProcessingProjectLeader(String processingProjectLeader) {
 		this.processingProjectLeader = processingProjectLeader;
+	}
+
+	/**
+	 * @return the remainTotalPay
+	 */
+	public double getRemainTotalPay() {
+		return remainTotalPay;
+	}
+
+	/**
+	 * @param remainTotalPay the remainTotalPay to set
+	 */
+	public void setRemainTotalPay(double remainTotalPay) {
+		this.remainTotalPay = remainTotalPay;
 	}
 
 	/* (non-Javadoc)

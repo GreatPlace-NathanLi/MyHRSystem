@@ -44,8 +44,6 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 	private static Logger logger = Logger.getLogger(PayrollSheetProcesser.class);
 
-	private int rosterFullUpTime = 0;
-
 	private List<PayrollSheet> payrollSheetList;
 
 	private String contractIDToDelete;
@@ -327,7 +325,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	private List<String> getAlternatedProjectLeaderList(String company, int year) {
 		String path = Constant.propUtil.getStringEnEmpty("user.花名册领队目录");
 		path = path.replace("YYYY", String.valueOf(year)).replace("UUUU", company);
-		return Util.getFoldersUnderPath(path);
+		return Util.parseProjectLeadersUnderPath(path);
 	}
 
 	private void deleteOldBillingInfoForSingleBillingPlan(BillingPlan billingPlan, RosterProcesser rosterProcesser)
@@ -529,31 +527,31 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		}
 	}
 
-	public int buildPayrollSheet(BillingPlan billingPlan, ProjectMemberRoster roster,
-			List<PayrollSheet> payrollSheetList) {
-		// 决定工资表数量
-		// Todo: unit test
-		logger.info("计算工资表数据...");
-		int payYear = billingPlan.getStartPayYear();
-		int startPayMonth = billingPlan.getStartPayMonth();
-		int endPayMonth = billingPlan.getEndPayMonth();
-		if (billingPlan.getStartPayYear() < billingPlan.getEndPayYear()) {
-			endPayMonth = 12;
-		}
-
-		int remainPayCount = buildPayrollSheet(billingPlan, roster, payrollSheetList, payYear, startPayMonth,
-				endPayMonth, billingPlan.getProcessingPayCount());
-
-		if (rosterFullUpTime == 0) {
-			billingPlan.setBillingID(billingPlan.getPayCount() - remainPayCount);
-		} else if (payrollSheetList.size() > 0) {
-			billingPlan.setAlternatedProjectLeaderRemark(billingPlan.getProcessingPayCount() - remainPayCount);
-		}
-
-		logger.debug("AlternatedProjectLeaderRemark: " + billingPlan.getAlternatedProjectLeaderRemark());
-
-		return remainPayCount;
-	}
+//	public int buildPayrollSheet(BillingPlan billingPlan, ProjectMemberRoster roster,
+//			List<PayrollSheet> payrollSheetList) {
+//		// 决定工资表数量
+//		// Todo: unit test
+//		logger.info("计算工资表数据...");
+//		int payYear = billingPlan.getStartPayYear();
+//		int startPayMonth = billingPlan.getStartPayMonth();
+//		int endPayMonth = billingPlan.getEndPayMonth();
+//		if (billingPlan.getStartPayYear() < billingPlan.getEndPayYear()) {
+//			endPayMonth = 12;
+//		}
+//
+//		int remainPayCount = buildPayrollSheet(billingPlan, roster, payrollSheetList, payYear, startPayMonth,
+//				endPayMonth, billingPlan.getProcessingPayCount());
+//
+//		if (rosterFullUpTime == 0) {
+//			billingPlan.setBillingID(billingPlan.getPayCount() - remainPayCount);
+//		} else if (payrollSheetList.size() > 0) {
+//			billingPlan.setAlternatedProjectLeaderRemark(billingPlan.getProcessingPayCount() - remainPayCount);
+//		}
+//
+//		logger.debug("AlternatedProjectLeaderRemark: " + billingPlan.getAlternatedProjectLeaderRemark());
+//
+//		return remainPayCount;
+//	}
 
 	public int buildPayrollSheet(BillingPlan billingPlan, ProjectMemberRoster roster,
 			List<PayrollSheet> payrollSheetList, int payYear, int startPayMonth, int endPayMonth, int payCount) {
@@ -649,7 +647,12 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 				break;
 			}
 		}
+
 		for (int i = 0; i < payrollCount; i++) {
+			if (payrollCount == 1) {
+				payrollSheet.getPayrollList().get(i).setOvertimePay(remainAmount);
+				break;
+			}
 			if (isRemainAmountTooBig(remainAmount) || remainAmount >= Constant.DEFAULT_OVERTIME_PAY * 2) {
 				if (payrollSheet.getPayrollList().get(i).getTotalPay() + Constant.DEFAULT_OVERTIME_PAY > taxThreshold) {
 					continue;
@@ -816,7 +819,15 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	}
 
 	private static double calcPayrollSheetTotalAmount(int payrollNumber, BillingPlan billingPlan) {
-		return Math.round(billingPlan.getTotalPay() / billingPlan.getPayCount() * payrollNumber);
+		double remainTotalPay = billingPlan.getRemainTotalPay();
+		double currentAmount = Math.round(billingPlan.getTotalPay() / billingPlan.getPayCount() * payrollNumber);
+		logger.debug("TotalPay:" + billingPlan.getTotalPay() + " remainTotalPay:" + billingPlan.getRemainTotalPay()
+				+ " currentAmount:" + currentAmount);
+		if (remainTotalPay > 0 && Math.abs(remainTotalPay - currentAmount) <= 2) {
+			currentAmount = remainTotalPay;
+		}
+		billingPlan.setRemainTotalPay(remainTotalPay - currentAmount);
+		return currentAmount;
 	}
 
 	private String buildPayrollSheetFilePath(String company, String projectLeader, int payYear) {
