@@ -3,6 +3,8 @@ package com.nathan.controller;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.log4j.Logger;
+
 import com.nathan.common.Constant;
 import com.nathan.exception.RosterProcessException;
 import com.nathan.model.ProjectMember;
@@ -17,7 +19,6 @@ import jxl.CellType;
 import jxl.NumberCell;
 import jxl.Sheet;
 import jxl.Workbook;
-import org.apache.log4j.Logger;
 import jxl.write.Label;
 import jxl.write.Number;
 import jxl.write.WritableSheet;
@@ -212,9 +213,11 @@ public class RosterProcesser extends AbstractExcelOperater {
 		RosterStatistics statistics = new RosterStatistics();
 		for (int c = 5; c < rsColumns; c += 2) {
 			cell = readsheet.getCell(c, 0);
-			int currentAvailableIndex = Integer.valueOf(cell.getContents());
+//			int currentAvailableIndex = Integer.valueOf(cell.getContents());
+			int currentAvailableIndex = (int) ((NumberCell)cell).getValue();
 			cell = readsheet.getCell(c + 1, 0);
-			int availableCount = Integer.valueOf(cell.getContents());
+//			int availableCount = Integer.valueOf(cell.getContents());
+			int availableCount = (int) ((NumberCell)cell).getValue();
 			int payMonth = Integer.valueOf(readsheet.getCell(c + 1, 1).getContents().split("ÔÂ")[0]);
 
 			statistics.putMonthStatistics(payMonth, new RosterMonthStatistics(currentAvailableIndex, availableCount));

@@ -39,6 +39,7 @@ public class BillingOperater {
 			if (payrollSheetProcesser.isNeededToUpdateBillingPlanBook()) {
 				logger.info("开票中途出错， 保存开票计划输出： " + billingFile);
 				billingPlanProcesser.writeBillingOutput(billingFile);
+				paymentDocumentProcesser.processPaymentDocument(billingPlanProcesser.getBillingPlanBook());
 			}
 			throw e;
 		}

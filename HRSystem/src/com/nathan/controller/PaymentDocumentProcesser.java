@@ -4,6 +4,7 @@ import com.nathan.common.Constant;
 import com.nathan.common.Util;
 import com.nathan.exception.PaymentDocumentProcessException;
 import com.nathan.model.BillingPlan;
+import com.nathan.model.BillingPlan.BillingStatus;
 import com.nathan.model.BillingPlanBook;
 import com.nathan.service.AbstractExcelOperater;
 
@@ -22,7 +23,7 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 
 	public void processPaymentDocument(BillingPlanBook billingPlanBook) throws PaymentDocumentProcessException {
 		for (BillingPlan billingPlan : billingPlanBook.getBillingPlanList()) {
-			if (billingPlan.isToCreate()) {
+			if (billingPlan.isToCreate() && BillingStatus.已制作.equals(billingPlan.getBillingStatus())) {
 				String paymentDocumentFile = buildPaymentDocumentFilePath(billingPlan);
 				String paymentDocumentTemplateFile = buildPaymentDocumentTemplatePath(billingPlan);
 				logger.info("创建付款手续单据：" + paymentDocumentFile);
