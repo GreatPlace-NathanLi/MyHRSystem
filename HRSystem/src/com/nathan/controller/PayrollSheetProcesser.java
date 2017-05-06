@@ -126,11 +126,11 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 			if (remainPayCount > availablePayCount) {
 				billingPlan.createSubPlan(company, processingProjectLeader, processingYear, startPayMonth, endPayMonth,
-						availablePayCount);
+						availablePayCount, calcSubTotalAmount(availablePayCount, billingPlan));
 				remainPayCount -= availablePayCount;
 			} else {
 				billingPlan.createSubPlan(company, processingProjectLeader, processingYear, startPayMonth, endPayMonth,
-						remainPayCount);
+						remainPayCount, calcSubTotalAmount(availablePayCount, billingPlan));
 				remainPayCount = 0;
 				break;
 			}
@@ -144,7 +144,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			if (isFullUpManualHandling) {
 				InteractionInput input = null;
 				do {
-					input = InteractionHandler.handleFullUpManual(remainPayCount);
+					input = InteractionHandler.handleFullUpManual(billingPlan.getContractID(), remainPayCount);
 					remainPayCount = handleFullUpManual(billingPlan, rosterProcesser, remainPayCount, input);
 				} while (input != null && remainPayCount > 0);
 
@@ -165,7 +165,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 				+ billingPlan.getAlternatedProjectLeaderRemark());
 
 		if (remainPayCount > 0) {
-			throw new PayrollSheetProcessException("花名册人数不足，无法开票！");
+			throw new PayrollSheetProcessException(billingPlan.getContractID() + "花名册人数不足，无法开票！");
 		} else {
 			if (isBillingManualHandling) {
 				InteractionHandler.handleProcessCompleted(billingPlan.getContractID(), "有足够人数开票");
@@ -216,7 +216,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		logger.info("向其他领队借人：" + alternatedProjectLeader);
 		int currentProcessingCount = Math.min(availablePayCount, remainPayCount);
 		billingPlan.createSubPlan(company, alternatedProjectLeader, processingYear, startPayMonth, endPayMonth,
-				currentProcessingCount);
+				currentProcessingCount, calcSubTotalAmount(currentProcessingCount, billingPlan));
 		billingPlan.setAlternatedProjectLeaderRemark(company, alternatedProjectLeader, processingYear,
 				currentProcessingCount);
 
@@ -281,7 +281,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			}
 			if (remainPayCount <= availablePayCount) {
 				billingPlan.createSubPlan(company, alternatedProjectLeader, processingYear, startPayMonth, endPayMonth,
-						remainPayCount);
+						remainPayCount, calcSubTotalAmount(remainPayCount, billingPlan));
 				billingPlan.setAlternatedProjectLeaderRemark(company, alternatedProjectLeader, processingYear,
 						remainPayCount);
 				return 0;
@@ -307,7 +307,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 					continue;
 				}
 				billingPlan.createSubPlan(company, projectLeader.getName(), processingYear, startPayMonth, endPayMonth,
-						currentProcessingCount);
+						currentProcessingCount, calcSubTotalAmount(currentProcessingCount, billingPlan));
 				billingPlan.setAlternatedProjectLeaderRemark(company, projectLeader.getName(), processingYear,
 						currentProcessingCount);
 
@@ -471,7 +471,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			throws RosterProcessException, PayrollSheetProcessException, AttendanceSheetProcessException {
 
 		logger.info(Constant.LINE1);
-		logger.info("制作工资表 - 开票计划序号：" + billingPlan.getOrderNumber());
+		logger.info("制作工资表 - 开票计划序号：" + billingPlan.getOrderNumber() + " 合同号：" + billingPlan.getContractID());
 
 		AttendanceSheetProcesser attendanceSheetProcesser = null;
 		if (billingPlan.isAttendanceSheetRequired()) {
@@ -592,7 +592,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		payrollSheet.setPayMonth(payMonth);
 		payrollSheet.setLeader(billingPlan.getProcessingProjectLeader());
 		payrollSheet.setContractID(billingPlan.getContractID());
-		payrollSheet.setTotalAmount(calcPayrollSheetTotalAmount(payrollCount, billingPlan));
+		payrollSheet.setTotalAmount(calcSubTotalAmount(payrollCount, billingPlan));
 		buildPayrolls(payrollSheet, roster);
 		payrollSheetList.add(payrollSheet);
 		roster.setCurrentPayYear(payYear);
@@ -818,10 +818,12 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		return initWorkingDayCount;
 	}
 
-	private static double calcPayrollSheetTotalAmount(int payrollNumber, BillingPlan billingPlan) {
+	private static double calcSubTotalAmount(int payrollNumber, BillingPlan billingPlan) {
 		double remainTotalPay = billingPlan.getRemainTotalPay();
-		double currentAmount = Math.round(billingPlan.getTotalPay() / billingPlan.getPayCount() * payrollNumber);
-		logger.debug("TotalPay:" + billingPlan.getTotalPay() + " remainTotalPay:" + billingPlan.getRemainTotalPay()
+		double totalPay = billingPlan.getProcessingTotalPay();
+		int payCount = billingPlan.getProcessingPayCount();
+		double currentAmount = Math.round(totalPay / payCount * payrollNumber);
+		logger.debug("TotalPay:" + totalPay + " remainTotalPay:" + remainTotalPay + " payCount:" + payCount
 				+ " currentAmount:" + currentAmount);
 		if (remainTotalPay > 0 && Math.abs(remainTotalPay - currentAmount) <= 2) {
 			currentAmount = remainTotalPay;

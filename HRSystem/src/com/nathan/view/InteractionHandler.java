@@ -48,7 +48,7 @@ public class InteractionHandler {
 
 		showMenu();
 
-		handleFullUpManual(10);
+		handleFullUpManual("ddd", 10);
 
 		confirmExit(10);
 	}
@@ -127,9 +127,9 @@ public class InteractionHandler {
 		}
 	}
 
-	public static InteractionInput handleFullUpManual(int remainPayCount) {
+	public static InteractionInput handleFullUpManual(String contractID, int remainPayCount) {
 		Object[] options = { "自动借人", "指定借人", "取消开票" };
-		int feedback = JOptionPane.showOptionDialog(null, "开票人数不足，还差" + remainPayCount + "人，请选择处理方式", title,
+		int feedback = JOptionPane.showOptionDialog(null, contractID + "开票人数不足，还差" + remainPayCount + "人，请选择处理方式", title,
 				JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[2]);
 
 		if (feedback == 1) {
@@ -140,7 +140,7 @@ public class InteractionHandler {
 			}
 			if (company == null) {
 				if (confirmExit(remainPayCount) == 1) {
-					handleFullUpManual(remainPayCount);
+					handleFullUpManual(contractID, remainPayCount);
 				}
 			}
 
@@ -152,7 +152,7 @@ public class InteractionHandler {
 			}
 			if (projectLeader == null) {
 				if (confirmExit(remainPayCount) == 1) {
-					handleFullUpManual(remainPayCount);
+					handleFullUpManual(contractID, remainPayCount);
 				}
 			}
 
@@ -164,7 +164,7 @@ public class InteractionHandler {
 
 		if (feedback == 2 || feedback == -1) {
 			if (confirmExit(remainPayCount) == 1) {
-				handleFullUpManual(remainPayCount);
+				handleFullUpManual(contractID, remainPayCount);
 			}
 		}
 

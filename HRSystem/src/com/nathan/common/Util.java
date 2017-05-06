@@ -124,7 +124,7 @@ public class Util {
 	}
 	
 	public static void main(String[] args) {
-		System.out.println(Util.getFoldersUnderPath("F:/work/project/德盛人力项目管理系统/in/湛江雷能/2015/"));
+		Util.parseProjectLeadersUnderPath("F:/work/project/德盛人力项目管理系统/in/湛江雷能/2015/");
 		Util.parseProjectLeadersUnderPath("F:/work/project/德盛人力项目管理系统/in/雷能电力/2016/");
 	}
 }

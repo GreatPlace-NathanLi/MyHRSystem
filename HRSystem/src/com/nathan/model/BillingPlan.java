@@ -37,8 +37,8 @@ public class BillingPlan {
 	private String attendanceSheetFlag;
 	
 	private int rowIndex;
-	private transient int processingPayCount;
-	private transient double processingTotalPay;
+	private transient int processingPayCount = 0;
+	private transient double processingTotalPay = 0.0;
 	private transient String processingProjectLeader;
 	private transient double remainTotalPay;
 	
@@ -80,7 +80,8 @@ public class BillingPlan {
 		this.subPlanList = new ArrayList<SubBillingPlan>();
 	}
 	
-	public SubBillingPlan createSubPlan(String subPlanProjectUnit, String subPlanProjectLeader, int subPlanPayYear, int subPlanStartMonth, int subPlanEndMonth, int subPlanPayCount) {
+	public SubBillingPlan createSubPlan(String subPlanProjectUnit, String subPlanProjectLeader, int subPlanPayYear,
+			int subPlanStartMonth, int subPlanEndMonth, int subPlanPayCount, double subPlanTotalPay) {
 		SubBillingPlan subPlan = new SubBillingPlan();
 		subPlan.setSubPlanProjectUnit(subPlanProjectUnit);
 		subPlan.setSubPlanProjectLeader(subPlanProjectLeader);
@@ -88,6 +89,8 @@ public class BillingPlan {
 		subPlan.setSubPlanStartMonth(subPlanStartMonth);
 		subPlan.setSubPlanEndMonth(subPlanEndMonth);
 		subPlan.setSubPlanPayCount(subPlanPayCount);
+		subPlan.setProcessingTotalPay(subPlanTotalPay);
+		subPlan.setProcessingPayCount(subPlanPayCount);
 		subPlanList.add(subPlan);
 		System.out.println(subPlan);
 		return subPlan;
@@ -321,8 +324,9 @@ public class BillingPlan {
 	 */
 	public void setTotalPay(double totalPay) {
 		this.totalPay = totalPay;
-		this.processingTotalPay = this.totalPay;
-		this.remainTotalPay = this.totalPay;
+		if (this.processingTotalPay == 0.0) {
+			setProcessingTotalPay(totalPay);
+		}	
 	}
 
 	/**
@@ -338,7 +342,9 @@ public class BillingPlan {
 	 */
 	public void setPayCount(int payCount) {
 		this.payCount = payCount;
-		this.processingPayCount = this.payCount;
+		if (this.processingPayCount == 0) {
+			setProcessingPayCount(payCount);
+		}	
 	}
 
 	/**
@@ -714,6 +720,7 @@ public class BillingPlan {
 	 */
 	public void setProcessingTotalPay(double processingTotalPay) {
 		this.processingTotalPay = processingTotalPay;
+		setRemainTotalPay(processingTotalPay);
 	}
 
 	/**
