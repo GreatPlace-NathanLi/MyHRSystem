@@ -39,6 +39,7 @@ public class BillingPlan {
 	private int rowIndex;
 	private transient int processingPayCount = 0;
 	private transient double processingTotalPay = 0.0;
+	private transient String processingProjectUnit;
 	private transient String processingProjectLeader;
 	private transient double remainTotalPay;
 	
@@ -721,6 +722,20 @@ public class BillingPlan {
 	public void setProcessingTotalPay(double processingTotalPay) {
 		this.processingTotalPay = processingTotalPay;
 		setRemainTotalPay(processingTotalPay);
+	}
+
+	/**
+	 * @return the processingProjectUnit
+	 */
+	public String getProcessingProjectUnit() {
+		return processingProjectUnit;
+	}
+
+	/**
+	 * @param processingProjectUnit the processingProjectUnit to set
+	 */
+	public void setProcessingProjectUnit(String processingProjectUnit) {
+		this.processingProjectUnit = processingProjectUnit;
 	}
 
 	/**

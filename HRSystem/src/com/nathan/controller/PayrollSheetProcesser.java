@@ -504,7 +504,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		List<PayrollSheet> payrollSheetList = new ArrayList<PayrollSheet>();
 
 		buildPayrollSheet(subPlan, roster, payrollSheetList, processingPayYear, subPlan.getSubPlanStartMonth(),
-				subPlan.getSubPlanEndMonth(), subPlan.getSubPlanPayCount());
+				subPlan.getSubPlanEndMonth(), subPlan.getSubPlanPayCount(), subPlan.getSubPlanProjectUnit());
 
 		logger.info(Constant.LINE1);
 
@@ -554,7 +554,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 //	}
 
 	public int buildPayrollSheet(BillingPlan billingPlan, ProjectMemberRoster roster,
-			List<PayrollSheet> payrollSheetList, int payYear, int startPayMonth, int endPayMonth, int payCount) {
+			List<PayrollSheet> payrollSheetList, int payYear, int startPayMonth, int endPayMonth, int payCount, String processingProjectUnit) {
 		// 决定工资表数量
 		// Todo: unit test
 		logger.info("计算工资表数据...");
@@ -567,7 +567,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			if (currentProcessingCount == 0) {
 				continue;
 			}
-			buildPayrollSheet(roster, currentProcessingCount, payYear, month, billingPlan, payrollSheetList);
+			buildPayrollSheet(roster, currentProcessingCount, payYear, month, billingPlan, payrollSheetList, processingProjectUnit);
 			remainPayCount -= currentProcessingCount;
 			logger.debug(
 					"remainPayCount: " + remainPayCount + ", current processing payCount: " + currentProcessingCount);
@@ -584,7 +584,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	}
 
 	protected void buildPayrollSheet(ProjectMemberRoster roster, int payrollCount, int payYear, int payMonth,
-			BillingPlan billingPlan, List<PayrollSheet> payrollSheetList) {
+			BillingPlan billingPlan, List<PayrollSheet> payrollSheetList, String processingProjectUnit) {
 		logger.debug("payrollCount: " + payrollCount + ", year " + payYear + ", month " + payMonth);
 		PayrollSheet payrollSheet = new PayrollSheet();
 		payrollSheet.setPayrollNumber(payrollCount);
@@ -593,6 +593,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		payrollSheet.setLeader(billingPlan.getProcessingProjectLeader());
 		payrollSheet.setContractID(billingPlan.getContractID());
 		payrollSheet.setTotalAmount(calcSubTotalAmount(payrollCount, billingPlan));
+		payrollSheet.setProjectUnit(processingProjectUnit);
 		buildPayrolls(payrollSheet, roster);
 		payrollSheetList.add(payrollSheet);
 		roster.setCurrentPayYear(payYear);
@@ -726,6 +727,21 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		tabulator = tabulator.replace("NNN", Util.getTabulator());
 		((Label) cell).setString(tabulator);
 
+		if (needToChangeOvertimePaySubject(payrollSheet.getProjectUnit())) {
+			cell = sheet.getWritableCell(15, 2);
+			((Label) cell).setString("其他");
+		}
+	}
+	
+	private boolean needToChangeOvertimePaySubject(String projectUnit) {
+		String company = Constant.propUtil.getStringEnEmpty("user.汇总表加班费显示为其他单位");
+		if (company.contains(Constant.DELIMITER2)) {
+			String[] s = company.split(Constant.DELIMITER2);
+			for (String c : s) {
+				return c.trim().equals(projectUnit);
+			}
+		}
+		return company.trim().equals(projectUnit);
 	}
 
 	private void fillPayrollSheet(PayrollSheet payrollSheet, WritableSheet sheet)

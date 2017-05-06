@@ -23,6 +23,8 @@ public class PayrollSheet {
 	
 	private double totalAmount;
 	
+	private String projectUnit;
+	
 	public PayrollSheet() {
 		this.payrollList = new ArrayList<Payroll>();
 	}
@@ -155,6 +157,20 @@ public class PayrollSheet {
 	 */
 	public void setPayrollNumber(int payrollNumber) {
 		this.payrollNumber = payrollNumber;
+	}
+
+	/**
+	 * @return the projectUnit
+	 */
+	public String getProjectUnit() {
+		return projectUnit;
+	}
+
+	/**
+	 * @param projectUnit the projectUnit to set
+	 */
+	public void setProjectUnit(String projectUnit) {
+		this.projectUnit = projectUnit;
 	}
 
 	/* (non-Javadoc)
