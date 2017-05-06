@@ -82,7 +82,7 @@ public class BillingPlan {
 	}
 	
 	public SubBillingPlan createSubPlan(String subPlanProjectUnit, String subPlanProjectLeader, int subPlanPayYear,
-			int subPlanStartMonth, int subPlanEndMonth, int subPlanPayCount, double subPlanTotalPay) {
+			int subPlanStartMonth, int subPlanEndMonth, int subPlanPayCount, double subPlanTotalPay, String subPlanRosterType) {
 		SubBillingPlan subPlan = new SubBillingPlan();
 		subPlan.setSubPlanProjectUnit(subPlanProjectUnit);
 		subPlan.setSubPlanProjectLeader(subPlanProjectLeader);
@@ -90,6 +90,7 @@ public class BillingPlan {
 		subPlan.setSubPlanStartMonth(subPlanStartMonth);
 		subPlan.setSubPlanEndMonth(subPlanEndMonth);
 		subPlan.setSubPlanPayCount(subPlanPayCount);
+		subPlan.setSubPlanRosterType(subPlanRosterType);
 		subPlan.setProcessingTotalPay(subPlanTotalPay);
 		subPlan.setProcessingPayCount(subPlanPayCount);
 		subPlanList.add(subPlan);

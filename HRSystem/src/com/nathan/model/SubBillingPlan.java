@@ -13,6 +13,8 @@ public class SubBillingPlan extends BillingPlan {
 	private int subPlanEndMonth;
 	
 	private int subPlanPayCount;
+	
+	private String subPlanRosterType;
 
 	/**
 	 * @return the subPlanProjectUnit
@@ -96,6 +98,20 @@ public class SubBillingPlan extends BillingPlan {
 	 */
 	public void setSubPlanPayCount(int subPlanPayCount) {
 		this.subPlanPayCount = subPlanPayCount;
+	}
+
+	/**
+	 * @return the subPlanRosterType
+	 */
+	public String getSubPlanRosterType() {
+		return subPlanRosterType;
+	}
+
+	/**
+	 * @param subPlanRosterType the subPlanRosterType to set
+	 */
+	public void setSubPlanRosterType(String subPlanRosterType) {
+		this.subPlanRosterType = subPlanRosterType;
 	}
 
 	/* (non-Javadoc)

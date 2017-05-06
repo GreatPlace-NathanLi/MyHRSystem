@@ -7,6 +7,8 @@ import com.nathan.common.Util;
 
 public class ProjectMemberRoster extends AbstractBook {
 	
+	private ProjectMemberRoster bankRoster = null;
+	
 	private ArrayList<ProjectMember> projectMemberList;
 	
 	private ArrayList<RosterCursor> existingCursorList;
@@ -32,6 +34,20 @@ public class ProjectMemberRoster extends AbstractBook {
 		this.existingCursorList = new ArrayList<RosterCursor>();
 		this.toAddCursorList = new ArrayList<RosterCursor>();
 		this.toDeleteCursorList = new ArrayList<RosterCursor>();
+	}
+
+	/**
+	 * @return the bankRoster
+	 */
+	public ProjectMemberRoster getBankRoster() {
+		return bankRoster;
+	}
+
+	/**
+	 * @param bankRoster the bankRoster to set
+	 */
+	public void setBankRoster(ProjectMemberRoster bankRoster) {
+		this.bankRoster = bankRoster;
 	}
 
 	public void calcAvailablePayCount() {
@@ -255,7 +271,7 @@ public class ProjectMemberRoster extends AbstractBook {
 		this.statistics = statistics;
 	}
 	
-	public String getName() {
+	public String getFileName() {
 		String[] s = this.getLocation().split("/");
 		return s[s.length-1];
 	}
@@ -265,10 +281,11 @@ public class ProjectMemberRoster extends AbstractBook {
 	 */
 	@Override
 	public String toString() {
-		return "ProjectMemberRoster [totalMember=" + projectMemberList.size() + ", currentPayYear=" + currentPayYear
-				+ ", currentPayMonth=" + currentPayMonth + ", currentPayIndex=" + currentPayIndex
-				+ ", availablePayCount=" + availablePayCount + "]";
+		return getName() + "[projectMemberList=" + projectMemberList + ", existingCursorList="
+				+ existingCursorList + ", toAddCursorList=" + toAddCursorList + ", toDeleteCursorList="
+				+ toDeleteCursorList + ", statistics=" + statistics + ", currentPayYear=" + currentPayYear
+				+ ", currentPayMonth=" + currentPayMonth + ", lastPayIndex=" + lastPayIndex + ", currentPayIndex="
+				+ currentPayIndex + ", availablePayCount=" + availablePayCount + ", bankRoster=" + bankRoster + "]";
 	}
-	
 	
 }

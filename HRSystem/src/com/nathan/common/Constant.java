@@ -36,5 +36,8 @@ public class Constant {
 	
 	public static final String ATTENDANCE_SHEET_FLAG = "是";
 	
+	public static final String ROSTER_CASH = "花名册";
+	public static final String ROSTER_BANK = "网银";
+	
 	public static PropertiesUtils propUtil = new PropertiesUtils(CONFIG_FILE);
 }

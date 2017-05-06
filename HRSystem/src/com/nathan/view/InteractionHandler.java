@@ -177,12 +177,9 @@ public class InteractionHandler {
 		do {
 			company = JOptionPane.showInputDialog(null, currentCompany + "名额已用完，还差" + remainPayCount + "人，请另外指定一个借人单位：",
 					title, JOptionPane.INFORMATION_MESSAGE);
-		} while (currentCompany.equals(company));
+		} while (currentCompany.equals(company) || Constant.EMPTY_STRING.equals(company));
 
 		logger.debug("新借人单位： " + company);
-		while (Constant.EMPTY_STRING.equals(company)) {
-			company = JOptionPane.showInputDialog(null, "单位不能为空！ 请输入借人单位：", title, JOptionPane.INFORMATION_MESSAGE);
-		}
 
 		if (company == null) {
 			if (confirmExit(remainPayCount) == 1) {
@@ -227,6 +224,24 @@ public class InteractionHandler {
 			JOptionPane.showMessageDialog(null, "本测试版本已经超过有效期，请使用最新版本。", "警告", JOptionPane.ERROR_MESSAGE);
 			exit();
 		}	
+	}
+	
+	public static boolean handleWriteRetry(String message) {
+		boolean retry = false;
+		Object[] options = { "返回", "退出", "重试" };
+		int feedback = JOptionPane.showOptionDialog(null, message, "德盛人力项目管理", JOptionPane.DEFAULT_OPTION,
+				JOptionPane.ERROR_MESSAGE, null, options, options[0]);
+		logger.debug("feedback " + feedback);
+		if (feedback == 0) {
+			showMenu();
+		}
+		if (feedback == -1 || feedback == 1) {
+			exit();
+		}
+		if (feedback == 2) {
+			retry = true;
+		}
+		return retry;
 	}
 
 	public static void handleException(String message) {

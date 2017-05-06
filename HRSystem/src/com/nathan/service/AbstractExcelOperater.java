@@ -10,6 +10,7 @@ import org.apache.log4j.Logger;
 
 import com.nathan.common.Constant;
 import com.nathan.common.Util;
+import com.nathan.view.InteractionHandler;
 
 import jxl.Cell;
 import jxl.CellType;
@@ -29,9 +30,19 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 	private static Logger logger = Logger.getLogger(AbstractExcelOperater.class);
 
 	private boolean backupFlag = false;
+	
+	private boolean writeRetryFlag = false;
 
 	protected void setBackupFlag(boolean flag) {
 		this.backupFlag = flag;
+	}
+
+	public void setWriteRetryFlag(boolean writeRetryFlag) {
+		this.writeRetryFlag = writeRetryFlag;
+	}
+	
+	public boolean isWriteRetry() {
+		return this.writeRetryFlag;
 	}
 
 	@Override
@@ -102,6 +113,7 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 	public void write(String inFile, String outFile) throws Exception {
 		if (backupFlag) {
 			backup(inFile);
+			backupFlag = false;
 		}
 		preWrite(outFile);
 		Workbook rwb = null;
@@ -121,8 +133,21 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 
 			wwb.write();
 
+		} catch (FileNotFoundException e) {
+			writeRetry(e, inFile, outFile);
 		} finally {
 			close(rwb, wwb);
+		}
+	}
+	
+	private void writeRetry(Exception e, String inFile, String outFile) throws Exception {
+		if (!e.getMessage().contains("另一个程序正在使用此文件，进程无法访问")) {
+			throw e;
+		}
+		logger.error(e.getMessage(), e);
+		if (InteractionHandler.handleWriteRetry(e.getMessage())) {	
+			write(inFile, outFile);
+			logger.info("文件已被释放，重新保存：" + outFile);
 		}
 	}
 
@@ -165,11 +190,24 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 
 			wwb.write();
 
+		} catch (FileNotFoundException e) {
+			modifyRetry(e, destFile);
 		} finally {
 			close(rwb, wwb);
 			if (needToDelete) {
 				delete(destFile);
 			}
+		}
+	}
+	
+	private void modifyRetry(Exception e, String destFile) throws Exception {
+		if (!e.getMessage().contains("另一个程序正在使用此文件，进程无法访问")) {
+			throw e;
+		}
+		logger.error(e.getMessage(), e);
+		if (InteractionHandler.handleWriteRetry(e.getMessage())) {	
+			modify(destFile);
+			logger.info("文件已被释放，重新保存：" + destFile);
 		}
 	}
 
