@@ -48,6 +48,8 @@ public class InteractionHandler {
 
 		showMenu();
 
+		handleRostersPathInput(Constant.ROSTER_ROOT_PATH);
+		
 		handleFullUpManual("ddd", 10);
 
 		confirmExit(10);
@@ -58,7 +60,7 @@ public class InteractionHandler {
 	}
 	
 	public static void showMenu() {
-		Object[] options = { "工资表制作", "数据设置", "查询", "汇总", "退出" };
+		Object[] options = { "工资表制作", "数据设置", "查询", "汇总", "花名册校验", "退出" };
 		int feedback = JOptionPane.showOptionDialog(null, "欢迎使用德盛人力项目管理系统", "德盛人力项目管理", JOptionPane.DEFAULT_OPTION,
 				JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
 		logger.debug("feedback " + feedback);
@@ -66,7 +68,10 @@ public class InteractionHandler {
 			handleBilling();
 
 		}
-		if (feedback == -1 || feedback == 4) {
+		if (feedback == 4) {
+			handleRosterValidation();
+		}
+		if (feedback == -1 || feedback == 5) {
 			exit();
 		}
 		if (feedback == 1 || feedback == 2 || feedback == 3) {
@@ -97,8 +102,17 @@ public class InteractionHandler {
 			}
 		}
 	}
+	
+	public static void handleRosterValidation() {
+		try {
+			callback.actionPerformed(ActionType.RosterValidation);
+		} catch (Exception e) {
+			logger.error(e.getMessage(),e);
+			handleException(e.getMessage());
+		}
+	}
 
-	public static void handleBillingCompleted(String status) {
+	public static void handleProgressCompleted(String status) {
 		Object[] options = { "返回", "退出" };
 		int feedback = JOptionPane.showOptionDialog(null, status, "德盛人力项目管理", JOptionPane.DEFAULT_OPTION,
 				JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
@@ -192,14 +206,22 @@ public class InteractionHandler {
 		return input;
 	}
 
-	public static void handleProcessCompleted(String contractID, String message) throws Exception {
-		Object[] options = { "是", "取消" };
-		int feedback = JOptionPane.showOptionDialog(null, contractID + message + "，是否继续？", "德盛人力项目管理", JOptionPane.DEFAULT_OPTION,
-				JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
-		if (feedback == 1 || feedback == -1) {
+	public static void handleIsBillingGoOn(String contractID, String message) throws Exception {
+		if (!handleIsGoOn(contractID + message)) {
 			callback.actionSuspend(ActionType.Billing);
-			handleBillingCompleted("开票中止！");
+			handleProgressCompleted("开票中止！");
 		}
+	}
+	
+	public static boolean handleIsGoOn(String message) throws Exception {
+		boolean isGoOn = false;
+		Object[] options = { "是", "取消" };
+		int feedback = JOptionPane.showOptionDialog(null, message + "，是否继续？", "德盛人力项目管理", JOptionPane.DEFAULT_OPTION,
+				JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+		if (feedback == 0) {
+			isGoOn = true;
+		}
+		return isGoOn;
 	}
 	
 	public static void handleBillingProgressReport(String contractID, String status, int totalToDo, int totalDone) {
@@ -262,7 +284,7 @@ public class InteractionHandler {
 		logger.debug("是否要取消开票？ " + result);
 		if (result <= 0) {
 			callback.actionSuspend(ActionType.Billing);
-			handleBillingCompleted("开票中止！");
+			handleProgressCompleted("开票中止！");
 			return -1;
 		}
 		return 1;
@@ -271,5 +293,15 @@ public class InteractionHandler {
 	public static void exit() {
 		logger.info("退出系统！");
 		System.exit(0);
+	}
+	
+	public static String handleRostersPathInput(String defaultPath) {
+		String path = (String) JOptionPane.showInputDialog(null, "请输入所需校验花名册的路径", "花名册校验",
+				JOptionPane.INFORMATION_MESSAGE, null, null, defaultPath);
+		logger.debug("校验花名册路径 ：" + path);
+		if (path == null) {
+			showMenu();
+		}
+		return path;
 	}
 }

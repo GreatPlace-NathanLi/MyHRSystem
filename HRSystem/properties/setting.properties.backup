@@ -1,8 +1,66 @@
-#The system properties file
-#Thu Mar 23 16:40:52 CST 2017
-user.highTemperatureAllowance=90
-user.highTemperatureAllowanceMonths=6,7,8,9,10
-user.individualIncomeTaxThreshold=3500
-user.billingWay=A
-user.\u5236\u8868\u4EBA=\u4F55\u5A1C
-user.socialSecurityAmount=300
+############################################
+## 用户相关配置
+user.说明=用户相关配置，用户可按需修改
+############################################
+
+user.个税起征点=3500
+user.高温补贴月份=6,7,8,9,10
+user.高温补贴金额=90
+user.社保金额=367
+
+user.制表人=何文娜
+
+#如有多个单位，中间用英文输入法的逗号隔开
+user.汇总表加班费显示为其他单位=雷能电力,湛江雷能
+
+user.默认工资表指定月份=201601-201812
+
+#自动 or 人工
+user.默认开票处理方式=人工
+user.默认借人处理方式=人工
+
+user.开票计划路径=F:/work/project/德盛人力项目管理系统/in/开票计划.xls
+
+user.花名册根目录=F:/work/project/德盛人力项目管理系统/in/花名册/
+user.花名册领队目录=F:/work/project/德盛人力项目管理系统/in/花名册/UUUU/YYYY/
+user.花名册路径=F:/work/project/德盛人力项目管理系统/in/花名册/UUUU/YYYY/NNNYYYY年花名册.xls
+
+user.工资表模板路径=F:/work/project/德盛人力项目管理系统/template/工资表模板.xls
+user.工资表输出路径=F:/work/project/德盛人力项目管理系统/out/NNNYYYY年工资表.xls
+
+user.汇总表模板路径=F:/work/project/德盛人力项目管理系统/template/劳务费用汇总表模板.xls
+user.汇总表输出路径=F:/work/project/德盛人力项目管理系统/out/NNNYYYY年工资表.xls
+
+user.付款手续单据模板路径=F:/work/project/德盛人力项目管理系统/template/付款手续单据模板.xls
+user.付款手续单据输出路径=F:/work/project/德盛人力项目管理系统/out/UUUUNNNCCCCC付款手续单据.xls
+
+user.考勤表模板路径=F:/work/project/德盛人力项目管理系统/template/考勤表模板.xls
+user.考勤表输出路径=F:/work/project/德盛人力项目管理系统/out/UUUUNNNCCCCC考勤表.xls
+
+user.文件备份路径=F:/work/project/德盛人力项目管理系统/backup/
+
+
+
+##########################
+## 打印相关配置
+##########################
+user.打印.默认处理方式=人工
+
+user.打印.工资表.纸张=A4
+user.打印.工资表.份数=2
+user.打印.汇总表.纸张=A4
+user.打印.汇总表.份数=1
+user.打印.考勤表.纸张=A4
+user.打印.考勤表.份数=1
+user.打印.明细表.纸张=A4
+user.打印.明细表.份数=1
+user.打印.付款凭证.纸张=A5
+user.打印.付款凭证.份数=1
+user.打印.支出证明单.纸张=A5
+user.打印.支出证明单.份数=1
+
+############################################
+## 系统相关配置
+system.说明=系统相关配置，非开发人员不得修改
+############################################
+system.log4j.conf=F:/work/project/德盛人力项目管理系统/conf/log4j.properties

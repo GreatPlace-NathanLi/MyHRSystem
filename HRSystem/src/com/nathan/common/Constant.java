@@ -11,7 +11,8 @@ public class Constant {
 	public static final String CONFIG_FILE = CONFIG_PATH + "setting.properties";
 	public static final String BILLING_INPUT_FILE = WORK_PATH + "in/开票计划.xls";
 	public static final String BILLING_OUTPUT_FILE = WORK_PATH + "out/开票计划.xls";
-	public static final String ROSTER_FILE = WORK_PATH + "in/花名册/NNNYYYY年花名册.xls";
+	public static final String ROSTER_ROOT_PATH = WORK_PATH + "in/花名册/";
+	public static final String ROSTER_FILE = ROSTER_ROOT_PATH + "in/花名册/NNNYYYY年花名册.xls";
 	public static final String PAYROLL_FILE = WORK_PATH + "out/NNNYYYY年工资表.xls";
 	public static final String PAYROLL_TEMPLATE_FILE = WORK_PATH + "template/工资表模板.xls";
 	public static final String PAYMENT_DOC_FILE = WORK_PATH + "out/NNNCCCCC付款手续单据.xls";

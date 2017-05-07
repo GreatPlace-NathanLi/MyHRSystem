@@ -1,6 +1,7 @@
 package com.nathan.view;
 
 import com.nathan.controller.BillingOperater;
+import com.nathan.controller.RosterProcesser;
 
 public class BillingCallback implements ActionCallback {
 	
@@ -12,9 +13,13 @@ public class BillingCallback implements ActionCallback {
         case Billing:  
         	operater = new BillingOperater();
 			operater.startBilling();
-			InteractionHandler.handleBillingCompleted("开票完成！");  
+			InteractionHandler.handleProgressCompleted("开票完成！");  
         case VirtualBilling:
         	break;
+        case RosterValidation:
+        	RosterProcesser rosterProcesser = new RosterProcesser();
+        	rosterProcesser.validateRosters();
+        	InteractionHandler.handleProgressCompleted("花名册校验完成！");  
         default:  
             break;  
         }  

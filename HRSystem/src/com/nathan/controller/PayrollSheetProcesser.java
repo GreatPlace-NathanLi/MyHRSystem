@@ -127,7 +127,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			}
 
 			if (remainPayCount <= 0 && isBillingManualHandling) {
-				InteractionHandler.handleProcessCompleted(billingPlan.getContractID(), "借人已完成");
+				InteractionHandler.handleIsBillingGoOn(billingPlan.getContractID(), "借人已完成");
 			}
 		}
 
@@ -138,7 +138,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			throw new PayrollSheetProcessException(billingPlan.getContractID() + "花名册人数不足，无法开票！");
 		} else {
 			if (isBillingManualHandling) {
-				InteractionHandler.handleProcessCompleted(billingPlan.getContractID(), "有足够人数开票");
+				InteractionHandler.handleIsBillingGoOn(billingPlan.getContractID(), "有足够人数开票");
 			}
 		}
 	}
@@ -361,7 +361,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	private void deleteOldBillingInfoForSingleBillingPlan(BillingPlan billingPlan, RosterProcesser rosterProcesser)
 			throws Exception {
 		if (isBillingManualHandling) {
-			InteractionHandler.handleProcessCompleted(billingPlan.getContractID(), "开票信息即将被删除");
+			InteractionHandler.handleIsBillingGoOn(billingPlan.getContractID(), "开票信息即将被删除");
 		}
 		logger.info("删除开票信息：" + billingPlan.getContractID());
 
@@ -552,7 +552,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			logger.info("保存工资表输出： " + outputPath);
 			logger.info(Constant.LINE1);
 
-			rosterProcesser.updateProjectMemberRoster();
+			rosterProcesser.updateProjectMemberRoster(true);
 			logger.info(Constant.LINE1);
 
 			if (subPlan.isAttendanceSheetRequired()) {

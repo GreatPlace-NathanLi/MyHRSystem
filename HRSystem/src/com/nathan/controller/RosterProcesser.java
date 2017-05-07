@@ -1,11 +1,13 @@
 package com.nathan.controller;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
 
 import com.nathan.common.Constant;
+import com.nathan.common.Util;
 import com.nathan.exception.RosterProcessException;
 import com.nathan.model.ProjectMember;
 import com.nathan.model.ProjectMemberRoster;
@@ -13,6 +15,8 @@ import com.nathan.model.RosterCursor;
 import com.nathan.model.RosterMonthStatistics;
 import com.nathan.model.RosterStatistics;
 import com.nathan.service.AbstractExcelOperater;
+import com.nathan.view.BillingCallback;
+import com.nathan.view.InteractionHandler;
 
 import jxl.Cell;
 import jxl.CellType;
@@ -73,9 +77,10 @@ public class RosterProcesser extends AbstractExcelOperater {
 		return filePath;
 	}
 
-	public void updateProjectMemberRoster() throws RosterProcessException {
+	public void updateProjectMemberRoster(boolean backupFlag) throws RosterProcessException {
 		String inputPath = roster.getLocation();
 		logger.info("保存花名册： " + inputPath);
+		setBackupFlag(backupFlag);
 		writeProjectMemberRoster(inputPath, inputPath);
 	}
 
@@ -239,6 +244,35 @@ public class RosterProcesser extends AbstractExcelOperater {
 		}
 		roster.setStatistics(statistics);
 	}
+	
+	public void clearRosterStatistics(String filePath, boolean backupFlag) throws RosterProcessException {
+		logger.info("清除花名册统计信息： " + filePath);
+		try {
+			setBackupFlag(backupFlag);
+			modify(filePath);
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			throw new RosterProcessException("清除花名册统计信息出错，" + e.getMessage());
+		}
+	}
+	
+	protected void modifyContent(WritableWorkbook wwb) throws Exception {
+		WritableSheet bankSheet = wwb.getSheet(Constant.ROSTER_BANK);
+		if (bankSheet != null) {
+			removeRosterStatistics(bankSheet);
+		}
+
+		WritableSheet cashSheet = wwb.getSheet(Constant.ROSTER_CASH);
+		if (cashSheet != null) {
+			removeRosterStatistics(cashSheet);
+		}
+	}
+	
+	private void removeRosterStatistics(WritableSheet sheet) {
+		if (isRosterWithStatistics(sheet)) {
+			sheet.removeRow(0);
+		}
+	}
 
 	private boolean isAvailable(int rowIndex, int year, int month, boolean isRosterWithStatistics, ProjectMemberRoster roster) {
 		int memberIndex = isRosterWithStatistics ? rowIndex - 1 : rowIndex;
@@ -251,12 +285,12 @@ public class RosterProcesser extends AbstractExcelOperater {
 			logger.debug("Roster Without Statistics");
 			return false;
 		}
+		logger.debug("Roster With Statistics");
 		return true;
 	}
 
 	public void writeProjectMemberRoster(String inputFilePath, String outputFilePath) throws RosterProcessException {
 		try {
-			setBackupFlag(true);
 			write(inputFilePath, outputFilePath);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
@@ -390,30 +424,92 @@ public class RosterProcesser extends AbstractExcelOperater {
 		this.roster = roster;
 	}
 
-	public static void main(String[] args) throws Exception {
-		RosterProcesser rosterProcesser = new RosterProcesser();
-
+	public void validateRosters() throws Exception {
+		String rostersRootPath = Constant.propUtil.getStringValue("user.花名册根目录", Constant.ROSTER_ROOT_PATH);
+		rostersRootPath = InteractionHandler.handleRostersPathInput(rostersRootPath);
 		long startTime = System.nanoTime();
 		logger.info(Constant.LINE0);
-		logger.info("读写花名册开始...");
+		logger.info("校验花名册开始...");
 		logger.info(Constant.LINE0);
 
-		Constant.propUtil.init();
-		String company = "雷能电力";
-		String projectLeader = "陈志强";
-		int year = 2016;
-		rosterProcesser.processRoster(company, projectLeader, year, false);
-
-		logger.info(Constant.LINE1);
-		rosterProcesser.updateProjectMemberRoster();
-		logger.info(Constant.LINE1);
-
-		rosterProcesser.processRoster(company, projectLeader, year, true);
-		rosterProcesser.deleteRosterCursorsByContractID("14-019补", rosterProcesser.getRoster());
-
+		ArrayList<String> filesList = new ArrayList<String>();
+		
+		Util.listAllFileUnderPath(rostersRootPath, filesList);
+		
+		String result = null;
+		if (InteractionHandler.handleIsGoOn("总共有" + filesList.size() + "份花名册需要校验")) {
+			ArrayList<String> failedFilesList = new ArrayList<String>();
+			for (String file : filesList) {
+				logger.info("校验：" + file);			
+				try {
+					roster = new ProjectMemberRoster();
+					roster.setLocation(file);
+					roster.setCurrentPayYear(Util.getYearFromFilePath(file));
+					clearRosterStatistics(file, true);
+					readProjectMemberRoster(file, true);
+					updateProjectMemberRoster(false);
+				} catch(Exception e) {
+					logger.info("校验不通过，原因：" + e.getMessage());
+					failedFilesList.add(file);
+				}		
+				logger.info(Constant.LINE1);
+			}		
+			result = buildValidationResult(failedFilesList);
+		} else {
+			result = "校验花名册中止！";
+		}	
+		
+		logger.info(result);
+		
 		long endTime = System.nanoTime();
 		logger.info(Constant.LINE0);
-		logger.info("读写花名册结束， 用时：" + (endTime - startTime) / 1000000 + "毫秒");
+		logger.info("校验花名册结束， 用时：" + (endTime - startTime) / 1000000 + "毫秒");
 		logger.info(Constant.LINE0);
+		
+		InteractionHandler.handleProgressCompleted(result);
+	}
+	
+	private String buildValidationResult(ArrayList<String> failedFilesList) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("花名册校验完成，");
+		if (failedFilesList.size()>0) {
+			sb.append(failedFilesList.size()).append("份花名册没有通过校验：");
+			for (String file : failedFilesList) {
+				sb.append("\r\n").append(file);
+			}
+			sb.append("\r\n").append("可在log文件中查找原因。");
+		} else {
+			sb.append("全部花名册通过！");
+		}
+		return sb.toString();
+	}
+	
+	public static void main(String[] args) throws Exception {
+		Constant.propUtil.init();
+		RosterProcesser rosterProcesser = new RosterProcesser();
+		InteractionHandler.setActionCallback(new BillingCallback());
+		rosterProcesser.validateRosters();
+//		
+//		long startTime = System.nanoTime();
+//		logger.info(Constant.LINE0);
+//		logger.info("读写花名册开始...");
+//		logger.info(Constant.LINE0);
+//
+//		String company = "雷能电力";
+//		String projectLeader = "陈志强";
+//		int year = 2016;
+//		rosterProcesser.processRoster(company, projectLeader, year, false);
+//
+//		logger.info(Constant.LINE1);
+//		rosterProcesser.updateProjectMemberRoster();
+//		logger.info(Constant.LINE1);
+//
+//		rosterProcesser.processRoster(company, projectLeader, year, true);
+//		rosterProcesser.deleteRosterCursorsByContractID("14-019补", rosterProcesser.getRoster());
+//
+//		long endTime = System.nanoTime();
+//		logger.info(Constant.LINE0);
+//		logger.info("读写花名册结束， 用时：" + (endTime - startTime) / 1000000 + "毫秒");
+//		logger.info(Constant.LINE0);
 	}
 }
