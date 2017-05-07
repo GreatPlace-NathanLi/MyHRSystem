@@ -1,15 +1,16 @@
 package com.nathan.view;
 
 import com.nathan.controller.BillingOperater;
-import com.nathan.exception.PayrollSheetProcessException;
 
 public class BillingCallback implements ActionCallback {
-
+	
+	private BillingOperater operater = null;
+	
 	@Override
 	public void actionPerformed(ActionType actionType) throws Exception {
 		switch (actionType) {  
         case Billing:  
-        	BillingOperater operater = new BillingOperater();
+        	operater = new BillingOperater();
 			operater.startBilling();
 			InteractionHandler.handleBillingCompleted("开票完成！");  
         case VirtualBilling:
@@ -24,13 +25,39 @@ public class BillingCallback implements ActionCallback {
 	public void actionSuspend(ActionType actionType) throws Exception {
 		switch (actionType) {  
         case Billing:  
-			throw new PayrollSheetProcessException("开票被中止！");  
+			if (operater != null) {
+				operater.endBilling();
+			}
         case VirtualBilling:
         	break;
         default:  
             break;  
         }  
 		
+	}
+
+	@Override
+	public void returnPerformed(ActionType actionType) throws Exception {
+		switch (actionType) {  
+        case Billing:  
+        	break;  
+        case VirtualBilling:
+        	break;
+        default:  
+            break;  
+        }  	
+	}
+
+	@Override
+	public void exitPerformed(ActionType actionType) throws Exception {
+		switch (actionType) {  
+        case Billing:  
+        	break;  
+        case VirtualBilling:
+        	break;
+        default:  
+            break;  
+        }  	
 	}
 
 }

@@ -94,7 +94,7 @@ public class InteractionHandler {
 			} catch (Exception e) {
 				logger.error(e.getMessage(),e);
 				handleException(e.getMessage());
-			};
+			}
 		}
 	}
 
@@ -127,7 +127,7 @@ public class InteractionHandler {
 		}
 	}
 
-	public static InteractionInput handleFullUpManual(String contractID, int remainPayCount) {
+	public static InteractionInput handleFullUpManual(String contractID, int remainPayCount) throws Exception {
 		Object[] options = { "自动借人", "指定借人", "取消开票" };
 		int feedback = JOptionPane.showOptionDialog(null, contractID + "开票人数不足，还差" + remainPayCount + "人，请选择处理方式", title,
 				JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[2]);
@@ -165,13 +165,13 @@ public class InteractionHandler {
 		if (feedback == 2 || feedback == -1) {
 			if (confirmExit(remainPayCount) == 1) {
 				handleFullUpManual(contractID, remainPayCount);
-			}
+			} 
 		}
 
 		return null;
 	}
 
-	public static InteractionInput handleFullUpFromOtherCompany(String currentCompany, int remainPayCount) {
+	public static InteractionInput handleFullUpFromOtherCompany(String currentCompany, int remainPayCount) throws Exception {
 
 		String company = null;
 		do {
@@ -198,7 +198,7 @@ public class InteractionHandler {
 				JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
 		if (feedback == 1 || feedback == -1) {
 			callback.actionSuspend(ActionType.Billing);
-			showMenu();
+			handleBillingCompleted("开票中止！");
 		}
 	}
 	
@@ -257,10 +257,11 @@ public class InteractionHandler {
 		}
 	}
 
-	public static int confirmExit(int remainPayCount) {
+	public static int confirmExit(int remainPayCount) throws Exception {
 		int result = JOptionPane.showConfirmDialog(null, "是否要取消开票？", "借人处理", JOptionPane.YES_NO_OPTION);
 		logger.debug("是否要取消开票？ " + result);
 		if (result <= 0) {
+			callback.actionSuspend(ActionType.Billing);
 			handleBillingCompleted("开票中止！");
 			return -1;
 		}

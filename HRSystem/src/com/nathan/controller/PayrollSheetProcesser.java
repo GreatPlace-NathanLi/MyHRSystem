@@ -255,7 +255,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	}
 
 	private int handleFullUpAuto(BillingPlan billingPlan, RosterProcesser rosterProcesser, int remainPayCount)
-			throws RosterProcessException {
+			throws Exception {
 		if (remainPayCount <= 0) {
 			return remainPayCount;
 		}
@@ -686,6 +686,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			throws PayrollSheetProcessException {
 		this.payrollSheetList = payrollSheetList;
 		try {
+			setBackupFlag(true);
 			write(templatePath, filePath);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);

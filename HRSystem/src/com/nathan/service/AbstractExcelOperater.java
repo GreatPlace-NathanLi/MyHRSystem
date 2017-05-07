@@ -112,8 +112,7 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 	@Override
 	public void write(String inFile, String outFile) throws Exception {
 		if (backupFlag) {
-			backup(inFile);
-			backupFlag = false;
+			backup(outFile);
 		}
 		preWrite(outFile);
 		Workbook rwb = null;
@@ -252,8 +251,9 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 			wwb.write();
 
 		} catch (FileNotFoundException e) {
-			logger.error(e.getMessage(), e);
+			logger.error(e.getMessage());
 		} finally {
+			backupFlag = false;
 			close(rwb, wwb);
 		}
 	}

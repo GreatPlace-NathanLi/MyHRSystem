@@ -13,50 +13,64 @@ public class BillingOperater {
 	private static Logger logger = Logger.getLogger(BillingOperater.class);
 
 	private static int expireDate = 20170620;
+	
+	private String billingFile;
+	
+	private BillingPlanProcesser billingPlanProcesser;
+	
+	private PayrollSheetProcesser payrollSheetProcesser;
+	
+	private PaymentDocumentProcesser paymentDocumentProcesser;
+	
+	private RosterProcesser rosterProcesser;
 
 	public void startBilling() throws Exception {
 		String path = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
 		logger.debug("当前路径：" + path);
-		BillingPlanProcesser billingPlanProcesser = new BillingPlanProcesser();
-		RosterProcesser rosterProcesser = new RosterProcesser();
-		PayrollSheetProcesser payrollSheetProcesser = new PayrollSheetProcesser();
-		PaymentDocumentProcesser paymentDocumentProcesser = new PaymentDocumentProcesser();
+		billingPlanProcesser = new BillingPlanProcesser();
+		rosterProcesser = new RosterProcesser();
+		payrollSheetProcesser = new PayrollSheetProcesser();
+		paymentDocumentProcesser = new PaymentDocumentProcesser();
 
 		long startTime = System.nanoTime();
 		logger.info(Constant.LINE0);
 		logger.info("开票处理开始...");
 		logger.info(Constant.LINE0);
 
-		String billingFile = Constant.propUtil.getStringValue("user.开票计划路径", Constant.BILLING_INPUT_FILE);
-		logger.info("步骤1 - 读取开票计划输入： " + billingFile);
+		billingFile = Constant.propUtil.getStringValue("user.开票计划路径", Constant.BILLING_INPUT_FILE);
+		logger.info("读取开票计划输入： " + billingFile);
 		billingPlanProcesser.processBillingPlanInput(billingFile);
 		logger.info(Constant.LINE1);
 
 		try {
-			logger.info("步骤2 - 处理工资表");
+			logger.info("处理工资表");
 			payrollSheetProcesser.processPayrollSheet(billingPlanProcesser.getBillingPlanBook(), rosterProcesser);
 		} catch(Exception e) {
-			if (payrollSheetProcesser.isNeededToUpdateBillingPlanBook()) {
-				logger.info("开票中途出错， 保存开票计划输出： " + billingFile);
-				billingPlanProcesser.writeBillingOutput(billingFile);
-				paymentDocumentProcesser.processPaymentDocument(billingPlanProcesser.getBillingPlanBook());
-			}
+			logger.error("开票中途出错");
+			endBilling();
 			throw e;
 		}
 		
 		logger.info(Constant.LINE1);
 
-		logger.info("步骤3 - 保存开票计划输出： " + billingFile);
-		billingPlanProcesser.writeBillingOutput(billingFile);
-		logger.info(Constant.LINE1);
-
-		logger.info("步骤4 - 开始制作付款手续单据...");
-		paymentDocumentProcesser.processPaymentDocument(billingPlanProcesser.getBillingPlanBook());
+		endBilling();
 
 		long endTime = System.nanoTime();
 		logger.info(Constant.LINE0);
 		logger.info("开票结束， 用时：" + (endTime - startTime) / 1000000 + "毫秒");
 		logger.info(Constant.LINE0);
+	}
+	
+	public void endBilling() throws Exception {
+		if (!payrollSheetProcesser.isNeededToUpdateBillingPlanBook()) {
+			return;
+		}
+		logger.info("保存开票计划输出： " + billingFile);
+		billingPlanProcesser.writeBillingOutput(billingFile);
+		logger.info(Constant.LINE1);
+
+		logger.info("开始制作付款手续单据...");
+		paymentDocumentProcesser.processPaymentDocument(billingPlanProcesser.getBillingPlanBook());
 	}
 
 	public static void main(String[] args) throws Exception {
