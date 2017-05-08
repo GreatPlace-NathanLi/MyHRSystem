@@ -145,16 +145,19 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 	private int preProcessOnBankRoster(BillingPlan billingPlan, RosterProcesser rosterProcesser, int remainPayCount)
 			throws Exception {
-		if (remainPayCount > 0) {
-			remainPayCount = preProcessOnOwnRoster(billingPlan, rosterProcesser, remainPayCount, Constant.ROSTER_BANK);
-		}
-		return remainPayCount;
+		logger.debug("preProcessOnBankRoster");
+		return preProcessByRosterType(billingPlan, rosterProcesser, remainPayCount, Constant.ROSTER_BANK);
 	}
 
 	private int preProcessOnCashRoster(BillingPlan billingPlan, RosterProcesser rosterProcesser, int remainPayCount)
 			throws Exception {
+		logger.debug("preProcessOnCashRoster");
+		return preProcessByRosterType(billingPlan, rosterProcesser, remainPayCount, Constant.ROSTER_CASH);
+	}
+	
+	private int preProcessByRosterType(BillingPlan billingPlan, RosterProcesser rosterProcesser, int remainPayCount, String rosterType) throws Exception {
 		if (remainPayCount > 0) {
-			remainPayCount = preProcessOnOwnRoster(billingPlan, rosterProcesser, remainPayCount, Constant.ROSTER_CASH);
+			remainPayCount = preProcessOnOwnRoster(billingPlan, rosterProcesser, remainPayCount, rosterType);
 		}
 		return remainPayCount;
 	}
@@ -179,7 +182,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			int endPayMonth = processingYear < endPayYear ? 12 : billingPlan.getEndPayMonth();
 			int availablePayCount = roster.getAvailablePayCount(startPayMonth, endPayMonth);
 
-			logger.debug(rosterType + "availablePayCount:" + availablePayCount);
+			logger.debug(rosterType + " availablePayCount:" + availablePayCount);
 			if (availablePayCount <= 0) {
 				continue;
 			}
@@ -194,7 +197,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 				remainPayCount -= availablePayCount;
 			} else {
 				billingPlan.createSubPlan(company, processingProjectLeader, processingYear, startPayMonth, endPayMonth,
-						remainPayCount, calcSubTotalAmount(availablePayCount, billingPlan), rosterType);
+						remainPayCount, calcSubTotalAmount(remainPayCount, billingPlan), rosterType);
 				remainPayCount = 0;
 				break;
 			}

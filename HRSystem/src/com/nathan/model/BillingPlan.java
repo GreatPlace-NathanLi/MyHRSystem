@@ -42,6 +42,7 @@ public class BillingPlan {
 	private transient String processingProjectUnit;
 	private transient String processingProjectLeader;
 	private transient double remainTotalPay;
+	private transient String rosterProjectLeader;
 	
 	private boolean isToCreate = false;
 	private boolean isReconstruction = false;
@@ -191,6 +192,7 @@ public class BillingPlan {
 	public void setProjectLeader(String projectLeader) {
 		this.projectLeader = projectLeader;
 		this.processingProjectLeader = this.projectLeader;
+		this.rosterProjectLeader = this.projectLeader;
 	}
 
 	/**
@@ -765,6 +767,20 @@ public class BillingPlan {
 	 */
 	public void setRemainTotalPay(double remainTotalPay) {
 		this.remainTotalPay = remainTotalPay;
+	}
+
+	/**
+	 * @return the rosterProjectLeader
+	 */
+	public String getRosterProjectLeader() {
+		return rosterProjectLeader;
+	}
+
+	/**
+	 * @param rosterProjectLeader the rosterProjectLeader to set
+	 */
+	public void setRosterProjectLeader(String rosterProjectLeader) {
+		this.rosterProjectLeader = rosterProjectLeader;
 	}
 
 	/* (non-Javadoc)

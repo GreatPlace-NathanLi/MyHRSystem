@@ -124,26 +124,25 @@ public class Util {
 		return folderList;
 	}
 
-	public static void listAllFileUnderPath(String filepath, ArrayList<String> filesList)
-			throws Exception {
+	public static void listAllFileUnderPath(String filepath, ArrayList<String> filesList) throws Exception {
 		try {
 
 			File file = new File(filepath);
 			if (!file.isDirectory()) {
-//				System.out.println("文件");
-//				System.out.println("path=" + file.getPath());
+				// System.out.println("文件");
+				// System.out.println("path=" + file.getPath());
 				System.out.println("absolutepath=" + file.getAbsolutePath());
-//				System.out.println("name=" + file.getName());
+				// System.out.println("name=" + file.getName());
 				parseFilePath(file.getAbsolutePath(), filesList);
 			} else if (file.isDirectory()) {
-//				System.out.println("文件夹");
+				// System.out.println("文件夹");
 				String[] filelist = file.list();
 				for (int i = 0; i < filelist.length; i++) {
 					File readfile = new File(filepath + "\\" + filelist[i]);
 					if (!readfile.isDirectory()) {
-//						System.out.println("path=" + readfile.getPath());
+						// System.out.println("path=" + readfile.getPath());
 						System.out.println("absolutepath=" + readfile.getAbsolutePath());
-//						System.out.println("name=" + readfile.getName());
+						// System.out.println("name=" + readfile.getName());
 						parseFilePath(readfile.getAbsolutePath(), filesList);
 					} else if (readfile.isDirectory()) {
 						listAllFileUnderPath(filepath + "\\" + filelist[i], filesList);
@@ -161,7 +160,7 @@ public class Util {
 			filesList.add(filePath);
 		}
 	}
-	
+
 	public static int getYearFromFilePath(String filePath) {
 		try {
 			int year = 0;
@@ -172,25 +171,30 @@ public class Util {
 				} catch (Exception e) {
 					String fileName = s[s.length - 1];
 					String yearStr = fileName.substring(fileName.length() - 12, fileName.length() - 8);
-//					System.out.println("fileName:"+fileName +" " + yearStr);
+					// System.out.println("fileName:"+fileName +" " + yearStr);
 					year = Integer.valueOf(yearStr);
-				}	
+				}
 			}
 			return year;
 		} catch (Exception e) {
 			System.out.println("路径或者文件名不符合规则！");
 			throw e;
-		}		
+		}
+	}
+
+	public static boolean isFileExists(String filePath) {
+		File file = new File(filePath);
+		return file.exists();
 	}
 
 	public static void main(String[] args) throws Exception {
 		Util.parseProjectLeadersUnderPath("F:/work/project/德盛人力项目管理系统/in/湛江雷能/2015/");
 		Util.parseProjectLeadersUnderPath("F:/work/project/德盛人力项目管理系统/in/雷能电力/2016/");
-		
+
 		ArrayList<String> filesList = new ArrayList<String>();
 		Util.listAllFileUnderPath(Constant.ROSTER_ROOT_PATH, filesList);
 		System.out.println(filesList);
-		
+
 		System.out.println(getYearFromFilePath("F:/work/project/德盛人力项目管理系统/in/花名册/湛江雷能/2017/张一2017年花名册.xls"));
 	}
 }

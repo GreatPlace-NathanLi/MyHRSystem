@@ -15,7 +15,6 @@ import com.nathan.model.RosterCursor;
 import com.nathan.model.RosterMonthStatistics;
 import com.nathan.model.RosterStatistics;
 import com.nathan.service.AbstractExcelOperater;
-import com.nathan.view.BillingCallback;
 import com.nathan.view.InteractionHandler;
 
 import jxl.Cell;
@@ -56,22 +55,90 @@ public class RosterProcesser extends AbstractExcelOperater {
 		String key = company + projectLeader + year;
 		roster = getRosterFormCache(key);
 		if (roster == null || isReconstruction) {
-			String inputPath = getRosterFilePath(company, projectLeader, year);
-			logger.info("从本地读取花名册： " + inputPath);
+			String rosterPath = getRosterFilePath(company, projectLeader, year);
+			if (!Util.isFileExists(rosterPath)) {
+				logger.info(projectLeader + "没有" + year + "年度花名册，尝试寻找公用花名册");
+				rosterPath = getRosterFilePath(company, company, year);
+				if (!Util.isFileExists(rosterPath)) {
+					logger.info(company + "没有" + year + "年度公用花名册，尝试复制上年度花名册");
+					rosterPath = tryToCloneRoster(company, projectLeader, year);
+				}
+			}
+			
+			logger.info("从本地读取花名册： " + rosterPath);
 			roster = new ProjectMemberRoster();
-			roster.setLocation(inputPath);
+			roster.setLocation(rosterPath);
 			roster.setCurrentPayYear(year);
-			readProjectMemberRoster(inputPath, isReconstruction);
+			readProjectMemberRoster(rosterPath, isReconstruction);
 
 			putRosterToCache(key, roster);
 
 		} else {
 			logger.info("从缓存中读取花名册：" + roster.getFileName());
 		}
-//		logger.debug("花名册统计数据:" + roster.getStatistics());
 	}
 	
-	private String getRosterFilePath(String company, String projectLeader, int year) {
+	public String tryToCloneRoster(String company, String projectLeader, int year) throws RosterProcessException {
+		String oldProjectLeaderRosterPath = getRosterFilePath(company, projectLeader, year - 1);
+		if (Util.isFileExists(oldProjectLeaderRosterPath)) {
+			logger.info("复制领队花名册：" + year);
+			String newProjectLeaderRosterPath = getRosterFilePath(company, projectLeader, year);
+			cloneRoster(oldProjectLeaderRosterPath, newProjectLeaderRosterPath);
+			return newProjectLeaderRosterPath;
+		} 
+		String oldCommonRosterPath = getRosterFilePath(company, company, year - 1);
+		if (Util.isFileExists(oldCommonRosterPath)) {
+			logger.info("复制单位公用花名册：" + year);
+			String newCommonRosterPath = getRosterFilePath(company, company, year);
+			cloneRoster(oldCommonRosterPath, newCommonRosterPath);
+			return newCommonRosterPath;
+		}
+		throw new RosterProcessException("找不到可开票的花名册");
+	}
+	
+	public void cloneRoster(String oldRosterPath, String newRosterPath) throws RosterProcessException {		
+		try {
+			copy(oldRosterPath, newRosterPath);
+		} catch (Exception e) {
+			String message = "复制花名册出错，" + e.getMessage();
+			logger.error(message, e);
+			throw new RosterProcessException(message);
+		}
+		logger.info("复制花名册");
+		logger.info("从 " + oldRosterPath);
+		logger.info("到 " + newRosterPath);	
+	}
+	
+	protected void copyContent(WritableWorkbook wwb) throws Exception {
+
+		copySheetByRosterType(wwb, Constant.ROSTER_BANK);
+
+		copySheetByRosterType(wwb, Constant.ROSTER_CASH);
+		
+	}
+	
+	private void copySheetByRosterType(WritableWorkbook wwb, String rosterType) throws Exception {
+		WritableSheet sheet = wwb.getSheet(rosterType);
+		if (sheet != null) {
+			removeRosterStatistics(sheet);
+			clearCursors(sheet);
+		}
+	}
+	
+	private void clearCursors(WritableSheet sheet) throws Exception {
+		logger.debug("清除花名册中所有游标");
+		int rsColumns = sheet.getColumns();
+		int rsRows = sheet.getRows();
+
+		for (int r = 1; r < rsRows; r++) {
+			for (int c = 5; c < rsColumns; c++) {
+				Label emptyCell = new Label(c, r, Constant.EMPTY_STRING);
+				sheet.addCell(emptyCell);
+			}
+		}
+	}
+	
+	public String getRosterFilePath(String company, String projectLeader, int year) {
 		String rosterFile = Constant.propUtil.getStringValue("user.花名册路径", Constant.ROSTER_FILE);
 		String filePath = rosterFile.replaceAll("NNN", projectLeader).replaceAll("YYYY", String.valueOf(year)).replace("UUUU", company);
 		return filePath;
@@ -257,14 +324,16 @@ public class RosterProcesser extends AbstractExcelOperater {
 	}
 	
 	protected void modifyContent(WritableWorkbook wwb) throws Exception {
-		WritableSheet bankSheet = wwb.getSheet(Constant.ROSTER_BANK);
-		if (bankSheet != null) {
-			removeRosterStatistics(bankSheet);
-		}
 
-		WritableSheet cashSheet = wwb.getSheet(Constant.ROSTER_CASH);
-		if (cashSheet != null) {
-			removeRosterStatistics(cashSheet);
+		modifySheetByRosterType(wwb, Constant.ROSTER_BANK);
+
+		modifySheetByRosterType(wwb, Constant.ROSTER_CASH);
+	}
+	
+	private void modifySheetByRosterType(WritableWorkbook wwb, String rosterType) {
+		WritableSheet sheet = wwb.getSheet(rosterType);
+		if (sheet != null) {
+			removeRosterStatistics(sheet);
 		}
 	}
 	
@@ -487,13 +556,17 @@ public class RosterProcesser extends AbstractExcelOperater {
 	public static void main(String[] args) throws Exception {
 		Constant.propUtil.init();
 		RosterProcesser rosterProcesser = new RosterProcesser();
-		InteractionHandler.setActionCallback(new BillingCallback());
-		rosterProcesser.validateRosters();
+		
+		String oldRosterPath = "F:/work/project/德盛人力项目管理系统/in/花名册/雷能电力/2016/陈志强2016年花名册.xls";
+		String newRosterPath = "F:/work/project/德盛人力项目管理系统/in/花名册/吴川电力/2017/陈志强2017年花名册.xls";
+		rosterProcesser.cloneRoster(oldRosterPath, newRosterPath);
+//		InteractionHandler.setActionCallback(new BillingCallback());
+//		rosterProcesser.validateRosters();
 //		
 //		long startTime = System.nanoTime();
 //		logger.info(Constant.LINE0);
 //		logger.info("读写花名册开始...");
-//		logger.info(Constant.LINE0);
+//		logger.info(Constant.LINE0);;
 //
 //		String company = "雷能电力";
 //		String projectLeader = "陈志强";

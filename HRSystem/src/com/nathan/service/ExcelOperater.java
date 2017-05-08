@@ -10,6 +10,8 @@ public interface ExcelOperater {
 	
 	public void modify(String destFile) throws Exception;
 	
+	public void copy(String fromFile, String toFile) throws Exception;
+	
 	public boolean delete(String inFile) throws Exception;
 
 }

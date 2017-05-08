@@ -119,6 +119,7 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 		WritableWorkbook wwb = null;
 		try {
 			try {
+				//如果输出文件已存在，以已有文件为模板
 				File inputFile = new File(outFile);
 				rwb = Workbook.getWorkbook(inputFile);
 			} catch (FileNotFoundException e) {
@@ -218,6 +219,30 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 		return false;
 	}
 
+	@Override
+	public void copy(String fromFile, String toFile) throws Exception {
+		Workbook rwb = null;
+		WritableWorkbook wwb = null;
+		try {
+			File from = new File(fromFile);
+			rwb = Workbook.getWorkbook(from);
+
+			File to = new File(toFile);
+			wwb = Workbook.createWorkbook(to, rwb);
+
+			copyContent(wwb);
+
+			wwb.write();
+
+		} finally {
+			close(rwb, wwb);
+		}
+	}
+	
+	protected void copyContent(WritableWorkbook wwb) throws Exception {
+
+	}
+	
 	@Override
 	public boolean delete(String fillPath) {
 		boolean flag = false;
