@@ -41,4 +41,7 @@ public class Constant {
 	public static final String ROSTER_BANK = "ÍøÒø";
 	
 	public static PropertiesUtils propUtil = new PropertiesUtils(CONFIG_FILE);
+	
+	public static final long ONE_DAY = 86400000L;  
+	
 }

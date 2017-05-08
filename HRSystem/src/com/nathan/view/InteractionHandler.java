@@ -72,6 +72,7 @@ public class InteractionHandler {
 			handleRosterValidation();
 		}
 		if (feedback == -1 || feedback == 5) {
+			Util.housekeep();
 			exit();
 		}
 		if (feedback == 1 || feedback == 2 || feedback == 3) {
