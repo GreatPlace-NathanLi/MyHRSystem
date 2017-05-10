@@ -63,7 +63,6 @@ public class InteractionHandler {
 		Object[] options = { "工资表制作", "数据设置", "查询", "汇总", "花名册校验", "退出" };
 		int feedback = JOptionPane.showOptionDialog(null, "欢迎使用德盛人力项目管理系统", "德盛人力项目管理", JOptionPane.DEFAULT_OPTION,
 				JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
-		logger.debug("feedback " + feedback);
 		if (feedback == 0) {
 			handleBilling();
 
@@ -72,7 +71,6 @@ public class InteractionHandler {
 			handleRosterValidation();
 		}
 		if (feedback == -1 || feedback == 5) {
-			Util.housekeep();
 			exit();
 		}
 		if (feedback == 1 || feedback == 2 || feedback == 3) {
@@ -84,7 +82,6 @@ public class InteractionHandler {
 		Object[] options = { "正常开票", "虚拟开票", "返回", "退出" };
 		int feedback = JOptionPane.showOptionDialog(null, "工资表制作", "德盛人力项目管理", JOptionPane.DEFAULT_OPTION,
 				JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
-		logger.debug("feedback " + feedback);
 		if (feedback == 2) {
 			showMenu();
 		}
@@ -117,7 +114,6 @@ public class InteractionHandler {
 		Object[] options = { "返回", "退出" };
 		int feedback = JOptionPane.showOptionDialog(null, status, "德盛人力项目管理", JOptionPane.DEFAULT_OPTION,
 				JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
-		logger.debug("feedback " + feedback);
 		if (feedback == 0) {
 			showMenu();
 		}
@@ -130,7 +126,6 @@ public class InteractionHandler {
 		Object[] options = { "返回", "退出" };
 		int feedback = JOptionPane.showOptionDialog(null, function + "功能正在完善中，敬请期待", "德盛人力项目管理",
 				JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
-		logger.debug("feedback " + feedback);
 		if (feedback == 0) {
 			if (level == 0)
 				showMenu();
@@ -148,29 +143,32 @@ public class InteractionHandler {
 				JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[2]);
 
 		if (feedback == 1) {
+			logger.debug(0);
 			String company = JOptionPane.showInputDialog(null, "请输入单位：", title, JOptionPane.INFORMATION_MESSAGE);
 			logger.debug("单位： " + company);
 			while (Constant.EMPTY_STRING.equals(company)) {
 				company = JOptionPane.showInputDialog(null, "单位不能为空！ 请输入借人单位：", title, JOptionPane.INFORMATION_MESSAGE);
 			}
+			logger.debug(1);
 			if (company == null) {
 				if (confirmExit(remainPayCount) == 1) {
 					handleFullUpManual(contractID, remainPayCount);
 				}
 			}
-
+			logger.debug(2);
 			String projectLeader = JOptionPane.showInputDialog(null, "请输入领队：", title, JOptionPane.INFORMATION_MESSAGE);
 			logger.debug("领队： " + projectLeader);
 			while (Constant.EMPTY_STRING.equals(projectLeader)) {
 				projectLeader = JOptionPane.showInputDialog(null, "领队不能为空！ 请输入领队：", title,
 						JOptionPane.INFORMATION_MESSAGE);
 			}
+			logger.debug(3);
 			if (projectLeader == null) {
 				if (confirmExit(remainPayCount) == 1) {
 					handleFullUpManual(contractID, remainPayCount);
 				}
 			}
-
+			logger.debug(4);
 			InteractionInput input = new InteractionInput();
 			input.setCompany(company);
 			input.setProjectLeader(projectLeader);
@@ -234,7 +232,7 @@ public class InteractionHandler {
 	public static String handleConfigPath() {
 		String path = (String) JOptionPane.showInputDialog(null, "请输入配置文件路径", "德盛人力项目管理",
 				JOptionPane.INFORMATION_MESSAGE, null, null, Constant.CONFIG_FILE);
-		logger.debug("配置文件 " + path);
+		logger.debug("系统配置文件: " + path);
 		if (path == null) {
 			exit();
 		}
@@ -271,7 +269,6 @@ public class InteractionHandler {
 		Object[] options = { "返回", "退出" };
 		int feedback = JOptionPane.showOptionDialog(null, message, "德盛人力项目管理", JOptionPane.DEFAULT_OPTION,
 				JOptionPane.ERROR_MESSAGE, null, options, options[0]);
-		logger.debug("feedback " + feedback);
 		if (feedback == 0) {
 			showMenu();
 		}
@@ -292,6 +289,7 @@ public class InteractionHandler {
 	}
 
 	public static void exit() {
+		Util.housekeep();
 		logger.info("退出系统！");
 		System.exit(0);
 	}

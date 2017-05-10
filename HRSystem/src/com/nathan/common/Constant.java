@@ -1,8 +1,10 @@
 package com.nathan.common;
 
 public class Constant {
-		
+	
+	public static final double MID_BASE_PAY = 1500;
 	public static final double LOW_DAILY_PAY = 150;
+	public static final double MID_DAILY_PAY = 160;
 	public static final double HIGH_DAILY_PAY = 170;
 	public static final double DEFAULT_OVERTIME_PAY = 70;
 	public static final String WORK_PATH = "F:/work/project/德盛人力项目管理系统/";
@@ -19,6 +21,8 @@ public class Constant {
 	public static final String PAYMENT_DOC_TEMPLATE_FILE = WORK_PATH + "template/付款手续单据模板.xls";
 	public static final String ATTENDANCE_SHEET_FILE = WORK_PATH + "out/NNNCCCCC考勤表.xls";
 	public static final String ATTENDANCE_SHEET_TEMPLATE_FILE = WORK_PATH + "template/考勤表模板.xls";
+	public static final String BANK_PAYMENT_SUMMARY_FILE = WORK_PATH + "out/UUUUNNNCCCCC网银汇总表.xls";
+	public static final String BANK_PAYMENT_SUMMARY_TEMPLATE_FILE = WORK_PATH + "template/网银汇总表模板.xls";
 	public static final String TABULATOR = "谢少芹";
 
 	public static final String LINE0 = "========================================================================";

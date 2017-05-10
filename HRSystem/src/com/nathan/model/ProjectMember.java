@@ -1,30 +1,33 @@
 package com.nathan.model;
 
+import com.nathan.common.Constant;
+
 public class ProjectMember {
-	
+
 	private int orderNumber;
-	
+
 	private String name;
-	
+
 	private double basePay;
-	
+
 	private double dailyPay;
-	
+
 	private String contractStartAndEndTime;
-	
+
 	private int contractStartTimeInInteger;
-	
+
 	private int contractEndTimeInInteger;
-	
+
 	private String onJobStartAndEndTime;
-	
+
 	private int onJobStartTimeInInteger;
-	
+
 	private int onJobEndTimeInInteger;
-	
+
 	public boolean isAvailable(int year, int month) {
 		int processingTime = year * 10000 + month * 100 + 1;
-		boolean isContractExpired = processingTime < contractStartTimeInInteger || processingTime > contractEndTimeInInteger;
+		boolean isContractExpired = processingTime < contractStartTimeInInteger
+				|| processingTime > contractEndTimeInInteger;
 		boolean isOffJob = false;
 		if (onJobEndTimeInInteger > 0) {
 			isOffJob = processingTime < onJobStartTimeInInteger || processingTime >= onJobEndTimeInInteger;
@@ -40,7 +43,8 @@ public class ProjectMember {
 	}
 
 	/**
-	 * @param orderNumber the orderNumber to set
+	 * @param orderNumber
+	 *            the orderNumber to set
 	 */
 	public void setOrderNumber(int orderNumber) {
 		this.orderNumber = orderNumber;
@@ -54,7 +58,8 @@ public class ProjectMember {
 	}
 
 	/**
-	 * @param name the name to set
+	 * @param name
+	 *            the name to set
 	 */
 	public void setName(String name) {
 		this.name = name;
@@ -68,16 +73,17 @@ public class ProjectMember {
 	}
 
 	/**
-	 * @param basePay the basePay to set
+	 * @param basePay
+	 *            the basePay to set
 	 */
 	public void setBasePay(double basePay) {
 		this.basePay = basePay;
-		if(basePay>1500) {
-			this.dailyPay = 170;
-		} else if (basePay==1500) {
-			this.dailyPay = 160;
+		if (basePay > Constant.MID_BASE_PAY) {
+			this.dailyPay = Constant.HIGH_DAILY_PAY;
+		} else if (basePay == Constant.MID_BASE_PAY) {
+			this.dailyPay = Constant.MID_DAILY_PAY;
 		} else {
-			this.dailyPay = 150;
+			this.dailyPay = Constant.LOW_DAILY_PAY;
 		}
 	}
 
@@ -89,7 +95,8 @@ public class ProjectMember {
 	}
 
 	/**
-	 * @param dailyPay the dailyPay to set
+	 * @param dailyPay
+	 *            the dailyPay to set
 	 */
 	public void setDailyPay(double dailyPay) {
 		this.dailyPay = dailyPay;
@@ -103,7 +110,8 @@ public class ProjectMember {
 	}
 
 	/**
-	 * @param contractStartAndEndTime the contractStartAndEndTime to set
+	 * @param contractStartAndEndTime
+	 *            the contractStartAndEndTime to set
 	 */
 	public void setContractStartAndEndTime(String contractStartAndEndTime) {
 		this.contractStartAndEndTime = contractStartAndEndTime;
@@ -111,13 +119,13 @@ public class ProjectMember {
 	}
 
 	private void parseContractStartAndEndTime(String contractStartAndEndTime) {
-		if(contractStartAndEndTime != null) {
+		if (contractStartAndEndTime != null) {
 			String[] s = contractStartAndEndTime.split("-");
 			this.contractStartTimeInInteger = Integer.valueOf(s[0]);
 			this.contractEndTimeInInteger = Integer.valueOf(s[1]);
 		}
 	}
-	
+
 	/**
 	 * @return the contractStartTimeInInteger
 	 */
@@ -126,7 +134,8 @@ public class ProjectMember {
 	}
 
 	/**
-	 * @param contractStartTimeInInteger the contractStartTimeInInteger to set
+	 * @param contractStartTimeInInteger
+	 *            the contractStartTimeInInteger to set
 	 */
 	public void setContractStartTimeInInteger(int contractStartTimeInInteger) {
 		this.contractStartTimeInInteger = contractStartTimeInInteger;
@@ -140,7 +149,8 @@ public class ProjectMember {
 	}
 
 	/**
-	 * @param contractEndTimeInInteger the contractEndTimeInInteger to set
+	 * @param contractEndTimeInInteger
+	 *            the contractEndTimeInInteger to set
 	 */
 	public void setContractEndTimeInInteger(int contractEndTimeInInteger) {
 		this.contractEndTimeInInteger = contractEndTimeInInteger;
@@ -154,7 +164,8 @@ public class ProjectMember {
 	}
 
 	/**
-	 * @param onJobStartAndEndTime the onJobStartAndEndTime to set
+	 * @param onJobStartAndEndTime
+	 *            the onJobStartAndEndTime to set
 	 */
 	public void setOnJobStartAndEndTime(String onJobStartAndEndTime) {
 		this.onJobStartAndEndTime = onJobStartAndEndTime;
@@ -162,13 +173,13 @@ public class ProjectMember {
 	}
 
 	private void parseOnJobStartAndEndTime(String onJobStartAndEndTime) {
-		if(onJobStartAndEndTime != null) {
+		if (onJobStartAndEndTime != null) {
 			String[] s = onJobStartAndEndTime.split("-");
 			this.onJobStartTimeInInteger = Integer.valueOf(s[0]);
 			this.onJobEndTimeInInteger = Integer.valueOf(s[1]);
 		}
 	}
-	
+
 	/**
 	 * @return the onJobStartTimeInInteger
 	 */
@@ -177,7 +188,8 @@ public class ProjectMember {
 	}
 
 	/**
-	 * @param onJobStartTimeInInteger the onJobStartTimeInInteger to set
+	 * @param onJobStartTimeInInteger
+	 *            the onJobStartTimeInInteger to set
 	 */
 	public void setOnJobStartTimeInInteger(int onJobStartTimeInInteger) {
 		this.onJobStartTimeInInteger = onJobStartTimeInInteger;
@@ -191,13 +203,16 @@ public class ProjectMember {
 	}
 
 	/**
-	 * @param onJobEndTimeInInteger the onJobEndTimeInInteger to set
+	 * @param onJobEndTimeInInteger
+	 *            the onJobEndTimeInInteger to set
 	 */
 	public void setOnJobEndTimeInInteger(int onJobEndTimeInInteger) {
 		this.onJobEndTimeInInteger = onJobEndTimeInInteger;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override

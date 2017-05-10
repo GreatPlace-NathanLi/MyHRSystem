@@ -23,6 +23,8 @@ public class BillingOperater {
 	private PaymentDocumentProcesser paymentDocumentProcesser;
 	
 	private RosterProcesser rosterProcesser;
+	
+	private BankPaymentSummaryProcesser bankPaymentSummaryProcesser;
 
 	public void startBilling() throws Exception {
 		String path = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
@@ -30,7 +32,6 @@ public class BillingOperater {
 		billingPlanProcesser = new BillingPlanProcesser();
 		rosterProcesser = new RosterProcesser();
 		payrollSheetProcesser = new PayrollSheetProcesser();
-		paymentDocumentProcesser = new PaymentDocumentProcesser();
 
 		long startTime = System.nanoTime();
 		logger.info(Constant.LINE0);
@@ -70,7 +71,14 @@ public class BillingOperater {
 		logger.info(Constant.LINE1);
 
 		logger.info("开始制作付款手续单据...");
+		paymentDocumentProcesser = new PaymentDocumentProcesser();
 		paymentDocumentProcesser.processPaymentDocument(billingPlanProcesser.getBillingPlanBook());
+		
+		if (payrollSheetProcesser.isNeededToCreateBankPaymentSummarySheet()) {
+			logger.info("开始制作网银汇总表...");
+			bankPaymentSummaryProcesser = new BankPaymentSummaryProcesser();
+			bankPaymentSummaryProcesser.processBankPaymentSummary(billingPlanProcesser.getBillingPlanBook());
+		}
 	}
 
 	public static void main(String[] args) throws Exception {

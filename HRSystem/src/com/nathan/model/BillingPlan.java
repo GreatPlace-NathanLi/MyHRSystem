@@ -1,6 +1,7 @@
 package com.nathan.model;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.nathan.common.Constant;
 import com.nathan.common.Util;
@@ -50,7 +51,11 @@ public class BillingPlan {
 	
 	private boolean isAttendanceSheetRequired = false;
 	
-	private ArrayList<SubBillingPlan> subPlanList;
+	private boolean isBankPaymentSummaryRequired = false;
+	
+	private List<SubBillingPlan> subPlanList;
+	
+	private List<PayrollSheet> payrollSheetList;
 	
 	public enum BillingStatus {
 		待制作, 已制作, 待删除, 已删除
@@ -78,6 +83,14 @@ public class BillingPlan {
 		return isAttendanceSheetRequired;
 	}
 	
+	public boolean isBankPaymentSummaryRequired() {
+		return isBankPaymentSummaryRequired;
+	}
+
+	public void setBankPaymentSummaryRequired(boolean isBankPaymentSummaryRequired) {
+		this.isBankPaymentSummaryRequired = isBankPaymentSummaryRequired;
+	}
+
 	public BillingPlan() {
 		this.subPlanList = new ArrayList<SubBillingPlan>();
 	}
@@ -99,7 +112,7 @@ public class BillingPlan {
 		return subPlan;
 	}
 
-	public ArrayList<SubBillingPlan> getSubPlanList() {
+	public List<SubBillingPlan> getSubPlanList() {
 		return this.subPlanList;
 	}
 	
@@ -781,6 +794,20 @@ public class BillingPlan {
 	 */
 	public void setRosterProjectLeader(String rosterProjectLeader) {
 		this.rosterProjectLeader = rosterProjectLeader;
+	}
+
+	/**
+	 * @return the payrollSheetList
+	 */
+	public List<PayrollSheet> getPayrollSheetList() {
+		return payrollSheetList;
+	}
+
+	/**
+	 * @param payrollSheetList the payrollSheetList to set
+	 */
+	public void setPayrollSheetList(List<PayrollSheet> payrollSheetList) {
+		this.payrollSheetList = payrollSheetList;
 	}
 
 	/* (non-Javadoc)

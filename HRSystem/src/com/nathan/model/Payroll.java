@@ -16,7 +16,7 @@ public class Payroll {
 	
 	private double socialSecurityAmount;
 	
-	private double actualPay;
+	private double actualPay = 0.0;
 	
 	private double dailyPay;
 	
@@ -138,6 +138,9 @@ public class Payroll {
 	 * @return the actualPay
 	 */
 	public double getActualPay() {
+		if (actualPay == 0.0) {
+			actualPay = this.dailyPay * this.workingDays + this.overtimePay;
+		}
 		return actualPay;
 	}
 

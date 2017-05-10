@@ -43,7 +43,7 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 	
 	public void removePaymentDocumentIfExists(String filePath) {
 		if(delete(filePath)) {
-			logger.debug("删除文件：" + filePath);
+			logger.debug("删除付款手续单据：" + filePath);
 		}
 	}
 

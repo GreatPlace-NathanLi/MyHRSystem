@@ -177,8 +177,10 @@ public class BillingSystem extends JFrame {
 			InteractionHandler.showMenu();
 
 		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
-			InteractionHandler.handleException(e.getMessage());
+//			logger.error(e.getMessage(), e);
+			logger.info("ÍË³öÏµÍ³£¡");
+			System.exit(0);			
+//			InteractionHandler.handleException(e.getMessage());
 		}
     }
 }
