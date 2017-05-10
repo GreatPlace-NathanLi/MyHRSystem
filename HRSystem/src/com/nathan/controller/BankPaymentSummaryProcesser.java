@@ -103,7 +103,7 @@ public class BankPaymentSummaryProcesser extends AbstractExcelOperater {
 
 		WritableCell cell = sheet.getWritableCell(0, 1);
 		String contractInfo = ((Label) cell).getString();
-		logger.debug("contractInfo:" + contractInfo + "C ID:" + bankPaymentSummary.getContractID());
+//		logger.debug("contractInfo:" + contractInfo + "C ID:" + bankPaymentSummary.getContractID());
 		contractInfo = contractInfo.replace("CCCCC", bankPaymentSummary.getContractID());
 		((Label) cell).setString(contractInfo);
 

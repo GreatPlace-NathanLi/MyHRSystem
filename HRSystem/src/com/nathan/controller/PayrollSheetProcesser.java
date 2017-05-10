@@ -541,6 +541,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			subPlan.setPayCount(billingPlan.getPayCount());
 			subPlan.setProcessingProjectLeader(subPlan.getSubPlanProjectLeader());
 			subPlan.setAttendanceSheetFlag(billingPlan.getAttendanceSheetFlag());
+			subPlan.setAdministrationExpenses(billingPlan.getAdministrationExpenses());
 
 			buildPayrollSheetForSubBillingPlan(subPlan, rosterProcesser, attendanceSheetProcesser);
 		}
@@ -630,13 +631,13 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		payrollSheet.setContractID(billingPlan.getContractID());
 		payrollSheet.setTotalAmount(calcSubTotalAmount(payrollCount, billingPlan));
 		payrollSheet.setProjectUnit(processingProjectUnit);
-		buildPayrolls(payrollSheet, roster);
+		buildPayrolls(payrollSheet, roster, billingPlan.getAdministrationExpenses());
 		payrollSheetList.add(payrollSheet);
 		roster.setCurrentPayYear(payYear);
 		roster.setCurrentPayMonth(payMonth);
 	}
 
-	protected void buildPayrolls(PayrollSheet payrollSheet, ProjectMemberRoster roster) {
+	protected void buildPayrolls(PayrollSheet payrollSheet, ProjectMemberRoster roster, double administrationExpenses) {
 		int payrollCount = payrollSheet.getPayrollNumber();
 		double totalAmount = payrollSheet.getTotalAmount();
 		double highTemperatureAllowance = Util.getHighTemperatureAllowance(payrollSheet.getPayMonth());
@@ -654,6 +655,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			payroll.setHighTemperatureAllowance(highTemperatureAllowance);
 			payroll.setSocialSecurityAmount(socialSecurityAmount);
 			payroll.setWorkingDays(initWorkingDayCount);
+			payroll.setAdministrationExpenses(administrationExpenses);
 			payrollSheet.addPayroll(payroll);
 			tempAmount += payroll.getTotalPay();
 		}
@@ -834,6 +836,8 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 					((Number) newCell).setValue(payroll.getWorkingDays());
 				} else if (c == 15) {
 					((Number) newCell).setValue(payroll.getOvertimePay());
+				} else if (c == 17) {
+					((Number) newCell).setValue(payroll.getAdministrationExpenses());
 				}
 			}
 		}

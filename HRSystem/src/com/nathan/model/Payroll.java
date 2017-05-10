@@ -189,7 +189,7 @@ public class Payroll {
 	/**
 	 * @param administrationExpenses the administrationExpenses to set
 	 */
-	public void setAdministrationExpenses(float administrationExpenses) {
+	public void setAdministrationExpenses(double administrationExpenses) {
 		this.administrationExpenses = administrationExpenses;
 	}
 	
