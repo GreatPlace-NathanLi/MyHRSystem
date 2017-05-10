@@ -12,7 +12,7 @@ public class InteractionHandler {
 	private static Logger logger = Logger.getLogger(InteractionHandler.class);
 
 	private static final String title = "借人处理";
-	
+
 	private static ActionCallback callback;
 
 	public static void main(String[] args) throws Exception {
@@ -22,13 +22,19 @@ public class InteractionHandler {
 		// JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
 		// logger.debug("JOptionPane " + i);
 		//
-		// Object[] possibleValues = { "First", "Second", "Third" };
-		// Object selectedValue = JOptionPane.showInputDialog(null, "Choose
-		// one", "Input",
-		// JOptionPane.INFORMATION_MESSAGE, null,
-		// possibleValues, possibleValues[0]);
-		//
-		// logger.debug("selectedValue " + selectedValue);
+		Constant.propUtil.init();
+
+		String companyPath = Constant.propUtil.getStringEnEmpty("user.花名册根目录");
+		Object[] companyList = Util.getFoldersUnderPath(companyPath).toArray();
+		String company = (String) JOptionPane.showInputDialog(null, "请选择单位：", title, JOptionPane.INFORMATION_MESSAGE,
+				null, companyList, companyList[0]);
+		logger.debug("单位： " + company);
+
+		String path = companyPath + company;
+		Object[] projectLeaderList = Util.parseProjectLeadersFromFileUnderPath(path).toArray();
+		String projectLeader = (String) JOptionPane.showInputDialog(null, "请选择领队：", title,
+				JOptionPane.INFORMATION_MESSAGE, null, projectLeaderList, projectLeaderList[0]);
+		logger.debug("领队： " + projectLeader);
 
 		// int a = JOptionPane.showInternalConfirmDialog(null,
 		// "开票人数不足，是否需要人工处理？", "借人处理",
@@ -49,7 +55,7 @@ public class InteractionHandler {
 		showMenu();
 
 		handleRostersPathInput(Constant.ROSTER_ROOT_PATH);
-		
+
 		handleFullUpManual("ddd", 10);
 
 		confirmExit(10);
@@ -58,7 +64,7 @@ public class InteractionHandler {
 	public static void setActionCallback(ActionCallback callback) {
 		InteractionHandler.callback = callback;
 	}
-	
+
 	public static void showMenu() {
 		Object[] options = { "工资表制作", "数据设置", "查询", "汇总", "花名册校验", "退出" };
 		int feedback = JOptionPane.showOptionDialog(null, "欢迎使用德盛人力项目管理系统", "德盛人力项目管理", JOptionPane.DEFAULT_OPTION,
@@ -95,17 +101,17 @@ public class InteractionHandler {
 			try {
 				callback.actionPerformed(ActionType.Billing);
 			} catch (Exception e) {
-				logger.error(e.getMessage(),e);
+				logger.error(e.getMessage(), e);
 				handleException(e.getMessage());
 			}
 		}
 	}
-	
+
 	public static void handleRosterValidation() {
 		try {
 			callback.actionPerformed(ActionType.RosterValidation);
 		} catch (Exception e) {
-			logger.error(e.getMessage(),e);
+			logger.error(e.getMessage(), e);
 			handleException(e.getMessage());
 		}
 	}
@@ -139,36 +145,51 @@ public class InteractionHandler {
 
 	public static InteractionInput handleFullUpManual(String contractID, int remainPayCount) throws Exception {
 		Object[] options = { "自动借人", "指定借人", "取消开票" };
-		int feedback = JOptionPane.showOptionDialog(null, contractID + "开票人数不足，还差" + remainPayCount + "人，请选择处理方式", title,
-				JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[2]);
+		int feedback = JOptionPane.showOptionDialog(null, contractID + "开票人数不足，还差" + remainPayCount + "人，请选择处理方式",
+				title, JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[2]);
 
 		if (feedback == 1) {
 			logger.debug(0);
-			String company = JOptionPane.showInputDialog(null, "请输入单位：", title, JOptionPane.INFORMATION_MESSAGE);
-			logger.debug("单位： " + company);
-			while (Constant.EMPTY_STRING.equals(company)) {
-				company = JOptionPane.showInputDialog(null, "单位不能为空！ 请输入借人单位：", title, JOptionPane.INFORMATION_MESSAGE);
-			}
+			// String company = JOptionPane.showInputDialog(null, "请输入单位：",
+			// title, JOptionPane.INFORMATION_MESSAGE);
+			// logger.debug("单位： " + company);
+			// while (Constant.EMPTY_STRING.equals(company)) {
+			// company = JOptionPane.showInputDialog(null, "单位不能为空！ 请输入借人单位：",
+			// title, JOptionPane.INFORMATION_MESSAGE);
+			// }
+			
+			String path = Constant.propUtil.getStringEnEmpty("user.花名册根目录");
+			Object[] companyList = Util.getFoldersUnderPath(path).toArray();
+			String company = (String) JOptionPane.showInputDialog(null, "请指定一个借人单位：", title,
+					JOptionPane.INFORMATION_MESSAGE, null, companyList, companyList[0]);
+			logger.debug("借人单位： " + company);
+
 			logger.debug(1);
 			if (company == null) {
-				if (confirmExit(remainPayCount) == 1) {
-					handleFullUpManual(contractID, remainPayCount);
-				}
+				handleProgressCompleted("开票中止！");
 			}
 			logger.debug(2);
-			String projectLeader = JOptionPane.showInputDialog(null, "请输入领队：", title, JOptionPane.INFORMATION_MESSAGE);
-			logger.debug("领队： " + projectLeader);
-			while (Constant.EMPTY_STRING.equals(projectLeader)) {
-				projectLeader = JOptionPane.showInputDialog(null, "领队不能为空！ 请输入领队：", title,
-						JOptionPane.INFORMATION_MESSAGE);
-			}
+			// String projectLeader = JOptionPane.showInputDialog(null,
+			// "请输入领队：", title, JOptionPane.INFORMATION_MESSAGE);
+			// logger.debug("领队： " + projectLeader);
+			// while (Constant.EMPTY_STRING.equals(projectLeader)) {
+			// projectLeader = JOptionPane.showInputDialog(null, "领队不能为空！
+			// 请输入领队：", title,
+			// JOptionPane.INFORMATION_MESSAGE);
+			// }
+
+			String path1 = path + company;
+			Object[] projectLeaderList = Util.parseProjectLeadersFromFileUnderPath(path1).toArray();
+			String projectLeader = (String) JOptionPane.showInputDialog(null, "请指定一个借人领队：", title,
+					JOptionPane.INFORMATION_MESSAGE, null, projectLeaderList, projectLeaderList[0]);
+			logger.debug("借人领队： " + projectLeader);
+
 			logger.debug(3);
 			if (projectLeader == null) {
-				if (confirmExit(remainPayCount) == 1) {
-					handleFullUpManual(contractID, remainPayCount);
-				}
+				handleProgressCompleted("开票中止！");
 			}
 			logger.debug(4);
+			
 			InteractionInput input = new InteractionInput();
 			input.setCompany(company);
 			input.setProjectLeader(projectLeader);
@@ -178,20 +199,28 @@ public class InteractionHandler {
 		if (feedback == 2 || feedback == -1) {
 			if (confirmExit(remainPayCount) == 1) {
 				handleFullUpManual(contractID, remainPayCount);
-			} 
+			}
 		}
 
 		return null;
 	}
 
-	public static InteractionInput handleFullUpFromOtherCompany(String currentCompany, int remainPayCount) throws Exception {
+	public static InteractionInput handleFullUpFromOtherCompany(String currentCompany, int remainPayCount)
+			throws Exception {
 
-		String company = null;
-		do {
-			company = JOptionPane.showInputDialog(null, currentCompany + "名额已用完，还差" + remainPayCount + "人，请另外指定一个借人单位：",
-					title, JOptionPane.INFORMATION_MESSAGE);
-		} while (currentCompany.equals(company) || Constant.EMPTY_STRING.equals(company));
+//		String company = null;
+//		do {
+//			company = JOptionPane.showInputDialog(null, currentCompany + "名额已用完，还差" + remainPayCount + "人，请另外指定一个借人单位：",
+//					title, JOptionPane.INFORMATION_MESSAGE);
+//		} while (currentCompany.equals(company) || Constant.EMPTY_STRING.equals(company));
 
+		String path = Constant.propUtil.getStringEnEmpty("user.花名册根目录");
+		Object[] companyList = Util.getFoldersUnderPath(path, currentCompany).toArray();
+		String company = (String) JOptionPane.showInputDialog(null, currentCompany + "名额已用完，还差" + remainPayCount + "人，请另外指定一个借人单位：", title,
+				JOptionPane.INFORMATION_MESSAGE, null, companyList, companyList[0]);
+		
+		InteractionInput input = new InteractionInput();
+		input.setCompany(company);
 		logger.debug("新借人单位： " + company);
 
 		if (company == null) {
@@ -200,8 +229,6 @@ public class InteractionHandler {
 			}
 		}
 
-		InteractionInput input = new InteractionInput();
-		input.setCompany(company);
 		return input;
 	}
 
@@ -211,7 +238,7 @@ public class InteractionHandler {
 			handleProgressCompleted("开票中止！");
 		}
 	}
-	
+
 	public static boolean handleIsGoOn(String message) throws Exception {
 		boolean isGoOn = false;
 		Object[] options = { "是", "取消" };
@@ -222,7 +249,7 @@ public class InteractionHandler {
 		}
 		return isGoOn;
 	}
-	
+
 	public static void handleBillingProgressReport(String contractID, String status, int totalToDo, int totalDone) {
 		String message = contractID + status + " ( " + totalDone + " / " + totalToDo + " )";
 		logger.info(message);
@@ -244,9 +271,9 @@ public class InteractionHandler {
 			logger.error("Exception: 本测试版本已经超过有效期，请使用最新版本。");
 			JOptionPane.showMessageDialog(null, "本测试版本已经超过有效期，请使用最新版本。", "警告", JOptionPane.ERROR_MESSAGE);
 			exit();
-		}	
+		}
 	}
-	
+
 	public static boolean handleWriteRetry(String message) {
 		boolean retry = false;
 		Object[] options = { "返回", "退出", "重试" };
@@ -293,7 +320,7 @@ public class InteractionHandler {
 		logger.info("退出系统！");
 		System.exit(0);
 	}
-	
+
 	public static String handleRostersPathInput(String defaultPath) {
 		String path = (String) JOptionPane.showInputDialog(null, "请输入所需校验花名册的路径", "花名册校验",
 				JOptionPane.INFORMATION_MESSAGE, null, null, defaultPath);

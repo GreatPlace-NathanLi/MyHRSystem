@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -108,8 +109,8 @@ public class Util {
 
 		return folderList;
 	}
-
-	public static List<String> parseProjectLeadersUnderPath(String path) {
+	
+	public static List<String> getFoldersUnderPath(String path, String filter) {
 		File file = new File(path);
 		File[] array = file.listFiles();
 		ArrayList<String> folderList = new ArrayList<String>();
@@ -118,16 +119,67 @@ public class Util {
 		}
 
 		for (int i = 0; i < array.length; i++) {
-			String name = array[i].getName();
-			if (array[i].isDirectory()) {
-				folderList.add(name);
-			}
-			if (array[i].isFile()) {
-				folderList.add(name.substring(0, name.length() - 12));
+			if (array[i].isDirectory() && !array[i].getName().equals(filter)) {
+				folderList.add(array[i].getName());
 			}
 		}
-		System.out.println("parseProjectLeadersUnderPath():" + folderList);
+
 		return folderList;
+	}
+
+	public static List<String> parseProjectLeadersUnderPath(String path) {
+		File file = new File(path);
+		File[] array = file.listFiles();
+		ArrayList<String> projectLeaderList = new ArrayList<String>();
+		if (array == null) {
+			return projectLeaderList;
+		}
+
+		for (int i = 0; i < array.length; i++) {
+			String name = array[i].getName();
+			if (array[i].isDirectory()) {
+				projectLeaderList.add(name);
+			}
+			if (array[i].isFile()) {
+				projectLeaderList.add(name.substring(0, name.length() - 12));
+			}
+		}
+		System.out.println("parseProjectLeadersUnderPath():" + projectLeaderList);
+		return projectLeaderList;
+	}
+	
+	public static List<String> parseProjectLeadersFromFolderUnderPath(String path) {
+		File file = new File(path);
+		File[] array = file.listFiles();
+		ArrayList<String> projectLeaderList = new ArrayList<String>();
+		if (array == null) {
+			return projectLeaderList;
+		}
+
+		for (int i = 0; i < array.length; i++) {
+			String name = array[i].getName();
+			if (array[i].isDirectory()) {
+				projectLeaderList.add(name);
+			}
+		}
+		System.out.println("parseProjectLeadersFromFoldersUnderPath():" + projectLeaderList);
+		return projectLeaderList;
+	}
+	
+	public static List<String> parseProjectLeadersFromFileUnderPath(String path) {
+		List<File> list = getFiles(path, new ArrayList<File>());
+		ArrayList<String> projectLeaderList = new ArrayList<String>();
+		for (int i = 0; i < list.size(); i++) {
+			String name = list.get(i).getName();
+			if (list.get(i).isFile()) {
+				projectLeaderList.add(name.substring(0, name.length() - 12));
+			}
+		}
+		HashSet<String> h = new HashSet<String>(projectLeaderList);
+		projectLeaderList.clear();
+		projectLeaderList.addAll(h);
+		System.out.println("parseProjectLeadersFromFileUnderPath():" + projectLeaderList);
+		return projectLeaderList;
 	}
 
 	public static void listAllFileUnderPath(String filepath, ArrayList<String> filesList) throws Exception {
@@ -262,11 +314,11 @@ public class Util {
 	}
 
 	public static void main(String[] args) throws Exception {
-		Util.parseProjectLeadersUnderPath("F:/work/project/德盛人力项目管理系统/in/湛江雷能/2015/");
-		Util.parseProjectLeadersUnderPath("F:/work/project/德盛人力项目管理系统/in/雷能电力/2016/");
+		Util.parseProjectLeadersFromFileUnderPath("F:/work/project/德盛人力项目管理系统/in/花名册/湛江雷能");
+		Util.parseProjectLeadersFromFileUnderPath("F:/work/project/德盛人力项目管理系统/in/花名册/雷能电力");
 
 		ArrayList<String> filesList = new ArrayList<String>();
-		Util.listAllFileUnderPath(Constant.ROSTER_ROOT_PATH, filesList);
+//		Util.listAllFileUnderPath(Constant.ROSTER_ROOT_PATH, filesList);
 		System.out.println(filesList);
 
 		System.out.println(getYearFromFilePath("F:/work/project/德盛人力项目管理系统/in/花名册/湛江雷能/2017/张一2017年花名册.xls"));
@@ -274,7 +326,7 @@ public class Util {
 		List<File> list = getFileSort("F:/work/project/德盛人力项目管理系统/backup/");
 		for (int i = 0; i < list.size(); i++) {
 			if (i >= 100 && list.get(i).lastModified() < System.currentTimeMillis() - Constant.ONE_DAY) {
-				System.out.println("delete " + list.get(i).getName() + " : " + list.get(i).lastModified());
+//				System.out.println("delete " + list.get(i).getName() + " : " + list.get(i).lastModified());
 //				list.get(i).delete();
 			}
 		}
