@@ -790,6 +790,14 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		String tabulator = ((Label) cell).getString();
 		tabulator = tabulator.replace("NNN", Util.getTabulator());
 		((Label) cell).setString(tabulator);
+		
+		cell = sheet.getWritableCell(4, 6);
+		String reviewer = ((Label) cell).getString();
+		reviewer = reviewer.replace("RRR", Util.getReviewer());
+		((Label) cell).setString(reviewer);
+		
+		cell = sheet.getWritableCell(15, 6);
+		((Label) cell).setString(reviewer);
 
 		if (needToChangeOvertimePaySubject(payrollSheet.getProjectUnit())) {
 			cell = sheet.getWritableCell(15, 2);

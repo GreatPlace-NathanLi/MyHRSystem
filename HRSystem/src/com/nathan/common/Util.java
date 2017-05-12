@@ -65,7 +65,11 @@ public class Util {
 	}
 
 	public static String getTabulator() {
-		return Constant.propUtil.getStringValue("user.制表人", Constant.TABULATOR);
+		return Constant.propUtil.getStringEnEmpty("user.制表人");
+	}
+	
+	public static String getReviewer() {
+		return Constant.propUtil.getStringEnEmpty("user.复核人");
 	}
 
 	public static double getHighTemperatureAllowance(int month) {
