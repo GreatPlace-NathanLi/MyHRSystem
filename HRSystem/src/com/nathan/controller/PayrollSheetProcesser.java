@@ -9,7 +9,6 @@ import org.apache.log4j.Logger;
 
 import com.nathan.common.Constant;
 import com.nathan.common.Util;
-import com.nathan.exception.AttendanceSheetProcessException;
 import com.nathan.exception.PayrollSheetProcessException;
 import com.nathan.exception.RosterProcessException;
 import com.nathan.model.BillingPlan;
@@ -545,7 +544,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	// }
 
 	private void buildPayrollSheetForSingleBillingPlan(BillingPlan billingPlan, RosterProcesser rosterProcesser)
-			throws RosterProcessException, PayrollSheetProcessException, AttendanceSheetProcessException {
+			throws Exception {
 
 		logger.info(Constant.LINE1);
 		logger.info("制作工资表 - 开票计划序号：" + billingPlan.getOrderNumber() + " 合同号：" + billingPlan.getContractID());
@@ -572,7 +571,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 	private void buildPayrollSheetForSubBillingPlan(SubBillingPlan subPlan, RosterProcesser rosterProcesser,
 			AttendanceSheetProcesser attendanceSheetProcesser)
-			throws RosterProcessException, PayrollSheetProcessException, AttendanceSheetProcessException {
+			throws Exception {
 		String processingProjectLeader = subPlan.getSubPlanProjectLeader();
 		int processingPayYear = subPlan.getSubPlanPayYear();
 
@@ -610,7 +609,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 	public int buildPayrollSheet(SubBillingPlan billingPlan, ProjectMemberRoster roster,
 			List<PayrollSheet> payrollSheetList, int payYear, int startPayMonth, int endPayMonth, int payCount,
-			String processingProjectUnit) {
+			String processingProjectUnit) throws Exception {
 		// 决定工资表数量
 		// Todo: unit test
 		logger.info("计算工资表数据...");
@@ -641,7 +640,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	}
 
 	protected void buildPayrollSheet(ProjectMemberRoster roster, int payrollCount, int payYear, int payMonth,
-			SubBillingPlan billingPlan, List<PayrollSheet> payrollSheetList, String processingProjectUnit) {
+			SubBillingPlan billingPlan, List<PayrollSheet> payrollSheetList, String processingProjectUnit) throws Exception {
 		logger.debug("payrollCount: " + payrollCount + ", year " + payYear + ", month " + payMonth);
 		PayrollSheet payrollSheet = new PayrollSheet();
 		payrollSheet.setName(getPayrollSheetName(payMonth, billingPlan.getContractID(), billingPlan));
@@ -658,11 +657,11 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		roster.setCurrentPayMonth(payMonth);
 	}
 
-	protected void buildPayrolls(PayrollSheet payrollSheet, ProjectMemberRoster roster, double administrationExpenses) {
+	protected void buildPayrolls(PayrollSheet payrollSheet, ProjectMemberRoster roster, double administrationExpenses) throws Exception {
 		int payrollCount = payrollSheet.getPayrollNumber();
 		double totalAmount = payrollSheet.getTotalAmount();
 		double highTemperatureAllowance = Util.getHighTemperatureAllowance(payrollSheet.getPayMonth());
-		double socialSecurityAmount = Util.getSocialSecurityAmount();
+		double socialSecurityAmount = Util.getSocialSecurityAmount(payrollSheet.getPayYear(), payrollSheet.getPayMonth());
 		double taxThreshold = Util.getIndividualIncomeTaxThreshold();
 		int initWorkingDayCount = calcDraftWorkingDayCount(payrollCount, totalAmount, taxThreshold);
 		double tempAmount = 0.0;
@@ -672,7 +671,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			payroll.setOrderNumber(i + 1);
 			payroll.setName(member.getName());
 			payroll.setBasePay(member.getBasePay());
-			payroll.setDailyPay(member.getDailyPay());
+			payroll.setDailyPay(Util.getDailyPayByBasePay(member.getBasePay()));
 			payroll.setHighTemperatureAllowance(highTemperatureAllowance);
 			payroll.setSocialSecurityAmount(socialSecurityAmount);
 			payroll.setWorkingDays(initWorkingDayCount);
@@ -791,29 +790,35 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		tabulator = tabulator.replace("NNN", Util.getTabulator());
 		((Label) cell).setString(tabulator);
 		
-		cell = sheet.getWritableCell(4, 6);
+		cell = sheet.getWritableCell(15, 6);
 		String reviewer = ((Label) cell).getString();
 		reviewer = reviewer.replace("RRR", Util.getReviewer());
 		((Label) cell).setString(reviewer);
 		
-		cell = sheet.getWritableCell(15, 6);
-		((Label) cell).setString(reviewer);
+//		cell = sheet.getWritableCell(4, 6);
+//		((Label) cell).setString(reviewer);
 
 		if (needToChangeOvertimePaySubject(payrollSheet.getProjectUnit())) {
 			cell = sheet.getWritableCell(15, 2);
 			((Label) cell).setString("其他");
 		}
+		
+		if (needToChangeSummarySheetTitle(payrollSheet.getProjectUnit())) {
+			cell = sheet.getWritableCell(12, 0);
+			((Label) cell).setString(getSummarySheetTitle(payrollSheet, cell));
+		}
 	}
 
+	private String getSummarySheetTitle(PayrollSheet payrollSheet, WritableCell cell) {
+		return payrollSheet.getPayYear() + "年" + payrollSheet.getPayMonth() + "月" + cell.getContents();
+	}
+	
 	private boolean needToChangeOvertimePaySubject(String projectUnit) {
-		String company = Constant.propUtil.getStringEnEmpty("user.汇总表加班费显示为其他单位");
-		if (company.contains(Constant.DELIMITER2)) {
-			String[] s = company.split(Constant.DELIMITER2);
-			for (String c : s) {
-				return c.trim().equals(projectUnit);
-			}
-		}
-		return company.trim().equals(projectUnit);
+		return Util.isConfigMatched(projectUnit, Constant.CONFIG_汇总表加班费显示为其他单位);
+	}
+	
+	private boolean needToChangeSummarySheetTitle(String projectUnit) {
+		return Util.isConfigMatched(projectUnit, Constant.CONFIG_汇总表标题显示时间单位);
 	}
 
 	private void fillPayrollSheet(PayrollSheet payrollSheet, WritableSheet sheet)

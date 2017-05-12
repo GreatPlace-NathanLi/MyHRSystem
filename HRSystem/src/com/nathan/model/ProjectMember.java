@@ -78,13 +78,6 @@ public class ProjectMember {
 	 */
 	public void setBasePay(double basePay) {
 		this.basePay = basePay;
-		if (basePay > Constant.MID_BASE_PAY) {
-			this.dailyPay = Constant.HIGH_DAILY_PAY;
-		} else if (basePay == Constant.MID_BASE_PAY) {
-			this.dailyPay = Constant.MID_DAILY_PAY;
-		} else {
-			this.dailyPay = Constant.LOW_DAILY_PAY;
-		}
 	}
 
 	/**

@@ -154,6 +154,19 @@ public class PropertiesUtils {
 		}
 		return num;
 	}
+	
+	public double getDoubleValue(String key, double defalutvalue) {
+		String tmpvalue = getTrimValue(key);
+		double num = 0;
+		try {
+			num = Double.parseDouble(tmpvalue);
+			logger.info("Read [" + key + "] ==> [" + num + "]");
+		} catch (Exception e) {
+			num = defalutvalue;
+			logger.warn("Read [" + key + "] ==> [" + tmpvalue + "] ,use default value:[" + num + "]");
+		}
+		return num;
+	}
 
 	/**
 	 * 取范围内的值.

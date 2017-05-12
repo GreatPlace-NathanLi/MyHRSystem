@@ -84,8 +84,17 @@ public class Util {
 		return 0;
 	}
 
-	public static double getSocialSecurityAmount() {
-		return Constant.propUtil.getDoubleValue("user.社保金额");
+	public static double getSocialSecurityAmount(int year, int month) throws Exception {
+		String[] s = Constant.propUtil.getStringDisEmpty(Constant.CONFIG_社保金额).split(Constant.DELIMITER2);
+		double amount = 0.0;
+		for (String a : s) {
+			int time = Integer.valueOf(a.split(Constant.DELIMITER1)[0].trim());
+			if (year * 100 + month >= time) {
+				amount = Double.valueOf(a.split(Constant.DELIMITER1)[1].trim());
+			}
+		}
+		
+		return amount;
 	}
 
 	public static double getIndividualIncomeTaxThreshold() {
@@ -316,6 +325,33 @@ public class Util {
 		}
 		logger.info("HOUSEKEEP：总共清除" + n + "个备份文件");
 	}
+	
+	public static boolean isConfigMatched(String valueToMatch, String config) {
+		String configValue = Constant.propUtil.getStringEnEmpty(config);
+		if (configValue.contains(Constant.DELIMITER2)) {
+			String[] s = configValue.split(Constant.DELIMITER2);
+			for (String c : s) {
+				if(c.trim().equals(valueToMatch)) {
+					return true;
+				}
+			}
+			return false;
+		}
+		return configValue.trim().equals(valueToMatch);
+	}
+	
+	public static double getDailyPayByBasePay(double basePay) {
+		double dailyPay = 0.0;
+		double midBasePay = Constant.propUtil.getDoubleValue(Constant.CONFIG_基本工资中位数, Constant.MID_BASE_PAY);
+		if (basePay > midBasePay) {
+			dailyPay = Constant.propUtil.getDoubleValue(Constant.CONFIG_日薪高, Constant.HIGH_DAILY_PAY);
+		} else if (basePay == midBasePay) {
+			dailyPay = Constant.propUtil.getDoubleValue(Constant.CONFIG_日薪中, Constant.MID_DAILY_PAY);
+		} else {
+			dailyPay = Constant.propUtil.getDoubleValue(Constant.CONFIG_日薪低, Constant.LOW_DAILY_PAY);
+		}
+		return dailyPay;
+	}
 
 	public static void main(String[] args) throws Exception {
 		Util.parseProjectLeadersFromFileUnderPath("F:/work/project/德盛人力项目管理系统/in/花名册/湛江雷能");
@@ -333,6 +369,14 @@ public class Util {
 //				System.out.println("delete " + list.get(i).getName() + " : " + list.get(i).lastModified());
 //				list.get(i).delete();
 			}
+		}
+		
+		Constant.propUtil.init();
+		for (int i = 1; i<=12; i++) {
+			logger.debug(i + "-" + Util.getSocialSecurityAmount(2016, i));
+		}
+		for (int i = 1; i<=12; i++) {
+			logger.debug(i + "-" + Util.getSocialSecurityAmount(2017, i));
 		}
 	}
 	

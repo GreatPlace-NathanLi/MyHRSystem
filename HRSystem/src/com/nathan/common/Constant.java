@@ -49,6 +49,23 @@ public class Constant {
 	
 	public static PropertiesUtils propUtil = new PropertiesUtils(CONFIG_FILE);
 	
-	public static final long ONE_DAY = 86400000L;  
+	public static final long ONE_DAY = 86400000L;
+	
+	public static final String CONFIG_个税起征点 = "user.个税起征点";
+	public static final String CONFIG_高温补贴月份 = "user.高温补贴月份";
+	public static final String CONFIG_高温补贴金额 = "user.高温补贴金额";
+	public static final String CONFIG_社保金额 = "user.社保金额";
+	public static final String CONFIG_基本工资中位数 = "user.基本工资中位数";
+	public static final String CONFIG_日薪高 = "user.日薪高";
+	public static final String CONFIG_日薪中 = "user.日薪中";
+	public static final String CONFIG_日薪低 = "user.日薪低";
+	public static final String CONFIG_制表人 = "user.制表人";
+	public static final String CONFIG_复核人 = "user.复核人";
+	public static final String CONFIG_汇总表加班费显示为其他单位 = "user.汇总表加班费显示为其他单位";
+	public static final String CONFIG_汇总表标题显示时间单位 = "user.汇总表标题显示时间单位";
+	public static final String CONFIG_默认工资表指定月份 = "user.默认工资表指定月份";
+	public static final String CONFIG_默认开票处理方式 = "user.默认开票处理方式";
+	public static final String CONFIG_默认借人处理方式 = "user.默认借人处理方式";
+	public static final String CONFIG_开票计划路径 = "user.开票计划路径";
 	
 }
