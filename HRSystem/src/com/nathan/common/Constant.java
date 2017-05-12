@@ -41,6 +41,9 @@ public class Constant {
 	
 	public static final String ATTENDANCE_SHEET_FLAG = "是";
 	
+	public static final String YES = "Y";
+	public static final String NO = "N";
+	
 	public static final String ROSTER_CASH = "花名册";
 	public static final String ROSTER_BANK = "网银";
 	

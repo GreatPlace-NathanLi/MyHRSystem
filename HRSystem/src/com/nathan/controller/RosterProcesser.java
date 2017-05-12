@@ -51,12 +51,12 @@ public class RosterProcesser extends AbstractExcelOperater {
 		rosterCache.put(projectLeaderAndYear, roster);
 	}
 
-	public void processRoster(String company, String projectLeader, int year, boolean isReconstruction) throws RosterProcessException {
+	public ProjectMemberRoster processRoster(String company, String projectLeader, int year, boolean isReconstruction) throws RosterProcessException {
 		String key = company + projectLeader + year;
 		roster = getRosterFormCache(key);
 		if (roster == null || isReconstruction) {
 			String rosterPath = getRosterFilePath(company, projectLeader, year);
-			if (!Util.isFileExists(rosterPath)) {
+			if (!isRosterExists(company, projectLeader, year)) {
 				logger.info(projectLeader + "没有" + year + "年度花名册，尝试寻找公用花名册");
 				rosterPath = getRosterFilePath(company, company, year);
 				if (!Util.isFileExists(rosterPath)) {
@@ -76,6 +76,12 @@ public class RosterProcesser extends AbstractExcelOperater {
 		} else {
 			logger.info("从缓存中读取花名册：" + roster.getFileName());
 		}
+		return roster;
+	}
+	
+	public boolean isRosterExists(String company, String projectLeader, int year) {
+		String rosterPath = getRosterFilePath(company, projectLeader, year);
+		return Util.isFileExists(rosterPath);
 	}
 	
 	public String tryToCloneRoster(String company, String projectLeader, int year) throws RosterProcessException {
@@ -93,7 +99,7 @@ public class RosterProcesser extends AbstractExcelOperater {
 			cloneRoster(oldCommonRosterPath, newCommonRosterPath);
 			return newCommonRosterPath;
 		}
-		throw new RosterProcessException("找不到可开票的花名册");
+		throw new RosterProcessException(year + "年度找不到可开票的花名册");
 	}
 	
 	public void cloneRoster(String oldRosterPath, String newRosterPath) throws RosterProcessException {		

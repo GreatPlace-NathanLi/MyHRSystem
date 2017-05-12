@@ -25,6 +25,8 @@ public class PayrollSheet {
 	
 	private String projectUnit;
 	
+	private String name;
+	
 	public PayrollSheet() {
 		this.payrollList = new ArrayList<Payroll>();
 	}
@@ -171,6 +173,20 @@ public class PayrollSheet {
 	 */
 	public void setProjectUnit(String projectUnit) {
 		this.projectUnit = projectUnit;
+	}
+
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * @param name the name to set
+	 */
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	/* (non-Javadoc)

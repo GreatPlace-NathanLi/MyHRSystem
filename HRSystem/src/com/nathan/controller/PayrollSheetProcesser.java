@@ -53,8 +53,14 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 	private boolean isBillingManualHandling = true;
 	private boolean isFullUpManualHandling = true;
+	private boolean isNeededToCreateAlternatedPorjectLeaderPayrollSheet = false;
 
 	private int firstProcessingYear = 0;
+
+	public PayrollSheetProcesser() {
+		this.isNeededToCreateAlternatedPorjectLeaderPayrollSheet = Constant.YES.equals(Constant.propUtil
+				.getStringValue("system.isNeededToCreateAlternatedPorjectLeaderPayrollSheet", Constant.NO));
+	}
 
 	public void processPayrollSheet(BillingPlanBook billingPlanBook, RosterProcesser rosterProcesser) throws Exception {
 
@@ -107,11 +113,12 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	}
 
 	/**
-	 * @param isNeededToCreateBankPaymentSummarySheet the isNeededToCreateBankPaymentSummarySheet to set
+	 * @param isNeededToCreateBankPaymentSummarySheet
+	 *            the isNeededToCreateBankPaymentSummarySheet to set
 	 */
 	public void setNeededToCreateBankPaymentSummarySheet(boolean isNeededToCreateBankPaymentSummarySheet) {
 		this.isNeededToCreateBankPaymentSummarySheet = isNeededToCreateBankPaymentSummarySheet;
-		
+
 	}
 
 	public void preProcess(BillingPlan billingPlan, RosterProcesser rosterProcesser) throws Exception {
@@ -119,7 +126,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		int remainPayCount = billingPlan.getPayCount();
 		this.firstProcessingYear = 0;
 		remainPayCount = preProcessOnBankRoster(billingPlan, rosterProcesser, remainPayCount);
-		
+
 		if (remainPayCount > 0) {
 			remainPayCount = preProcessOnCashRoster(billingPlan, rosterProcesser, remainPayCount);
 		} else {
@@ -152,8 +159,8 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			}
 		}
 
-		logger.debug(billingPlan.getSubPlanList() + billingPlan.getBillingID()
-				+ billingPlan.getAlternatedProjectLeaderRemark());
+		logger.debug(billingPlan.getSubPlanList());
+		logger.debug("BillingID: " + billingPlan.getBillingID() + ", AlternatedProjectLeaderRemark: " + billingPlan.getAlternatedProjectLeaderRemark());
 
 		if (remainPayCount > 0) {
 			throw new PayrollSheetProcessException(billingPlan.getContractID() + "花名册人数不足，无法开票！");
@@ -175,8 +182,9 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		logger.debug("preProcessOnCashRoster");
 		return preProcessByRosterType(billingPlan, rosterProcesser, remainPayCount, Constant.ROSTER_CASH);
 	}
-	
-	private int preProcessByRosterType(BillingPlan billingPlan, RosterProcesser rosterProcesser, int remainPayCount, String rosterType) throws Exception {
+
+	private int preProcessByRosterType(BillingPlan billingPlan, RosterProcesser rosterProcesser, int remainPayCount,
+			String rosterType) throws Exception {
 		if (remainPayCount > 0) {
 			remainPayCount = preProcessOnOwnRoster(billingPlan, rosterProcesser, remainPayCount, rosterType);
 		}
@@ -185,43 +193,52 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 	private int preProcessOnOwnRoster(BillingPlan billingPlan, RosterProcesser rosterProcesser, int remainPayCount,
 			String rosterType) throws Exception {
-		int startPayYear = billingPlan.getStartPayYear();
-		int processingYear = startPayYear;
+		int processingYear = billingPlan.getStartPayYear();
 		int endPayYear = billingPlan.getEndPayYear();
-		String company = billingPlan.getProjectUnit();
-		String processingProjectLeader = billingPlan.getProcessingProjectLeader();
 		for (; processingYear <= endPayYear; processingYear++) {
-			rosterProcesser.processRoster(company, processingProjectLeader, processingYear, false);
-			ProjectMemberRoster roster = rosterProcesser.getRoster();
-			if (Constant.ROSTER_BANK.equals(rosterType)) {
-				roster = roster.getBankRoster();
-			}
-			if (roster == null) {
-				continue;
-			}
-			int startPayMonth = startPayYear < processingYear ? 1 : billingPlan.getStartPayMonth();
-			int endPayMonth = processingYear < endPayYear ? 12 : billingPlan.getEndPayMonth();
-			int availablePayCount = roster.getAvailablePayCount(startPayMonth, endPayMonth);
-
-			logger.debug(rosterType + " availablePayCount:" + availablePayCount);
-			if (availablePayCount <= 0) {
-				continue;
-			}
-
-			if (this.firstProcessingYear == 0) {
-				this.firstProcessingYear = processingYear;
-			}
-
-			if (remainPayCount > availablePayCount) {
-				billingPlan.createSubPlan(company, processingProjectLeader, processingYear, startPayMonth, endPayMonth,
-						availablePayCount, calcSubTotalAmount(availablePayCount, billingPlan), rosterType);
-				remainPayCount -= availablePayCount;
-			} else {
-				billingPlan.createSubPlan(company, processingProjectLeader, processingYear, startPayMonth, endPayMonth,
-						remainPayCount, calcSubTotalAmount(remainPayCount, billingPlan), rosterType);
-				remainPayCount = 0;
+			remainPayCount = preProcessOnOwnRosterByYear(billingPlan, rosterProcesser, remainPayCount, rosterType,
+					processingYear);
+			if (remainPayCount <= 0) {
 				break;
 			}
+		}
+		return remainPayCount;
+	}
+
+	private int preProcessOnOwnRosterByYear(BillingPlan billingPlan, RosterProcesser rosterProcesser,
+			int remainPayCount, String rosterType, int processingYear) throws Exception {
+		String company = billingPlan.getProjectUnit();
+		String processingProjectLeader = billingPlan.getProcessingProjectLeader();
+		ProjectMemberRoster roster = rosterProcesser.processRoster(company, processingProjectLeader, processingYear,
+				false);
+		if (Constant.ROSTER_BANK.equals(rosterType)) {
+			roster = roster.getBankRoster();
+		}
+		if (roster == null) {
+			return remainPayCount;
+		}
+		int startPayMonth = billingPlan.getStartPayYear() < processingYear ? 1 : billingPlan.getStartPayMonth();
+		int endPayMonth = processingYear < billingPlan.getEndPayYear() ? 12 : billingPlan.getEndPayMonth();
+		int availablePayCount = roster.getAvailablePayCount(startPayMonth, endPayMonth);
+
+		logger.debug(rosterType + " availablePayCount:" + availablePayCount);
+		if (availablePayCount <= 0) {
+			return remainPayCount;
+		}
+
+		if (this.firstProcessingYear == 0) {
+			this.firstProcessingYear = processingYear;
+		}
+
+		if (remainPayCount > availablePayCount) {
+			billingPlan.createSubPlan(company, processingProjectLeader, processingYear, startPayMonth, endPayMonth,
+					availablePayCount, calcSubTotalAmount(availablePayCount, billingPlan), rosterType);
+			remainPayCount -= availablePayCount;
+		} else {
+			billingPlan.createSubPlan(company, processingProjectLeader, processingYear, startPayMonth, endPayMonth,
+					remainPayCount, calcSubTotalAmount(remainPayCount, billingPlan), rosterType);
+			remainPayCount = 0;
+			return remainPayCount;
 		}
 		return remainPayCount;
 	}
@@ -259,9 +276,10 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	private int handleFullUpByProjectLeader(BillingPlan billingPlan, RosterProcesser rosterProcesser,
 			int remainPayCount, String company, String alternatedProjectLeader, int processingYear, int startPayMonth,
 			int endPayMonth) throws RosterProcessException {
-		rosterProcesser.processRoster(company, alternatedProjectLeader, processingYear, false);
+		ProjectMemberRoster roster = rosterProcesser.processRoster(company, alternatedProjectLeader, processingYear,
+				false);
 
-		int availablePayCount = rosterProcesser.getRoster().getAvailablePayCount(startPayMonth, endPayMonth);
+		int availablePayCount = roster.getAvailablePayCount(startPayMonth, endPayMonth);
 		logger.debug("availablePayCount1:" + availablePayCount);
 		if (availablePayCount <= 0) {
 			return remainPayCount;
@@ -326,9 +344,10 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 				continue;
 			}
 			logger.info("处理领队：" + alternatedProjectLeader + " " + processingYear);
-			rosterProcesser.processRoster(company, alternatedProjectLeader, processingYear, false);
+			ProjectMemberRoster roster = rosterProcesser.processRoster(company, alternatedProjectLeader, processingYear,
+					false);
 
-			int availablePayCount = rosterProcesser.getRoster().getAvailablePayCount(startPayMonth, endPayMonth);
+			int availablePayCount = roster.getAvailablePayCount(startPayMonth, endPayMonth);
 			logger.debug("availablePayCount1:" + availablePayCount);
 			if (availablePayCount <= 0) {
 				continue;
@@ -407,7 +426,8 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		int payCount = billingPlan.getPayCountFromBillingID();
 		int releasedPayCount = 0;
 		while (releasedPayCount < payCount && payYear <= billingPlan.getEndPayYear()) {
-			releasedPayCount += deleteOldBillingInfo(company, projectLeader, contractID, payYear, rosterProcesser);
+			releasedPayCount += deleteOldBillingInfo(company, projectLeader, contractID, payYear, rosterProcesser,
+					true);
 			payYear++;
 		}
 	}
@@ -424,18 +444,20 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			String contractID = billingPlan.getContractIDFromBillingID();
 			String projectLeader = billingPlan.getProjectLeaderFromAlternatedProjectLeaderRemark(i);
 			int payYear = billingPlan.getPayYearFromAlternatedProjectLeaderRemark(i);
-			deleteOldBillingInfo(company, projectLeader, contractID, payYear, rosterProcesser);
+			deleteOldBillingInfo(company, projectLeader, contractID, payYear, rosterProcesser,
+					isNeededToCreateAlternatedPorjectLeaderPayrollSheet);
 		}
 	}
 
 	private int deleteOldBillingInfo(String company, String projectLeader, String contractID, int payYear,
-			RosterProcesser rosterProcesser) throws PayrollSheetProcessException, RosterProcessException {
+			RosterProcesser rosterProcesser, boolean isNeededToDeletePayrollSheet)
+			throws PayrollSheetProcessException, RosterProcessException {
 		logger.info("删除开票记录， 领队： " + projectLeader + "，合同号：" + contractID + ", 年份：" + payYear);
 
 		rosterProcesser.processRoster(company, projectLeader, payYear, true);
 		int releasedPayCount = rosterProcesser.deleteRosterCursorsByContractID(contractID);
 
-		if (releasedPayCount > 0) {
+		if (releasedPayCount > 0 && isNeededToDeletePayrollSheet) {
 			String filePath = buildPayrollSheetFilePath(company, projectLeader, payYear);
 			deletePayrollSheetByContractID(filePath, contractID);
 		}
@@ -553,10 +575,9 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			throws RosterProcessException, PayrollSheetProcessException, AttendanceSheetProcessException {
 		String processingProjectLeader = subPlan.getSubPlanProjectLeader();
 		int processingPayYear = subPlan.getSubPlanPayYear();
-		rosterProcesser.processRoster(subPlan.getSubPlanProjectUnit(), processingProjectLeader, processingPayYear,
-				false);
 
-		ProjectMemberRoster roster = rosterProcesser.getRoster();
+		ProjectMemberRoster roster = rosterProcesser.processRoster(subPlan.getSubPlanProjectUnit(),
+				processingProjectLeader, processingPayYear, false);
 		if (Constant.ROSTER_BANK.equals(subPlan.getSubPlanRosterType())) {
 			roster = rosterProcesser.getRoster().getBankRoster();
 		}
@@ -572,8 +593,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			subPlan.setPayrollSheetList(payrollSheetList);
 			String payrollTemplateFile = buildPayrollSheetTemplatePath();
 			logger.info("读取工资表模板： " + payrollTemplateFile);
-			String outputPath = buildPayrollSheetFilePath(subPlan.getSubPlanProjectUnit(), processingProjectLeader,
-					processingPayYear);
+			String outputPath = buildPayrollSheetFilePath(subPlan);
 			writePayrollSheet(payrollTemplateFile, outputPath, payrollSheetList);
 			logger.info(Constant.LINE1);
 			logger.info("保存工资表输出： " + outputPath);
@@ -588,7 +608,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		}
 	}
 
-	public int buildPayrollSheet(BillingPlan billingPlan, ProjectMemberRoster roster,
+	public int buildPayrollSheet(SubBillingPlan billingPlan, ProjectMemberRoster roster,
 			List<PayrollSheet> payrollSheetList, int payYear, int startPayMonth, int endPayMonth, int payCount,
 			String processingProjectUnit) {
 		// 决定工资表数量
@@ -621,13 +641,14 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	}
 
 	protected void buildPayrollSheet(ProjectMemberRoster roster, int payrollCount, int payYear, int payMonth,
-			BillingPlan billingPlan, List<PayrollSheet> payrollSheetList, String processingProjectUnit) {
+			SubBillingPlan billingPlan, List<PayrollSheet> payrollSheetList, String processingProjectUnit) {
 		logger.debug("payrollCount: " + payrollCount + ", year " + payYear + ", month " + payMonth);
 		PayrollSheet payrollSheet = new PayrollSheet();
+		payrollSheet.setName(getPayrollSheetName(payMonth, billingPlan.getContractID(), billingPlan));
 		payrollSheet.setPayrollNumber(payrollCount);
 		payrollSheet.setPayYear(payYear);
 		payrollSheet.setPayMonth(payMonth);
-		payrollSheet.setLeader(billingPlan.getProcessingProjectLeader());
+		payrollSheet.setLeader(billingPlan.getProjectLeader());
 		payrollSheet.setContractID(billingPlan.getContractID());
 		payrollSheet.setTotalAmount(calcSubTotalAmount(payrollCount, billingPlan));
 		payrollSheet.setProjectUnit(processingProjectUnit);
@@ -733,8 +754,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		int sheetNumber = wwb.getNumberOfSheets();
 		for (int i = 0; i < payrollSheetList.size(); i++) {
 			PayrollSheet payrollSheet = payrollSheetList.get(i);
-			wwb.copySheet(0, getPayrollSheetName(payrollSheet.getPayMonth(), payrollSheet.getContractID()),
-					i + sheetNumber);
+			wwb.copySheet(0, payrollSheet.getName(), i + sheetNumber);
 			WritableSheet newSheet = wwb.getSheet(i + sheetNumber);
 			updatePayrollInfo(payrollSheet, newSheet);
 			fillPayrollSheet(payrollSheet, newSheet);
@@ -743,8 +763,13 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		// wwb.removeSheet(0);
 	}
 
-	private String getPayrollSheetName(int month, String contractID) {
-		return "工" + month + "-" + contractID;
+	private String getPayrollSheetName(int month, String contractID, SubBillingPlan subBillingPlan) {
+		String name = "工" + month + Constant.DELIMITER1 + contractID;
+		String alternatedPorjectLeader = subBillingPlan.getSubPlanProjectLeader();
+		if (alternatedPorjectLeader != null && !alternatedPorjectLeader.equals(subBillingPlan.getProjectLeader())) {
+			name = name + Constant.DELIMITER1 + "借" + alternatedPorjectLeader;
+		}
+		return name;
 	}
 
 	private void updatePayrollInfo(PayrollSheet payrollSheet, WritableSheet sheet) {
@@ -888,6 +913,16 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		}
 		billingPlan.setRemainTotalPay(remainTotalPay - currentAmount);
 		return currentAmount;
+	}
+
+	private String buildPayrollSheetFilePath(SubBillingPlan subPlan) {
+		String company = subPlan.getSubPlanProjectUnit();
+		String projectLeader = subPlan.getProjectLeader();
+		String processingProjectLeader = subPlan.getSubPlanProjectLeader();
+		int processingPayYear = subPlan.getSubPlanPayYear();
+		return buildPayrollSheetFilePath(company,
+				isNeededToCreateAlternatedPorjectLeaderPayrollSheet ? processingProjectLeader : projectLeader,
+				processingPayYear);
 	}
 
 	private String buildPayrollSheetFilePath(String company, String projectLeader, int payYear) {
