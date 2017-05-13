@@ -72,9 +72,9 @@ public class Util {
 		return Constant.propUtil.getStringEnEmpty("user.复核人");
 	}
 
-	public static double getHighTemperatureAllowance(int month) {
-		double highTemperatureAllowance = Constant.propUtil.getDoubleValue("user.高温补贴金额");
-		String highTemperatureAllowanceMonths = Constant.propUtil.getStringEnEmpty("user.高温补贴月份");
+	public static double getHighTemperatureAllowance(int year, int month) throws Exception {
+		double highTemperatureAllowance = Double.valueOf(getTimeNodeConfig(Constant.CONFIG_高温补贴金额, year, month));
+		String highTemperatureAllowanceMonths = Constant.propUtil.getStringEnEmpty(Constant.CONFIG_高温补贴月份);
 		String[] months = highTemperatureAllowanceMonths.split(Constant.DELIMITER2);
 		for (String m : months) {
 			if (Integer.valueOf(m) == month) {
@@ -85,20 +85,27 @@ public class Util {
 	}
 
 	public static double getSocialSecurityAmount(int year, int month) throws Exception {
-		String[] s = Constant.propUtil.getStringDisEmpty(Constant.CONFIG_社保金额).split(Constant.DELIMITER2);
-		double amount = 0.0;
+		return Double.valueOf(getTimeNodeConfig(Constant.CONFIG_社保金额, year, month));	
+	}
+	
+	public static double getIndividualIncomeTaxThreshold() {
+		return Constant.propUtil.getDoubleValue(Constant.CONFIG_个税起征点);
+	}
+	
+	public static double getIndividualIncomeTaxThreshold(int year, int month) throws Exception {
+		return Double.valueOf(getTimeNodeConfig(Constant.CONFIG_个税起征点, year, month));
+	}
+	
+	public static String getTimeNodeConfig(String configName, int year, int month) throws Exception {
+		String[] s = Constant.propUtil.getStringDisEmpty(configName).split(Constant.DELIMITER2);
+		String value = null;
 		for (String a : s) {
 			int time = Integer.valueOf(a.split(Constant.DELIMITER1)[0].trim());
 			if (year * 100 + month >= time) {
-				amount = Double.valueOf(a.split(Constant.DELIMITER1)[1].trim());
+				value = a.split(Constant.DELIMITER1)[1].trim();
 			}
-		}
-		
-		return amount;
-	}
-
-	public static double getIndividualIncomeTaxThreshold() {
-		return Constant.propUtil.getDoubleValue("user.个税起征点");
+		}	
+		return value;
 	}
 
 	public static String getFileNameFromPath(String filePath) {
@@ -352,6 +359,10 @@ public class Util {
 		}
 		return dailyPay;
 	}
+	
+	public static double getMinPerformancePay() {
+		return Constant.propUtil.getDoubleValue(Constant.CONFIG_绩效下限, Constant.MID_BASE_PAY);
+	}
 
 	public static void main(String[] args) throws Exception {
 		Util.parseProjectLeadersFromFileUnderPath("F:/work/project/德盛人力项目管理系统/in/花名册/湛江雷能");
@@ -373,10 +384,24 @@ public class Util {
 		
 		Constant.propUtil.init();
 		for (int i = 1; i<=12; i++) {
-			logger.debug(i + "-" + Util.getSocialSecurityAmount(2016, i));
+			logger.debug(201600 + i + "社保金额-" + Util.getSocialSecurityAmount(2016, i));
 		}
 		for (int i = 1; i<=12; i++) {
-			logger.debug(i + "-" + Util.getSocialSecurityAmount(2017, i));
+			logger.debug(201700 + i + "社保金额-" + Util.getSocialSecurityAmount(2017, i));
+		}
+		
+		for (int i = 1; i<=12; i++) {
+			logger.debug(201600 + i + "个税起征点-" + Util.getIndividualIncomeTaxThreshold(2016, i));
+		}
+		for (int i = 1; i<=12; i++) {
+			logger.debug(201700 + i + "个税起征点-" + Util.getIndividualIncomeTaxThreshold(2017, i));
+		}
+		
+		for (int i = 1; i<=12; i++) {
+			logger.debug(201600 + i + "高温补贴-" + Util.getHighTemperatureAllowance(2016, i));
+		}
+		for (int i = 1; i<=12; i++) {
+			logger.debug(201700 + i + "高温补贴-" + Util.getHighTemperatureAllowance(2017, i));
 		}
 	}
 	

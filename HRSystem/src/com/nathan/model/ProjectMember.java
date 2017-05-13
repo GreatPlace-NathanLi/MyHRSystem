@@ -1,7 +1,5 @@
 package com.nathan.model;
 
-import com.nathan.common.Constant;
-
 public class ProjectMember {
 
 	private int orderNumber;

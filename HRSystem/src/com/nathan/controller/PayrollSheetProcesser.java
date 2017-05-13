@@ -159,7 +159,8 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		}
 
 		logger.debug(billingPlan.getSubPlanList());
-		logger.debug("BillingID: " + billingPlan.getBillingID() + ", AlternatedProjectLeaderRemark: " + billingPlan.getAlternatedProjectLeaderRemark());
+		logger.debug("BillingID: " + billingPlan.getBillingID() + ", AlternatedProjectLeaderRemark: "
+				+ billingPlan.getAlternatedProjectLeaderRemark());
 
 		if (remainPayCount > 0) {
 			throw new PayrollSheetProcessException(billingPlan.getContractID() + "花名册人数不足，无法开票！");
@@ -417,7 +418,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	}
 
 	private void deleteOldBillingInfoForPorjectLeader(BillingPlan billingPlan, RosterProcesser rosterProcesser)
-			throws PayrollSheetProcessException, RosterProcessException {
+			throws Exception {
 		String company = billingPlan.getProjectUnitFromBillingID();
 		String contractID = billingPlan.getContractIDFromBillingID();
 		String projectLeader = billingPlan.getProjectLeaderFromBillingID();
@@ -425,14 +426,14 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		int payCount = billingPlan.getPayCountFromBillingID();
 		int releasedPayCount = 0;
 		while (releasedPayCount < payCount && payYear <= billingPlan.getEndPayYear()) {
-			releasedPayCount += deleteOldBillingInfo(company, projectLeader, contractID, payYear, rosterProcesser,
-					true);
+			releasedPayCount += deleteOldRosterCursors(company, projectLeader, contractID, payYear, rosterProcesser);
+			deleteOldPayrollSheet(company, projectLeader, contractID, payYear);
 			payYear++;
 		}
 	}
 
 	private void deleteOldBillingInfoForAlternatedPorjectLeader(BillingPlan billingPlan,
-			RosterProcesser rosterProcesser) throws PayrollSheetProcessException, RosterProcessException {
+			RosterProcesser rosterProcesser) throws Exception {
 		int size = billingPlan.getAlternatedProjectLeaderRemarkSize();
 		if (size == 0) {
 			logger.debug("此计划没有借人情况发生");
@@ -443,25 +444,31 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			String contractID = billingPlan.getContractIDFromBillingID();
 			String projectLeader = billingPlan.getProjectLeaderFromAlternatedProjectLeaderRemark(i);
 			int payYear = billingPlan.getPayYearFromAlternatedProjectLeaderRemark(i);
-			deleteOldBillingInfo(company, projectLeader, contractID, payYear, rosterProcesser,
-					isNeededToCreateAlternatedPorjectLeaderPayrollSheet);
+			deleteOldRosterCursors(company, projectLeader, contractID, payYear, rosterProcesser);
+			if (isNeededToCreateAlternatedPorjectLeaderPayrollSheet) {
+				deleteOldPayrollSheet(company, projectLeader, contractID, payYear);
+			}			
 		}
 	}
-
-	private int deleteOldBillingInfo(String company, String projectLeader, String contractID, int payYear,
-			RosterProcesser rosterProcesser, boolean isNeededToDeletePayrollSheet)
-			throws PayrollSheetProcessException, RosterProcessException {
-		logger.info("删除开票记录， 领队： " + projectLeader + "，合同号：" + contractID + ", 年份：" + payYear);
+	
+	private int deleteOldRosterCursors(String company, String projectLeader, String contractID, int payYear,
+			RosterProcesser rosterProcesser) throws Exception {
+		logger.info("删除花名册游标， 领队： " + projectLeader + "，合同号：" + contractID + ", 年份：" + payYear);
 
 		rosterProcesser.processRoster(company, projectLeader, payYear, true);
-		int releasedPayCount = rosterProcesser.deleteRosterCursorsByContractID(contractID);
-
-		if (releasedPayCount > 0 && isNeededToDeletePayrollSheet) {
-			String filePath = buildPayrollSheetFilePath(company, projectLeader, payYear);
+		return rosterProcesser.deleteRosterCursorsByContractID(contractID);
+	}
+	
+	private void deleteOldPayrollSheet(String company, String projectLeader, String contractID, int payYear) throws PayrollSheetProcessException {
+		String filePath = buildPayrollSheetFilePath(company, projectLeader, payYear);
+		try {
 			deletePayrollSheetByContractID(filePath, contractID);
+		} catch (PayrollSheetProcessException e) {
+			if (!e.getMessage().contains("系统找不到指定的文件")) {
+				throw e;
+			}
+			logger.error(e.getMessage() + "文件可能之前已被删除。");
 		}
-
-		return releasedPayCount;
 	}
 
 	private void deletePayrollSheetByContractID(String filePath, String contractID)
@@ -472,7 +479,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			setBackupFlag(true);
 			modify(filePath);
 		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
+			logger.error(e.getMessage());
 			throw new PayrollSheetProcessException("删除工资表出错，" + e.getMessage());
 		}
 	}
@@ -570,8 +577,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	}
 
 	private void buildPayrollSheetForSubBillingPlan(SubBillingPlan subPlan, RosterProcesser rosterProcesser,
-			AttendanceSheetProcesser attendanceSheetProcesser)
-			throws Exception {
+			AttendanceSheetProcesser attendanceSheetProcesser) throws Exception {
 		String processingProjectLeader = subPlan.getSubPlanProjectLeader();
 		int processingPayYear = subPlan.getSubPlanPayYear();
 
@@ -640,7 +646,8 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	}
 
 	protected void buildPayrollSheet(ProjectMemberRoster roster, int payrollCount, int payYear, int payMonth,
-			SubBillingPlan billingPlan, List<PayrollSheet> payrollSheetList, String processingProjectUnit) throws Exception {
+			SubBillingPlan billingPlan, List<PayrollSheet> payrollSheetList, String processingProjectUnit)
+			throws Exception {
 		logger.debug("payrollCount: " + payrollCount + ", year " + payYear + ", month " + payMonth);
 		PayrollSheet payrollSheet = new PayrollSheet();
 		payrollSheet.setName(getPayrollSheetName(payMonth, billingPlan.getContractID(), billingPlan));
@@ -657,12 +664,16 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		roster.setCurrentPayMonth(payMonth);
 	}
 
-	protected void buildPayrolls(PayrollSheet payrollSheet, ProjectMemberRoster roster, double administrationExpenses) throws Exception {
+	protected void buildPayrolls(PayrollSheet payrollSheet, ProjectMemberRoster roster, double administrationExpenses)
+			throws Exception {
 		int payrollCount = payrollSheet.getPayrollNumber();
 		double totalAmount = payrollSheet.getTotalAmount();
-		double highTemperatureAllowance = Util.getHighTemperatureAllowance(payrollSheet.getPayMonth());
-		double socialSecurityAmount = Util.getSocialSecurityAmount(payrollSheet.getPayYear(), payrollSheet.getPayMonth());
-		double taxThreshold = Util.getIndividualIncomeTaxThreshold();
+		double highTemperatureAllowance = Util.getHighTemperatureAllowance(payrollSheet.getPayYear(),
+				payrollSheet.getPayMonth());
+		double socialSecurityAmount = Util.getSocialSecurityAmount(payrollSheet.getPayYear(),
+				payrollSheet.getPayMonth());
+		double taxThreshold = Util.getIndividualIncomeTaxThreshold(payrollSheet.getPayYear(),
+				payrollSheet.getPayMonth());
 		int initWorkingDayCount = calcDraftWorkingDayCount(payrollCount, totalAmount, taxThreshold);
 		double tempAmount = 0.0;
 		for (int i = 0; i < payrollCount; i++) {
@@ -723,7 +734,26 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 				break;
 			}
 		}
-		logger.debug("分表金额: " + totalAmount + ", 加班费: " + remainAmount);
+
+		adjustPerformancePay(payrollSheet);
+
+		logger.debug("分表金额: " + totalAmount);
+	}
+
+	public void adjustPerformancePay(PayrollSheet payrollSheet) {
+		double minPerfPay = Util.getMinPerformancePay();
+		for (Payroll payroll : payrollSheet.getPayrollList()) {
+			double performancePay = payroll.getPerformancePay();
+			double oldBasePay = payroll.getBasePay();
+
+			while (performancePay < minPerfPay) {
+				payroll.setBasePay(payroll.getBasePay() - 100);
+				performancePay = payroll.getPerformancePay();
+			}
+			if (oldBasePay != payroll.getBasePay()) {
+				logger.info(payroll.getName() + "基本工资调整：" + oldBasePay + " => " + payroll.getBasePay());
+			}
+		}
 	}
 
 	private boolean isRemainAmountTooBig(double remainAmount) {
@@ -789,20 +819,20 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		String tabulator = ((Label) cell).getString();
 		tabulator = tabulator.replace("NNN", Util.getTabulator());
 		((Label) cell).setString(tabulator);
-		
+
 		cell = sheet.getWritableCell(15, 6);
 		String reviewer = ((Label) cell).getString();
 		reviewer = reviewer.replace("RRR", Util.getReviewer());
 		((Label) cell).setString(reviewer);
-		
-//		cell = sheet.getWritableCell(4, 6);
-//		((Label) cell).setString(reviewer);
+
+		// cell = sheet.getWritableCell(4, 6);
+		// ((Label) cell).setString(reviewer);
 
 		if (needToChangeOvertimePaySubject(payrollSheet.getProjectUnit())) {
 			cell = sheet.getWritableCell(15, 2);
 			((Label) cell).setString("其他");
 		}
-		
+
 		if (needToChangeSummarySheetTitle(payrollSheet.getProjectUnit())) {
 			cell = sheet.getWritableCell(12, 0);
 			((Label) cell).setString(getSummarySheetTitle(payrollSheet, cell));
@@ -812,11 +842,11 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	private String getSummarySheetTitle(PayrollSheet payrollSheet, WritableCell cell) {
 		return payrollSheet.getPayYear() + "年" + payrollSheet.getPayMonth() + "月" + cell.getContents();
 	}
-	
+
 	private boolean needToChangeOvertimePaySubject(String projectUnit) {
 		return Util.isConfigMatched(projectUnit, Constant.CONFIG_汇总表加班费显示为其他单位);
 	}
-	
+
 	private boolean needToChangeSummarySheetTitle(String projectUnit) {
 		return Util.isConfigMatched(projectUnit, Constant.CONFIG_汇总表标题显示时间单位);
 	}
@@ -866,10 +896,14 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 					((Label) newCell).setString(payroll.getName());
 				} else if (c == 2) {
 					((Number) newCell).setValue(payroll.getBasePay());
+				} else if (c == 3 && newCell.getType() != CellType.NUMBER_FORMULA) {
+					((Number) newCell).setValue(payroll.getPerformancePay());
 				} else if (c == 5) {
 					((Number) newCell).setValue(payroll.getHighTemperatureAllowance());
 				} else if (c == 6) {
 					((Number) newCell).setValue(payroll.getSocialSecurityAmount());
+				} else if (c == 12 && newCell.getType() != CellType.NUMBER_FORMULA) {
+					((Number) newCell ).setValue(payroll.getDailyPay());
 				} else if (c == 13) {
 					((Number) newCell).setValue(payroll.getWorkingDays());
 				} else if (c == 15) {

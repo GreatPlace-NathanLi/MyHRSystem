@@ -7,6 +7,7 @@ public class Constant {
 	public static final double MID_DAILY_PAY = 160;
 	public static final double HIGH_DAILY_PAY = 170;
 	public static final double DEFAULT_OVERTIME_PAY = 70;
+	public static final double MIN_PERFORMANCE_PAY = 50;
 	public static final String WORK_PATH = "F:/work/project/德盛人力项目管理系统/";
 	public static final String BACKUP_PATH = WORK_PATH + "backup/";
 	public static final String CONFIG_PATH = WORK_PATH + "conf/";
@@ -56,6 +57,7 @@ public class Constant {
 	public static final String CONFIG_高温补贴金额 = "user.高温补贴金额";
 	public static final String CONFIG_社保金额 = "user.社保金额";
 	public static final String CONFIG_基本工资中位数 = "user.基本工资中位数";
+	public static final String CONFIG_绩效下限 = "user.绩效下限";
 	public static final String CONFIG_日薪高 = "user.日薪高";
 	public static final String CONFIG_日薪中 = "user.日薪中";
 	public static final String CONFIG_日薪低 = "user.日薪低";

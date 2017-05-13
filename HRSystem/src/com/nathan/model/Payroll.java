@@ -82,7 +82,7 @@ public class Payroll {
 	 * @return the performancePay
 	 */
 	public double getPerformancePay() {
-		return performancePay;
+		return this.getActualPay() - this.getBasePay() - this.getOvertimePay() - this.getHighTemperatureAllowance() - this.getSocialSecurityAmount();
 	}
 
 	/**
