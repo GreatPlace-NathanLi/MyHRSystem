@@ -14,6 +14,7 @@ import com.nathan.view.InteractionHandler;
 
 import jxl.Cell;
 import jxl.CellType;
+import jxl.HeaderFooter;
 import jxl.Range;
 import jxl.Sheet;
 import jxl.Workbook;
@@ -140,6 +141,15 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 		}
 	}
 	
+	protected void writeFooter(WritableSheet sheet, String content) {
+		logger.debug("old footer:" + sheet.getSettings().getFooter());
+		HeaderFooter footer = new HeaderFooter();
+		footer.getCentre().setFontSize(8);
+		footer.getCentre().append(content);
+		sheet.getSettings().setFooter(footer);
+		logger.debug("new footer:" + sheet.getSettings().getFooter());
+	}
+	
 	private void writeRetry(Exception e, String inFile, String outFile) throws Exception {
 		if (!e.getMessage().contains("另一个程序正在使用此文件，进程无法访问")) {
 			throw e;
@@ -204,7 +214,7 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 		if (!e.getMessage().contains("另一个程序正在使用此文件，进程无法访问")) {
 			throw e;
 		}
-		logger.error(e.getMessage(), e);
+		logger.error(e.getMessage());
 		if (InteractionHandler.handleWriteRetry(e.getMessage())) {	
 			modify(destFile);
 			logger.info("文件已被释放，重新保存：" + destFile);
@@ -384,5 +394,26 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 	}
 	
 	protected void formatCell(WritableCellFormat wcf) throws Exception {
+	}
+	
+	@Override
+	public void print(String filePath) throws Exception {
+
+		Workbook readwb = null;
+
+		try {
+			// 直接从本地文件创建Workbook
+			InputStream instream = new FileInputStream(filePath);
+
+			readwb = Workbook.getWorkbook(instream);
+
+			readContent(readwb);
+
+			instream.close();
+
+		} finally {
+			close(readwb, null);
+		}
+
 	}
 }

@@ -81,10 +81,18 @@ public class AttendanceSheetProcesser extends AbstractExcelOperater {
 			wwb.copySheet(0,
 					getAttendanceSheetName(payrollSheet.getPayMonth(), payrollSheet.getContractID(), sheetIndex),
 					sheetIndex);
-			WritableSheet newSheet = wwb.getSheet(sheetIndex);
+			WritableSheet newSheet = wwb.getSheet(sheetIndex);		
 			updateTitleAndHeaders(payrollSheet, newSheet);
 			fillNameList(payrollSheet, newSheet);
+			fillPrintingSettings(newSheet);
 		}
+	}
+	
+	private void fillPrintingSettings(WritableSheet newSheet) {
+		logger.debug("纸张大小：" + newSheet.getSettings().getPaperSize());
+		logger.debug("打印份数：" + newSheet.getSettings().getCopies());
+		logger.debug("打印缩放比例：" + newSheet.getSettings().getScaleFactor());
+		newSheet.getSettings().setScaleFactor(100);
 	}
 
 	private void updateTitleAndHeaders(PayrollSheet payrollSheet, WritableSheet sheet) throws Exception {

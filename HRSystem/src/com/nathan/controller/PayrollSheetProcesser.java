@@ -19,6 +19,7 @@ import com.nathan.model.PayrollSheet;
 import com.nathan.model.ProjectLeader;
 import com.nathan.model.ProjectMember;
 import com.nathan.model.ProjectMemberRoster;
+import com.nathan.model.SheetType;
 import com.nathan.model.SubBillingPlan;
 import com.nathan.service.AbstractExcelOperater;
 import com.nathan.view.InteractionHandler;
@@ -791,16 +792,18 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 	private void writePayrollSheet(WritableWorkbook wwb, PayrollSheet payrollSheet, int sheetIndex) throws Exception {
 		wwb.copySheet(0, payrollSheet.getPayrollSheetName(), sheetIndex);
-		writeSheet(wwb, payrollSheet, sheetIndex);
+		WritableSheet newSheet = wwb.getSheet(sheetIndex);
+		writeSheet(newSheet, payrollSheet, sheetIndex);
+		writeFooter(newSheet, Util.getFooterContents(payrollSheet.getProjectUnit(),
+				payrollSheet.getContractID(), SheetType.¹¤×Ê±í.getSheetID()));
 	}
 
 	private void writeSummarySheet(WritableWorkbook wwb, PayrollSheet payrollSheet, int sheetIndex) throws Exception {
 		wwb.copySheet(1, payrollSheet.getSummarySheetName(), sheetIndex);
-		writeSheet(wwb, payrollSheet, sheetIndex);
+		writeSheet(wwb.getSheet(sheetIndex), payrollSheet, sheetIndex);
 	}
 
-	private void writeSheet(WritableWorkbook wwb, PayrollSheet payrollSheet, int sheetIndex) throws Exception {
-		WritableSheet newSheet = wwb.getSheet(sheetIndex);
+	private void writeSheet(WritableSheet newSheet, PayrollSheet payrollSheet, int sheetIndex) throws Exception {
 		updatePayrollInfo(payrollSheet, newSheet);
 		fillPayrollSheet(payrollSheet, newSheet);
 	}
@@ -873,6 +876,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			int currentRowIndex = r + 4;
 			Payroll payroll = payrollSheet.getPayrollList().get(r);
 			sheet.insertRow(currentRowIndex);
+			sheet.setRowView(currentRowIndex, sheet.getRowView(srcRowIndex));
 
 			for (int c = 0; c < rsColumns; c++) {
 				WritableCell cell = sheet.getWritableCell(c, srcRowIndex);

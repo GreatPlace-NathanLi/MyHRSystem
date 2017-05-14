@@ -363,6 +363,10 @@ public class Util {
 	public static double getMinPerformancePay() {
 		return Constant.propUtil.getDoubleValue(Constant.CONFIG_绩效下限, Constant.MID_BASE_PAY);
 	}
+	
+	public static String getFooterContents(String company, String contractID, int order) {
+		return company + Constant.DELIMITER1 + contractID + Constant.DELIMITER1 + order;
+	}
 
 	public static void main(String[] args) throws Exception {
 		Util.parseProjectLeadersFromFileUnderPath("F:/work/project/德盛人力项目管理系统/in/花名册/湛江雷能");

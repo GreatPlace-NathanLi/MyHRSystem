@@ -1,14 +1,16 @@
 package com.nathan.controller;
 
+import org.apache.log4j.Logger;
+
 import com.nathan.common.Constant;
 import com.nathan.common.Util;
 import com.nathan.exception.PaymentDocumentProcessException;
 import com.nathan.model.BillingPlan;
 import com.nathan.model.BillingPlan.BillingStatus;
 import com.nathan.model.BillingPlanBook;
+import com.nathan.model.SheetType;
 import com.nathan.service.AbstractExcelOperater;
 
-import org.apache.log4j.Logger;
 import jxl.write.Label;
 import jxl.write.Number;
 import jxl.write.WritableCell;
@@ -69,8 +71,8 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 	}
 
 	private void writePaymentVoucher(WritableWorkbook wwb) throws Exception {
-		WritableSheet sheet = wwb.getSheet(0);
-
+		WritableSheet sheet = wwb.getSheet(SheetType.付款凭据.name());
+		
 		logInfo(sheet);
 
 		Label tabulator = new Label(3, 2, Util.getTabulator(), sheet.getCell(3, 2).getCellFormat());
@@ -94,19 +96,23 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 		Number totalAdministrationExpenses = new Number(5, 6, billingPlan.getTotalAdministrationExpenses(),
 				sheet.getCell(5, 6).getCellFormat());
 		sheet.addCell(totalAdministrationExpenses);
+		
+		buildFooter(sheet, SheetType.付款凭据);
 	}
 
 	private void writeExpenditureProof(WritableWorkbook wwb) throws Exception {
-		WritableSheet sheet = wwb.getSheet(1);
+		WritableSheet sheet = wwb.getSheet(SheetType.支出证明单.name());
 
 		logInfo(sheet);
 
 		Label summary = new Label(2, 4, billingPlan.getProjectUnit() + "派遣队工资款", sheet.getCell(2, 4).getCellFormat());
 		sheet.addCell(summary);
+		
+		buildFooter(sheet, SheetType.支出证明单);
 	}
 
 	private void writeExpenseDetails(WritableWorkbook wwb) throws Exception {
-		WritableSheet sheet = wwb.getSheet(2);
+		WritableSheet sheet = wwb.getSheet(SheetType.费用明细表.name());
 
 		logInfo(sheet);
 		
@@ -139,6 +145,13 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 		Number totalAdministrationExpenses = new Number(6, 2, billingPlan.getTotalAdministrationExpenses(),
 				sheet.getCell(6, 2).getCellFormat());
 		sheet.addCell(totalAdministrationExpenses);
+		
+		buildFooter(sheet, SheetType.费用明细表);
+	}
+	
+	private void buildFooter(WritableSheet sheet, SheetType type) {
+		writeFooter(sheet, Util.getFooterContents(billingPlan.getProjectUnit(),
+				billingPlan.getContractID(), type.getSheetID()));
 	}
 	
 	private String buildPaymentDocumentFilePath(BillingPlan billingPlan) {

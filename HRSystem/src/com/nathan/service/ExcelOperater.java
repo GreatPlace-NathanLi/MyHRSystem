@@ -13,5 +13,7 @@ public interface ExcelOperater {
 	public void copy(String fromFile, String toFile) throws Exception;
 	
 	public boolean delete(String inFile) throws Exception;
+	
+	public void print(String inFile) throws Exception;
 
 }
