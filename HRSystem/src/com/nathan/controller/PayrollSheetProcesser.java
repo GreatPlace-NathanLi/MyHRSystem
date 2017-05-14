@@ -28,7 +28,6 @@ import jxl.CellType;
 import jxl.FormulaCell;
 import jxl.Sheet;
 import jxl.biff.EmptyCell;
-import jxl.biff.formula.FormulaException;
 import jxl.write.Blank;
 import jxl.write.Formula;
 import jxl.write.Label;
@@ -36,8 +35,6 @@ import jxl.write.Number;
 import jxl.write.WritableCell;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
-import jxl.write.WriteException;
-import jxl.write.biff.RowsExceededException;
 
 public class PayrollSheetProcesser extends AbstractExcelOperater {
 
@@ -447,10 +444,10 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			deleteOldRosterCursors(company, projectLeader, contractID, payYear, rosterProcesser);
 			if (isNeededToCreateAlternatedPorjectLeaderPayrollSheet) {
 				deleteOldPayrollSheet(company, projectLeader, contractID, payYear);
-			}			
+			}
 		}
 	}
-	
+
 	private int deleteOldRosterCursors(String company, String projectLeader, String contractID, int payYear,
 			RosterProcesser rosterProcesser) throws Exception {
 		logger.info("删除花名册游标， 领队： " + projectLeader + "，合同号：" + contractID + ", 年份：" + payYear);
@@ -458,8 +455,9 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		rosterProcesser.processRoster(company, projectLeader, payYear, true);
 		return rosterProcesser.deleteRosterCursorsByContractID(contractID);
 	}
-	
-	private void deleteOldPayrollSheet(String company, String projectLeader, String contractID, int payYear) throws PayrollSheetProcessException {
+
+	private void deleteOldPayrollSheet(String company, String projectLeader, String contractID, int payYear)
+			throws PayrollSheetProcessException {
 		String filePath = buildPayrollSheetFilePath(company, projectLeader, payYear);
 		try {
 			deletePayrollSheetByContractID(filePath, contractID);
@@ -650,7 +648,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			throws Exception {
 		logger.debug("payrollCount: " + payrollCount + ", year " + payYear + ", month " + payMonth);
 		PayrollSheet payrollSheet = new PayrollSheet();
-		payrollSheet.setName(getPayrollSheetName(payMonth, billingPlan.getContractID(), billingPlan));
+		payrollSheet.setName(buildPayrollSheetName(payMonth, billingPlan.getContractID(), billingPlan));
 		payrollSheet.setPayrollNumber(payrollCount);
 		payrollSheet.setPayYear(payYear);
 		payrollSheet.setPayMonth(payMonth);
@@ -781,19 +779,34 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		logger.debug("总列数：" + rsColumns + ", 总行数：" + rsRows);
 
 		int sheetNumber = wwb.getNumberOfSheets();
-		for (int i = 0; i < payrollSheetList.size(); i++) {
+		for (int i = 0; i < payrollSheetList.size() * 2; i += 2) {
 			PayrollSheet payrollSheet = payrollSheetList.get(i);
-			wwb.copySheet(0, payrollSheet.getName(), i + sheetNumber);
-			WritableSheet newSheet = wwb.getSheet(i + sheetNumber);
-			updatePayrollInfo(payrollSheet, newSheet);
-			fillPayrollSheet(payrollSheet, newSheet);
+			writePayrollSheet(wwb, payrollSheet, i + sheetNumber);
+			writeSummarySheet(wwb, payrollSheet, i + sheetNumber + 1);
 		}
 
 		// wwb.removeSheet(0);
+		// wwb.removeSheet(1);
 	}
 
-	private String getPayrollSheetName(int month, String contractID, SubBillingPlan subBillingPlan) {
-		String name = "工" + month + Constant.DELIMITER1 + contractID;
+	private void writePayrollSheet(WritableWorkbook wwb, PayrollSheet payrollSheet, int sheetIndex) throws Exception {
+		wwb.copySheet(0, payrollSheet.getPayrollSheetName(), sheetIndex);
+		writeSheet(wwb, payrollSheet, sheetIndex);
+	}
+
+	private void writeSummarySheet(WritableWorkbook wwb, PayrollSheet payrollSheet, int sheetIndex) throws Exception {
+		wwb.copySheet(1, payrollSheet.getSummarySheetName(), sheetIndex);
+		writeSheet(wwb, payrollSheet, sheetIndex);
+	}
+
+	private void writeSheet(WritableWorkbook wwb, PayrollSheet payrollSheet, int sheetIndex) throws Exception {
+		WritableSheet newSheet = wwb.getSheet(sheetIndex);
+		updatePayrollInfo(payrollSheet, newSheet);
+		fillPayrollSheet(payrollSheet, newSheet);
+	}
+
+	private String buildPayrollSheetName(int month, String contractID, SubBillingPlan subBillingPlan) {
+		String name = month + Constant.DELIMITER1 + contractID;
 		String alternatedPorjectLeader = subBillingPlan.getSubPlanProjectLeader();
 		if (alternatedPorjectLeader != null && !alternatedPorjectLeader.equals(subBillingPlan.getProjectLeader())) {
 			name = name + Constant.DELIMITER1 + "借" + alternatedPorjectLeader;
@@ -851,8 +864,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		return Util.isConfigMatched(projectUnit, Constant.CONFIG_汇总表标题显示时间单位);
 	}
 
-	private void fillPayrollSheet(PayrollSheet payrollSheet, WritableSheet sheet)
-			throws RowsExceededException, WriteException, FormulaException {
+	private void fillPayrollSheet(PayrollSheet payrollSheet, WritableSheet sheet) throws Exception {
 		int size = payrollSheet.getPayrollList().size();
 		int srcRowIndex = 3;
 		int rsColumns = sheet.getColumns();
@@ -896,14 +908,14 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 					((Label) newCell).setString(payroll.getName());
 				} else if (c == 2) {
 					((Number) newCell).setValue(payroll.getBasePay());
-				} else if (c == 3 && newCell.getType() != CellType.NUMBER_FORMULA) {
+				} else if (c == 3 && !newCell.getClass().equals(jxl.write.Formula.class)) {
 					((Number) newCell).setValue(payroll.getPerformancePay());
 				} else if (c == 5) {
 					((Number) newCell).setValue(payroll.getHighTemperatureAllowance());
 				} else if (c == 6) {
 					((Number) newCell).setValue(payroll.getSocialSecurityAmount());
-				} else if (c == 12 && newCell.getType() != CellType.NUMBER_FORMULA) {
-					((Number) newCell ).setValue(payroll.getDailyPay());
+				} else if (c == 12 && !newCell.getClass().equals(jxl.write.Formula.class)) {
+					((Number) newCell).setValue(payroll.getDailyPay());
 				} else if (c == 13) {
 					((Number) newCell).setValue(payroll.getWorkingDays());
 				} else if (c == 15) {

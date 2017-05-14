@@ -319,18 +319,18 @@ public class Util {
 		int size = Constant.propUtil.getIntValue("system.backup.housekeep.size", 100);
 		int days = Constant.propUtil.getIntValue("system.backup.housekeep.days", 7);
 		String backupPath = Constant.propUtil.getStringEnEmpty("user.文件备份路径");
-		logger.info("HOUSEKEEP：" + backupPath);
+		logger.info("HOUSEKEEP - " + backupPath);
 		List<File> list = Util.getFileSort(backupPath);
 		int n = 0;
 		for (int i = 0; i < list.size(); i++) {
 			long lastModifiedTime = list.get(i).lastModified();
 			if (i >= size && lastModifiedTime < System.currentTimeMillis() - days * Constant.ONE_DAY) {
 				list.get(i).delete();
-				logger.debug("HOUSEKEEP：清除" + list.get(i).getName());
+				logger.debug("HOUSEKEEP - 清除:" + list.get(i).getName());
 				n++;
 			}
 		}
-		logger.info("HOUSEKEEP：总共清除" + n + "个备份文件");
+		logger.info("HOUSEKEEP - 总共清除" + n + "个备份文件");
 	}
 	
 	public static boolean isConfigMatched(String valueToMatch, String config) {

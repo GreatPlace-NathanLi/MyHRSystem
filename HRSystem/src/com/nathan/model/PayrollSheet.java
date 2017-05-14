@@ -176,10 +176,17 @@ public class PayrollSheet {
 	}
 
 	/**
-	 * @return the name
+	 * @return the payroll sheet name
 	 */
-	public String getName() {
-		return name;
+	public String getPayrollSheetName() {
+		return "¹¤" + name;
+	}
+	
+	/**
+	 * @return the summary sheet name
+	 */
+	public String getSummarySheetName() {
+		return "»ã" + name;
 	}
 
 	/**
