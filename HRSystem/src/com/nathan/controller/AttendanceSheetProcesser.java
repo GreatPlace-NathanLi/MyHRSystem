@@ -29,7 +29,8 @@ public class AttendanceSheetProcesser extends AbstractExcelOperater {
 
 	}
 
-	public AttendanceSheetProcesser(BillingPlan billingPlan) {
+	public AttendanceSheetProcesser(BillingPlan billingPlan, boolean virtualBillingFlag) {
+		this.setVirtualBillingFlag(virtualBillingFlag);
 		removeAttendanceSheetIfExists(buildAttendanceSheetFilePath(billingPlan.getProjectUnit(),
 				billingPlan.getProjectLeader(), billingPlan.getContractID()));
 	}
@@ -149,8 +150,12 @@ public class AttendanceSheetProcesser extends AbstractExcelOperater {
 	}
 
 	private String buildAttendanceSheetFilePath(String company, String projectLeader, String contractID) {
-		String attendanceSheetFile = Constant.propUtil.getStringValue("user.考勤表输出路径", Constant.ATTENDANCE_SHEET_FILE);
-		String filePath = attendanceSheetFile.replace("UUUU", company);
+		String filePath = Constant.propUtil.getStringValue("user.考勤表输出路径", Constant.ATTENDANCE_SHEET_FILE);		
+		if (isVirtualBilling()) {
+			filePath = filePath.replace("UUUU", "虚拟_" + company);
+		} else {
+			filePath = filePath.replace("UUUU", company);
+		}
 		filePath = filePath.replace("NNN", projectLeader);
 		filePath = filePath.replace("CCCCC", contractID);
 		logger.debug("attendanceSheetFile:" + filePath);

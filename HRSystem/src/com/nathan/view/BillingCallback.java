@@ -2,10 +2,13 @@ package com.nathan.view;
 
 import com.nathan.controller.BillingOperater;
 import com.nathan.controller.RosterProcesser;
+import com.nathan.controller.VirtualBillingOperater;
 
 public class BillingCallback implements ActionCallback {
 	
 	private BillingOperater operater = null;
+	
+	private VirtualBillingOperater virtualBillingOperater = null;
 	
 	@Override
 	public void actionPerformed(ActionType actionType) throws Exception {
@@ -15,7 +18,9 @@ public class BillingCallback implements ActionCallback {
 			operater.startBilling();
 			InteractionHandler.handleProgressCompleted("开票完成！");  
         case VirtualBilling:
-        	break;
+        	virtualBillingOperater = new VirtualBillingOperater();
+        	virtualBillingOperater.startBilling();
+        	InteractionHandler.handleProgressCompleted("虚拟开票完成！");  
         case RosterValidation:
         	RosterProcesser rosterProcesser = new RosterProcesser();
         	rosterProcesser.validateRosters();
@@ -34,7 +39,9 @@ public class BillingCallback implements ActionCallback {
 				operater.endBilling();
 			}
         case VirtualBilling:
-        	break;
+        	if (virtualBillingOperater != null) {
+        		virtualBillingOperater.endBilling();
+			}
         default:  
             break;  
         }  
@@ -49,7 +56,11 @@ public class BillingCallback implements ActionCallback {
 				operater.release();
 			}  
         case VirtualBilling:
-        	break;
+        	if (virtualBillingOperater != null) {
+        		virtualBillingOperater.release();
+        		virtualBillingOperater.deleteFilesAfterPrinting();
+        		virtualBillingOperater.saveBillingPlan();
+			}
         default:  
             break;  
         }  	
@@ -64,13 +75,26 @@ public class BillingCallback implements ActionCallback {
 		case Any:
 			if (operater != null) {
 				operater.release();
-			}  
+				operater = null;
+			} 
+			if (virtualBillingOperater != null) {
+        		virtualBillingOperater.release();
+        		virtualBillingOperater.deleteFilesAfterPrinting();
+        		virtualBillingOperater.saveBillingPlan();
+        		virtualBillingOperater = null;
+			}
         case Billing:  
         	if (operater != null) {
 				operater.release();
+				operater = null;
 			}  
         case VirtualBilling:
-        	break;
+        	if (virtualBillingOperater != null) {
+        		virtualBillingOperater.release();
+        		virtualBillingOperater.deleteFilesAfterPrinting();
+        		virtualBillingOperater.saveBillingPlan();
+        		virtualBillingOperater = null;
+			}
         default:  
             break;  
         }  	

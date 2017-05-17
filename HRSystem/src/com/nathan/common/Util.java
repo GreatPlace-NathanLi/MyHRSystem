@@ -270,6 +270,16 @@ public class Util {
 		}
 		return flag;
 	}
+	
+	public static boolean deleteFile(String filePath) {
+		boolean flag = false;
+		File file = new File(filePath);
+		if (file.isFile() && file.exists()) {
+			flag = file.delete();
+			logger.debug(flag + " É¾³ýÎÄ¼þ£º" + filePath);
+		}
+		return flag;
+	}
 
 	/**
 	 * 

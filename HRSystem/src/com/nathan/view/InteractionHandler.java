@@ -14,6 +14,8 @@ public class InteractionHandler {
 	private static final String title = "借人处理";
 
 	private static ActionCallback callback;
+	
+	private static ActionType actionType = ActionType.Any;
 
 	public static void main(String[] args) throws Exception {
 		// Object[] options = { "确认", "取消" };
@@ -66,6 +68,7 @@ public class InteractionHandler {
 	}
 
 	public static void showMenu() {
+		actionType = ActionType.Any;
 		Object[] options = { "工资表制作", "数据设置", "查询", "汇总", "花名册校验", "退出" };
 		int feedback = JOptionPane.showOptionDialog(null, "欢迎使用德盛人力项目管理系统", "德盛人力项目管理", JOptionPane.DEFAULT_OPTION,
 				JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
@@ -94,12 +97,19 @@ public class InteractionHandler {
 		if (feedback == -1 || feedback == 3) {
 			exit(ActionType.Billing);
 		}
-		if (feedback == 1) {
-			handleToDo(options[feedback], 1);
-		}
 		if (feedback == 0) {
 			try {
+				actionType = ActionType.Billing;
 				callback.actionPerformed(ActionType.Billing);
+			} catch (Exception e) {
+				logger.error(e.getMessage(), e);
+				handleException(e.getMessage());
+			}
+		}
+		if (feedback == 1) {
+			try {
+				actionType = ActionType.VirtualBilling;
+				callback.actionPerformed(ActionType.VirtualBilling);
 			} catch (Exception e) {
 				logger.error(e.getMessage(), e);
 				handleException(e.getMessage());
@@ -121,10 +131,15 @@ public class InteractionHandler {
 		int feedback = JOptionPane.showOptionDialog(null, status, "德盛人力项目管理", JOptionPane.DEFAULT_OPTION,
 				JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
 		if (feedback == 0) {
+			try {
+				callback.returnPerformed(actionType);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			showMenu();
 		}
 		if (feedback == -1 || feedback == 1) {
-			exit();
+			exit(actionType);
 		}
 	}
 
@@ -349,14 +364,14 @@ public class InteractionHandler {
 		logger.debug("feedback " + feedback);
 		if (feedback == 2) {
 			try {
-				callback.returnPerformed(ActionType.Billing);
+				callback.returnPerformed(actionType);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			showMenu();
 		}
 		if (feedback == -1 || feedback == 3) {
-			exit(ActionType.Billing);
+			exit(actionType);
 		}
 		if (feedback == 1) {
 			skip = true;

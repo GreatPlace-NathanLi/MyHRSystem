@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import com.nathan.common.Constant;
+import com.nathan.common.Util;
 import com.nathan.model.SheetType;
 import com.nathan.service.ExcelPrinter;
 import com.nathan.service.JacobPrinter;
@@ -150,6 +151,26 @@ public class PrintingProcesser {
 
 	private static String getCopiesConfigKey(SheetType sheetType) {
 		return "user.打印." + sheetType.name() + ".份数";
+	}
+	
+	public void deleteFilesAfterPrinting() {
+		totalTaskSize = A4_PrintTasks.size() + A5_PrintTasks.size() + others_PrintTasks.size();
+		if (totalTaskSize == 0) {
+			logger.info("没有文件需要删除！");
+			return;
+		}
+		
+		deletePrintTasks(A4_PrintTasks);
+		deletePrintTasks(A5_PrintTasks);
+		deletePrintTasks(others_PrintTasks);
+		
+	}
+	
+	private void deletePrintTasks(List<ExcelPrintTask> printTasks) {
+		for (ExcelPrintTask task : printTasks) {
+			Util.deleteFile(task.getFilePath());
+		}
+		printTasks = null;
 	}
 
 	private static class ExcelPrintTask {

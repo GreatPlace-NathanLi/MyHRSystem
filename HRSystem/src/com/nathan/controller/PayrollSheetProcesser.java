@@ -75,7 +75,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 				billingPlan.initBillingStatus();
 				logger.debug("isReconstruction: " + billingPlan.isReconstruction());
 				logger.debug("isToDelete: " + billingPlan.isToDelete());
-				if (billingPlan.isReconstruction() || billingPlan.isToDelete()) {
+				if ((billingPlan.isReconstruction() || billingPlan.isToDelete()) && !isVirtualBilling()) {
 					deleteOldBillingInfoForSingleBillingPlan(billingPlan, rosterProcesser);
 					billingPlan.setBillingStatus(BillingStatus.已删除);
 					isNeededToUpdateBillingPlanBook = true;
@@ -558,7 +558,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 		AttendanceSheetProcesser attendanceSheetProcesser = null;
 		if (billingPlan.isAttendanceSheetRequired()) {
-			attendanceSheetProcesser = new AttendanceSheetProcesser(billingPlan);
+			attendanceSheetProcesser = new AttendanceSheetProcesser(billingPlan, isVirtualBilling());
 		}
 
 		for (SubBillingPlan subPlan : billingPlan.getSubPlanList()) {
@@ -604,8 +604,10 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			logger.info("保存工资表输出： " + outputPath);
 			logger.info(Constant.LINE1);
 
-			rosterProcesser.updateProjectMemberRoster(true);
-			logger.info(Constant.LINE1);
+			if (!isVirtualBilling()) {
+				rosterProcesser.updateProjectMemberRoster(true);
+				logger.info(Constant.LINE1);
+			}			
 
 			if (subPlan.isAttendanceSheetRequired()) {
 				attendanceSheetProcesser.processAttendanceSheet(subPlan, payrollSheetList);
@@ -1003,8 +1005,13 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	private String buildPayrollSheetFilePath(String company, String projectLeader, int payYear) {
 		String payrollFile = Constant.propUtil.getStringValue("user.工资表输出路径", Constant.PAYROLL_FILE);
 		String filePath = payrollFile.replace("UUUU", company);
-		filePath = filePath.replace("NNN", projectLeader);
+		if (isVirtualBilling()) {
+			filePath = filePath.replace("NNN", "虚拟_" + projectLeader);
+		} else {
+			filePath = filePath.replace("NNN", projectLeader);
+		}
 		filePath = filePath.replace("YYYY", String.valueOf(payYear));
+
 		return filePath;
 	}
 

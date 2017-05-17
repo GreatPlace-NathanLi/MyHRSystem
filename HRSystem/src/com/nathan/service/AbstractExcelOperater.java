@@ -33,6 +33,8 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 	private boolean backupFlag = false;
 	
 	private boolean writeRetryFlag = false;
+	
+	private boolean virtualBillingFlag = false;
 
 	protected void setBackupFlag(boolean flag) {
 		this.backupFlag = flag;
@@ -44,6 +46,21 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 	
 	public boolean isWriteRetry() {
 		return this.writeRetryFlag;
+	}
+
+	/**
+	 * @return the virtualBillingFlag
+	 */
+	public boolean isVirtualBilling() {
+		logger.debug("virtualBillingFlag：" + virtualBillingFlag);
+		return virtualBillingFlag;
+	}
+
+	/**
+	 * @param virtualBillingFlag the virtualBillingFlag to set
+	 */
+	public void setVirtualBillingFlag(boolean virtualBillingFlag) {
+		this.virtualBillingFlag = virtualBillingFlag;
 	}
 
 	@Override
@@ -254,19 +271,8 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 	}
 	
 	@Override
-	public boolean delete(String fillPath) {
-		boolean flag = false;
-		// boolean isFilePathValid = fillPath.matches(Constant.MATCHES);
-		// logger.debug("是否为正确的路径名:" + isFilePathValid);
-		// if (!isFilePathValid) {
-		// fillPath = fillPath.replaceAll("/", "\\\\");
-		// }
-		File file = new File(fillPath);
-		if (file.isFile() && file.exists()) {
-			flag = file.delete();
-			// logger.debug(flag + "删除文件：" + fillPath);
-		}
-		return flag;
+	public boolean delete(String filePath) {
+		return Util.deleteFile(filePath);
 	}
 
 	public void backup(String filePath) throws Exception {

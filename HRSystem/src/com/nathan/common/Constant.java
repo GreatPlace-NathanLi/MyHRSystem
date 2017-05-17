@@ -41,6 +41,8 @@ public class Constant {
 	public static final String HANDLE_MANUAL = "人工";
 	
 	public static final String ATTENDANCE_SHEET_FLAG = "是";
+	public static final String FLAG_YES = "是";
+	public static final String FLAG_NO = "否";
 	
 	public static final String YES = "Y";
 	public static final String NO = "N";

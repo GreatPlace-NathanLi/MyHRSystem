@@ -14,11 +14,11 @@ public class BillingOperater {
 
 	private static int expireDate = 20170620;
 	
-	private String billingFile;
+	protected String billingFile;
 	
-	private BillingPlanProcesser billingPlanProcesser;
+	protected BillingPlanProcesser billingPlanProcesser;
 	
-	private PayrollSheetProcesser payrollSheetProcesser;
+	protected PayrollSheetProcesser payrollSheetProcesser;
 	
 	private PaymentDocumentProcesser paymentDocumentProcesser;
 	
@@ -26,7 +26,9 @@ public class BillingOperater {
 	
 	private BankPaymentSummaryProcesser bankPaymentSummaryProcesser;
 	
-	private PrintingProcesser printingProcesser;
+	protected PrintingProcesser printingProcesser;
+	
+	protected boolean virtualBillingFlag = false;
 
 	public void startBilling() throws Exception {
 		String path = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
@@ -34,6 +36,7 @@ public class BillingOperater {
 		billingPlanProcesser = new BillingPlanProcesser();
 		rosterProcesser = new RosterProcesser();
 		payrollSheetProcesser = new PayrollSheetProcesser();
+		payrollSheetProcesser.setVirtualBillingFlag(virtualBillingFlag);
 		printingProcesser = new PrintingProcesser();
 
 		long startTime = System.nanoTime();
@@ -41,7 +44,7 @@ public class BillingOperater {
 		logger.info("开票处理开始...");
 		logger.info(Constant.LINE0);
 
-		billingFile = Constant.propUtil.getStringValue("user.开票计划路径", Constant.BILLING_INPUT_FILE);
+		billingFile = getBillingPlanFilePath();
 		logger.info("读取开票计划输入： " + billingFile);
 		billingPlanProcesser.processBillingPlanInput(billingFile);
 		logger.info(Constant.LINE1);
@@ -63,6 +66,10 @@ public class BillingOperater {
 		logger.info(Constant.LINE0);
 		logger.info("开票结束， 用时：" + (endTime - startTime) / 1000000 + "毫秒");
 		logger.info(Constant.LINE0);
+	}
+	
+	protected String getBillingPlanFilePath() {
+		return Constant.propUtil.getStringValue("user.开票计划路径", Constant.BILLING_INPUT_FILE);
 	}
 	
 	public void endBilling() throws Exception {
