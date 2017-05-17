@@ -9,6 +9,7 @@ import com.nathan.exception.AttendanceSheetProcessException;
 import com.nathan.model.BillingPlan;
 import com.nathan.model.Payroll;
 import com.nathan.model.PayrollSheet;
+import com.nathan.model.SheetType;
 import com.nathan.service.AbstractExcelOperater;
 
 import jxl.write.Label;
@@ -22,6 +23,7 @@ public class AttendanceSheetProcesser extends AbstractExcelOperater {
 	private static Logger logger = Logger.getLogger(AttendanceSheetProcesser.class);
 
 	private List<PayrollSheet> payrollSheetList;
+	private String filePath;
 
 	public AttendanceSheetProcesser() {
 
@@ -62,6 +64,7 @@ public class AttendanceSheetProcesser extends AbstractExcelOperater {
 	public void writeAttendanceSheet(String templatePath, String filePath, List<PayrollSheet> payrollSheetList)
 			throws AttendanceSheetProcessException {
 		this.payrollSheetList = payrollSheetList;
+		this.filePath = filePath;
 		try {
 			write(templatePath, filePath);
 		} catch (Exception e) {
@@ -78,13 +81,15 @@ public class AttendanceSheetProcesser extends AbstractExcelOperater {
 		for (int i = 0; i < payrollSheetList.size(); i++) {
 			int sheetIndex = i + sheetNumber;
 			PayrollSheet payrollSheet = payrollSheetList.get(i);
-			wwb.copySheet(0,
-					getAttendanceSheetName(payrollSheet.getPayMonth(), payrollSheet.getContractID(), sheetIndex),
+			String sheetName = getAttendanceSheetName(payrollSheet.getPayMonth(), payrollSheet.getContractID(),
 					sheetIndex);
-			WritableSheet newSheet = wwb.getSheet(sheetIndex);		
+			wwb.copySheet(0, sheetName, sheetIndex);
+			WritableSheet newSheet = wwb.getSheet(sheetIndex);
 			updateTitleAndHeaders(payrollSheet, newSheet);
 			fillNameList(payrollSheet, newSheet);
 			fillPrintingSettings(newSheet);
+
+			PrintingProcesser.createExcelPrintTask(SheetType.考勤表, filePath, sheetIndex, sheetName);
 		}
 	}
 	
@@ -92,7 +97,8 @@ public class AttendanceSheetProcesser extends AbstractExcelOperater {
 		logger.debug("纸张大小：" + newSheet.getSettings().getPaperSize());
 		logger.debug("打印份数：" + newSheet.getSettings().getCopies());
 		logger.debug("打印缩放比例：" + newSheet.getSettings().getScaleFactor());
-		newSheet.getSettings().setScaleFactor(100);
+//		newSheet.getSettings().setScaleFactor(100);
+//		newSheet.getSettings().setFitWidth(2);
 	}
 
 	private void updateTitleAndHeaders(PayrollSheet payrollSheet, WritableSheet sheet) throws Exception {
@@ -147,6 +153,7 @@ public class AttendanceSheetProcesser extends AbstractExcelOperater {
 		String filePath = attendanceSheetFile.replace("UUUU", company);
 		filePath = filePath.replace("NNN", projectLeader);
 		filePath = filePath.replace("CCCCC", contractID);
+		logger.debug("attendanceSheetFile:" + filePath);
 		return filePath;
 	}
 

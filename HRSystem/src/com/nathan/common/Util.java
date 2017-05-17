@@ -259,10 +259,16 @@ public class Util {
 			throw e;
 		}
 	}
-
+	
 	public static boolean isFileExists(String filePath) {
-		File file = new File(filePath);
-		return file.exists();
+		boolean flag = false;
+		try {
+			File file = new File(filePath);
+			flag = file.exists();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return flag;
 	}
 
 	/**
@@ -330,7 +336,7 @@ public class Util {
 				n++;
 			}
 		}
-		logger.info("HOUSEKEEP - 总共清除" + n + "个备份文件");
+		logger.info("HOUSEKEEP - 总共清除" + n + "个过期备份文件");
 	}
 	
 	public static boolean isConfigMatched(String valueToMatch, String config) {

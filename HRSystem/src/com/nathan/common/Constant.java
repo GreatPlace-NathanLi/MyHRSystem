@@ -52,6 +52,9 @@ public class Constant {
 	
 	public static final long ONE_DAY = 86400000L;
 	
+	public static final String PAGE_SIZE_A4 = "A4";
+	public static final String PAGE_SIZE_A5 = "A5";
+	
 	public static final String CONFIG_个税起征点 = "user.个税起征点";
 	public static final String CONFIG_高温补贴月份 = "user.高温补贴月份";
 	public static final String CONFIG_高温补贴金额 = "user.高温补贴金额";

@@ -2,7 +2,9 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="log4j-1.2.17.jar"/>
-	<classpathentry kind="lib" path="jxl-2.6.10.jar" sourcepath="/jexcelapi"/>
+	<classpathentry kind="lib" path="lib/jxl-2.6.10.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-1.2.17.jar"/>
+	<classpathentry kind="lib" path="lib/jcom.jar"/>
+	<classpathentry kind="lib" path="lib/jacob.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

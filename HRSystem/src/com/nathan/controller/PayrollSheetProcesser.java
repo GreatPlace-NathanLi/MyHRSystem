@@ -42,6 +42,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	private static Logger logger = Logger.getLogger(PayrollSheetProcesser.class);
 
 	private List<PayrollSheet> payrollSheetList;
+	private String filePath;
 
 	private String contractIDToDelete;
 
@@ -502,7 +503,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	}
 
 	protected boolean isNeededToDeleteFile(WritableWorkbook wwb) {
-		if (wwb.getNumberOfSheets() <= 1) {
+		if (wwb.getNumberOfSheets() <= 2) {
 			return true;
 		}
 		return false;
@@ -762,6 +763,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	public void writePayrollSheet(String templatePath, String filePath, List<PayrollSheet> payrollSheetList)
 			throws PayrollSheetProcessException {
 		this.payrollSheetList = payrollSheetList;
+		this.filePath = filePath;
 		try {
 			setBackupFlag(true);
 			write(templatePath, filePath);
@@ -781,7 +783,11 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 		int sheetNumber = wwb.getNumberOfSheets();
 		for (int i = 0; i < payrollSheetList.size() * 2; i += 2) {
-			PayrollSheet payrollSheet = payrollSheetList.get(i);
+			int j = i;
+			if (i > 0) {
+				j = i/2;
+			}
+			PayrollSheet payrollSheet = payrollSheetList.get(j);
 			writePayrollSheet(wwb, payrollSheet, i + sheetNumber);
 			writeSummarySheet(wwb, payrollSheet, i + sheetNumber + 1);
 		}
@@ -791,16 +797,22 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	}
 
 	private void writePayrollSheet(WritableWorkbook wwb, PayrollSheet payrollSheet, int sheetIndex) throws Exception {
-		wwb.copySheet(0, payrollSheet.getPayrollSheetName(), sheetIndex);
+		String sheetName = payrollSheet.getPayrollSheetName();
+		wwb.copySheet(0, sheetName, sheetIndex);
 		WritableSheet newSheet = wwb.getSheet(sheetIndex);
 		writeSheet(newSheet, payrollSheet, sheetIndex);
 		writeFooter(newSheet, Util.getFooterContents(payrollSheet.getProjectUnit(),
 				payrollSheet.getContractID(), SheetType.工资表.getSheetID()));
+		
+		PrintingProcesser.createExcelPrintTask(SheetType.工资表, filePath, sheetIndex, sheetName);
 	}
 
 	private void writeSummarySheet(WritableWorkbook wwb, PayrollSheet payrollSheet, int sheetIndex) throws Exception {
-		wwb.copySheet(1, payrollSheet.getSummarySheetName(), sheetIndex);
+		String sheetName = payrollSheet.getSummarySheetName();
+		wwb.copySheet(1, sheetName, sheetIndex);
 		writeSheet(wwb.getSheet(sheetIndex), payrollSheet, sheetIndex);
+		
+		PrintingProcesser.createExcelPrintTask(SheetType.汇总表, filePath, sheetIndex, sheetName);
 	}
 
 	private void writeSheet(WritableSheet newSheet, PayrollSheet payrollSheet, int sheetIndex) throws Exception {

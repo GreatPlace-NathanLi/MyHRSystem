@@ -25,6 +25,8 @@ public class BillingOperater {
 	private RosterProcesser rosterProcesser;
 	
 	private BankPaymentSummaryProcesser bankPaymentSummaryProcesser;
+	
+	private PrintingProcesser printingProcesser;
 
 	public void startBilling() throws Exception {
 		String path = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
@@ -32,6 +34,7 @@ public class BillingOperater {
 		billingPlanProcesser = new BillingPlanProcesser();
 		rosterProcesser = new RosterProcesser();
 		payrollSheetProcesser = new PayrollSheetProcesser();
+		printingProcesser = new PrintingProcesser();
 
 		long startTime = System.nanoTime();
 		logger.info(Constant.LINE0);
@@ -79,8 +82,17 @@ public class BillingOperater {
 			bankPaymentSummaryProcesser = new BankPaymentSummaryProcesser();
 			bankPaymentSummaryProcesser.processBankPaymentSummary(billingPlanProcesser.getBillingPlanBook());
 		}
+		
+		logger.info("即将开始打印表格...");
+		printingProcesser.processPrintTasks();
 	}
 
+	public void release() {
+		if (printingProcesser != null) {
+			printingProcesser.release();
+		}
+	}
+	
 	public static void main(String[] args) throws Exception {
 		try {
 			InteractionHandler.handleExpireChecking(expireDate);

@@ -45,7 +45,9 @@ public class BillingCallback implements ActionCallback {
 	public void returnPerformed(ActionType actionType) throws Exception {
 		switch (actionType) {  
         case Billing:  
-        	break;  
+        	if (operater != null) {
+				operater.release();
+			}  
         case VirtualBilling:
         	break;
         default:  
@@ -55,9 +57,18 @@ public class BillingCallback implements ActionCallback {
 
 	@Override
 	public void exitPerformed(ActionType actionType) throws Exception {
-		switch (actionType) {  
+		if (actionType == null) {
+			return;
+		}
+		switch (actionType) {
+		case Any:
+			if (operater != null) {
+				operater.release();
+			}  
         case Billing:  
-        	break;  
+        	if (operater != null) {
+				operater.release();
+			}  
         case VirtualBilling:
         	break;
         default:  

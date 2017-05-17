@@ -1,5 +1,5 @@
 package com.nathan.view;
 
 public enum ActionType {
-	Billing, VirtualBilling, RosterValidation
+	Billing, VirtualBilling, RosterValidation, Any
 }

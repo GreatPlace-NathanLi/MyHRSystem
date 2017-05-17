@@ -22,14 +22,15 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 	private static Logger logger = Logger.getLogger(PaymentDocumentProcesser.class);
 
 	private BillingPlan billingPlan;
+	private String filePath;
 
 	public void processPaymentDocument(BillingPlanBook billingPlanBook) throws PaymentDocumentProcessException {
 		for (BillingPlan billingPlan : billingPlanBook.getBillingPlanList()) {
 			if (billingPlan.isToCreate() && BillingStatus.已制作.equals(billingPlan.getBillingStatus())) {
 				String paymentDocumentFile = buildPaymentDocumentFilePath(billingPlan);
-				String paymentDocumentTemplateFile = buildPaymentDocumentTemplatePath(billingPlan);
-				logger.info("创建付款手续单据：" + paymentDocumentFile);
+				String paymentDocumentTemplateFile = buildPaymentDocumentTemplatePath(billingPlan);		
 				writePaymentDocument(paymentDocumentTemplateFile, paymentDocumentFile, billingPlan);
+				logger.info("创建付款手续单据：" + paymentDocumentFile);
 			}		
 		}
 	}
@@ -53,6 +54,7 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 			throws PaymentDocumentProcessException {
 		try {
 			this.billingPlan = billingPlan;
+			this.filePath = filePath;
 			write(templatePath, filePath);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
@@ -68,6 +70,10 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 		writePaymentVoucher(wwb);
 		writeExpenditureProof(wwb);
 		writeExpenseDetails(wwb);
+		
+		PrintingProcesser.createExcelPrintTask(SheetType.费用明细表, filePath, 0);
+		PrintingProcesser.createExcelPrintTask(SheetType.支出证明单, filePath, 1);
+		PrintingProcesser.createExcelPrintTask(SheetType.付款凭据, filePath, 2);
 	}
 
 	private void writePaymentVoucher(WritableWorkbook wwb) throws Exception {

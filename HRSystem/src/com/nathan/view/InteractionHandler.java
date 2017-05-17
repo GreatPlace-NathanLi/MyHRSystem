@@ -92,7 +92,7 @@ public class InteractionHandler {
 			showMenu();
 		}
 		if (feedback == -1 || feedback == 3) {
-			exit();
+			exit(ActionType.Billing);
 		}
 		if (feedback == 1) {
 			handleToDo(options[feedback], 1);
@@ -314,8 +314,17 @@ public class InteractionHandler {
 		}
 		return 1;
 	}
-
+	
 	public static void exit() {
+		exit(ActionType.Any);
+	}
+
+	public static void exit(ActionType actionType) {
+		try {
+			callback.exitPerformed(actionType);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		Util.housekeep();
 		logger.info("退出系统！");
 		System.exit(0);
@@ -329,5 +338,29 @@ public class InteractionHandler {
 			showMenu();
 		}
 		return path;
+	}
+	
+	public static boolean handlePrintTaskConfirmation(String message, int totalToDo, int totalDone) {
+		boolean skip = false;
+		Object[] options = {"继续", "跳过", "返回", "退出"};
+		message = message + "   ( 进度：" + totalDone + " / " + totalToDo + " )";
+		int feedback = JOptionPane.showOptionDialog(null, message, "打印处理", JOptionPane.DEFAULT_OPTION,
+				JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+		logger.debug("feedback " + feedback);
+		if (feedback == 2) {
+			try {
+				callback.returnPerformed(ActionType.Billing);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			showMenu();
+		}
+		if (feedback == -1 || feedback == 3) {
+			exit(ActionType.Billing);
+		}
+		if (feedback == 1) {
+			skip = true;
+		}
+		return skip;
 	}
 }

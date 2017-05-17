@@ -142,8 +142,8 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 	}
 	
 	protected void writeFooter(WritableSheet sheet, String content) {
-		logger.debug("old footer:" + sheet.getSettings().getFooter());
-		HeaderFooter footer = new HeaderFooter();
+		HeaderFooter footer = sheet.getSettings().getFooter();
+		logger.debug("old footer:" + footer);	
 		footer.getCentre().setFontSize(8);
 		footer.getCentre().append(content);
 		sheet.getSettings().setFooter(footer);
@@ -396,24 +396,4 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 	protected void formatCell(WritableCellFormat wcf) throws Exception {
 	}
 	
-	@Override
-	public void print(String filePath) throws Exception {
-
-		Workbook readwb = null;
-
-		try {
-			// 直接从本地文件创建Workbook
-			InputStream instream = new FileInputStream(filePath);
-
-			readwb = Workbook.getWorkbook(instream);
-
-			readContent(readwb);
-
-			instream.close();
-
-		} finally {
-			close(readwb, null);
-		}
-
-	}
 }
