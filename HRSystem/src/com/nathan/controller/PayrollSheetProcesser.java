@@ -590,7 +590,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		List<PayrollSheet> payrollSheetList = new ArrayList<PayrollSheet>();
 
 		buildPayrollSheet(subPlan, roster, payrollSheetList, processingPayYear, subPlan.getSubPlanStartMonth(),
-				subPlan.getSubPlanEndMonth(), subPlan.getSubPlanPayCount(), subPlan.getSubPlanProjectUnit());
+				subPlan.getSubPlanEndMonth(), subPlan.getSubPlanPayCount(), subPlan.getProjectUnit());
 
 		logger.info(Constant.LINE1);
 
@@ -859,6 +859,9 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		// ((Label) cell).setString(reviewer);
 
 		if (needToChangeOvertimePaySubject(payrollSheet.getProjectUnit())) {
+			cell = sheet.getWritableCell(4, 2);
+			((Label) cell).setString("其他");
+			
 			cell = sheet.getWritableCell(15, 2);
 			((Label) cell).setString("其他");
 		}
