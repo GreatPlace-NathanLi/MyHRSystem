@@ -5,7 +5,7 @@ import org.apache.log4j.Logger;
 import com.nathan.common.Constant;
 import com.nathan.common.PropertiesUtils;
 import com.nathan.view.ActionType;
-import com.nathan.view.BillingCallback;
+import com.nathan.view.BillingSystemCallback;
 import com.nathan.view.InteractionHandler;
 
 public class BillingOperater {
@@ -108,7 +108,7 @@ public class BillingOperater {
 			Constant.propUtil = new PropertiesUtils(configFile);
 			Constant.propUtil.init();
 
-			new BillingCallback().actionPerformed(ActionType.Billing);
+			new BillingSystemCallback().actionPerformed(ActionType.Billing);
 
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);

@@ -20,15 +20,19 @@ public class PrintingProcesser {
 	private static List<ExcelPrintTask> A5_PrintTasks;
 	private static List<ExcelPrintTask> others_PrintTasks;
 
-	private ExcelPrinter printer;
+	private static ExcelPrinter printer;
 
-	private boolean isPrintingManualHandling = true;
-	private boolean isPaperSwitchManualHandling = true;
+	private static boolean isPrintingManualHandling = true;
+	private static boolean isPaperSwitchManualHandling = true;
 
-	private int totalTaskSize = 0;
-	private int completedTaskSize = 0;
+	private static int totalTaskSize = 0;
+	private static int completedTaskSize = 0;
 
 	public PrintingProcesser() {
+		resetPrintTasks();
+	}
+	
+	public static void resetPrintTasks() {
 		A4_PrintTasks = new ArrayList<ExcelPrintTask>();
 		A5_PrintTasks = new ArrayList<ExcelPrintTask>();
 		others_PrintTasks = new ArrayList<ExcelPrintTask>();
@@ -57,28 +61,11 @@ public class PrintingProcesser {
 		}
 		
 		if(isPrintingGoOn) {
-			try {
-				if (printer == null) {
-					printer = new JacobPrinter();
-				}
-
-				processPrintTasks(A4_PrintTasks);
-
-				processPrintTasks(A5_PrintTasks);
-
-				processPrintTasks(others_PrintTasks);		
-			} finally {
-				printer.close();
-			}
-			
-			if (isPrintingManualHandling) {
-				InteractionHandler.handleProgressCompleted("打印全部完成！");  
-			}	
-			
+			processPrintTasksIfExists();		
 		}	
 	}
 
-	private void processPrintTasks(List<ExcelPrintTask> printTasks) {
+	private static void processPrintTasks(List<ExcelPrintTask> printTasks) {
 		for (ExcelPrintTask task : printTasks) {
 			completedTaskSize++;
 			boolean skip = false;
@@ -87,12 +74,43 @@ public class PrintingProcesser {
 						+ (task.getSheetName() != null ? "(" + task.getSheetName() + ")" : "") + task.copies + "份，纸张大小："
 						+ task.getPaperSize(), totalTaskSize, completedTaskSize);
 			}
-			if (!skip) {
-				printer.printExcel(task.getFilePath(), task.getFromSheetIndex() + 1, task.getToSheetIndex() + 1,
-						task.getCopies());
-			} else {
-				logger.info("跳过打印任务：" + task);
+			printExcel(skip, task);	
+		}
+	}
+	
+	public static void processPrintTasksIfExists() {
+		try {
+			totalTaskSize = A4_PrintTasks.size() + A5_PrintTasks.size() + others_PrintTasks.size();
+			if (totalTaskSize == 0) {
+				logger.info("没有文件需要打印！");
+				return;
 			}
+			
+			if (printer == null) {
+				printer = new JacobPrinter();
+			}
+
+			processPrintTasks(A4_PrintTasks);
+
+			processPrintTasks(A5_PrintTasks);
+
+			processPrintTasks(others_PrintTasks);		
+		} finally {
+			printer.close();
+			completedTaskSize = 0;
+		}
+		
+		if (isPrintingManualHandling) {
+			InteractionHandler.handleProgressCompleted("打印全部完成！");  
+		}
+	}
+	
+	private static void printExcel(boolean skip, ExcelPrintTask task) {
+		if (!skip) {
+			printer.printExcel(task.getFilePath(), task.getFromSheetIndex() + 1, task.getToSheetIndex() + 1,
+					task.getCopies());
+		} else {
+			logger.info("跳过打印任务：" + task);
 		}
 	}
 
@@ -123,7 +141,7 @@ public class PrintingProcesser {
 	
 	private static void createExcelPrintTask(SheetType sheetType, String filePath, int fromSheetIndex, int toSheetIndex, String sheetName)
 			throws Exception {
-		String paperSize = Constant.propUtil.getStringDisEmpty(getPagerSizeConfigKey(sheetType));
+		String paperSize = Constant.propUtil.getStringValue(getPagerSizeConfigKey(sheetType), Constant.PAGE_SIZE_A4);
 		int copies = Constant.propUtil.getIntValue(getCopiesConfigKey(sheetType), 1);
 		ExcelPrintTask printTask = new ExcelPrintTask();
 		printTask.setFilePath(filePath);

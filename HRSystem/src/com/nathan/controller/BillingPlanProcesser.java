@@ -25,7 +25,7 @@ public class BillingPlanProcesser extends AbstractExcelOperater {
 
 	// private ArrayList<BillingPlan> billingPlanList;
 
-	private BillingPlanBook billingPlanBook;
+	protected BillingPlanBook billingPlanBook;
 
 	private boolean bypassBillingOutputCalculation = true;
 
@@ -85,7 +85,7 @@ public class BillingPlanProcesser extends AbstractExcelOperater {
 		this.billingPlanBook = billingPlanBook;
 	}
 
-	private void createBillingPlanFromInputSheet(Sheet readsheet, int rowIndex) throws BillingPlanProcessException {
+	protected void createBillingPlanFromInputSheet(Sheet readsheet, int rowIndex) throws BillingPlanProcessException {
 		if (isToDoBillingPlan(readsheet, rowIndex)) {
 			BillingPlan billingPLan = new BillingPlan();
 			billingPLan.setRowIndex(rowIndex);
@@ -183,11 +183,11 @@ public class BillingPlanProcesser extends AbstractExcelOperater {
 		Cell cell = readsheet.getCell(36, rowIndex);
 		String billingStatus = cell.getContents();		
 		boolean isToDo = !isEmpty(cell) && (BillingStatus.´ýÖÆ×÷.name().equals(billingStatus) || BillingStatus.´ýÉ¾³ý.name().equals(billingStatus));
-		logger.debug("BillingStatus:" + cell.getContents() + ", isToDo:" + isToDo);
+//		logger.debug("BillingStatus:" + cell.getContents() + ", isToDo:" + isToDo);
 		return isToDo;
 	}
 
-	private boolean isEmpty(Cell cell) {
+	protected boolean isEmpty(Cell cell) {
 		return CellType.EMPTY.equals(cell.getType()) || Constant.EMPTY_STRING.equals(cell.getContents());
 	}
 

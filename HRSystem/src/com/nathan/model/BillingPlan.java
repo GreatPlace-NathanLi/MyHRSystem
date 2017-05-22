@@ -268,6 +268,11 @@ public class BillingPlan {
 	public String getBillingDateString() {
 		return String.valueOf(billingYear * 10000 + billingMonth * 100 + billingDay);
 	}
+	
+	public int getBillingYearMonthInt() {
+		return billingYear * 100 + billingMonth;
+	}
+	
 	/**
 	 * @return the invoiceAmount
 	 */

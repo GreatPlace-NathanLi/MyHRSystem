@@ -2,6 +2,7 @@ package com.nathan.view;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
@@ -10,13 +11,9 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
-import javax.swing.text.DefaultStyledDocument;
 
 import org.apache.log4j.Logger;
 
@@ -44,45 +41,28 @@ public class BillingSystem extends JFrame {
         Action[] actions = // Action数组,各种操作命令
                 {
                     new MakePayrollAction(),
-                    new QueryAction(),
                     new SummarizeAction(),
-                    new SystemSettingAction(),
-                    new DataSettingAction(),
-                    new AboutAction(),
+                    new RosterValidationAction(),
                     new ExitAction() };
 
-        setJMenuBar(createJMenuBar(actions)); // 设置菜单栏
         Container container = this.getContentPane(); // 得到容器
         container.add(createJToolBar(actions), BorderLayout.NORTH); // 增加工具栏
-        container.add(textPane, BorderLayout.CENTER); // 增加文本窗格
-        container.add(statusBar, BorderLayout.SOUTH); // 增加状态栏
 
-        setSize(500, 500); // 设置窗口尺寸
+        setSize(280, 68); // 设置窗口尺寸
         setVisible(true); // 设置窗口可视
+        setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // 关闭窗口时退出程序
+        setLocationRelativeTo(null);
+        setAlwaysOnTop(true);
         
+        InteractionHandler.setFrame(this);
+        InteractionHandler.setActionCallback(new BillingSystemCallback());
     }
 
-    private JMenuBar createJMenuBar(Action[] actions) { // 创建菜单栏
-        JMenuBar menubar = new JMenuBar(); // 实例化菜单栏
-        JMenu menuFunction = new JMenu("功能"); // 实例化菜单
-        JMenu menuSetting = new JMenu("设置");
-        JMenu menuAbout = new JMenu("帮助");
-        menuFunction.add(new JMenuItem(actions[0])); // 增加新菜单项
-        menuFunction.add(new JMenuItem(actions[1]));
-        menuFunction.add(new JMenuItem(actions[2]));
-        menuSetting.add(new JMenuItem(actions[3]));
-        menuSetting.add(new JMenuItem(actions[4]));
-        menuAbout.add(new JMenuItem(actions[5]));
-        menuFunction.add(new JMenuItem(actions[6]));
-        menubar.add(menuFunction); // 增加菜单
-        menubar.add(menuSetting);
-        menubar.add(menuAbout);
-        return menubar; // 返回菜单栏
-    }
 
     private JToolBar createJToolBar(Action[] actions) { // 创建工具条
         JToolBar toolBar = new JToolBar(); // 实例化工具条
+        toolBar.setLayout(new FlowLayout());
         for (int i = 0; i < actions.length; i++) {
             JButton bt = new JButton(actions[i]); // 实例化新的按钮
             bt.setRequestFocusEnabled(false); // 设置不需要焦点
@@ -93,11 +73,11 @@ public class BillingSystem extends JFrame {
 
     class MakePayrollAction extends AbstractAction { // 新建文件命令
         public MakePayrollAction() {
-            super("制作工资表");
+            super("工资表制作");
         }
 
         public void actionPerformed(ActionEvent e) {
-            textPane.setDocument(new DefaultStyledDocument()); // 清空文档
+        	InteractionHandler.handleBilling();
         }
     }
 
@@ -138,8 +118,17 @@ public class BillingSystem extends JFrame {
         }
 
         public void actionPerformed(ActionEvent e) {
-        	System.out.println("汇总功能正在完善中，请期待");
-        	JOptionPane.showMessageDialog(BillingSystem.this, "汇总功能正在完善中，请期待"); 
+        	InteractionHandler.handleAggregation();
+        }       
+    }
+    
+    class RosterValidationAction extends AbstractAction {
+        public RosterValidationAction() {
+            super("花名册校验");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+        	InteractionHandler.handleRosterValidation();
         }
     }
 
@@ -164,7 +153,6 @@ public class BillingSystem extends JFrame {
     }
 
     public static void main(String[] args) {
-//        new BillingSystem();
         
         try {
 			InteractionHandler.handleExpireChecking(expireDate);
@@ -173,14 +161,12 @@ public class BillingSystem extends JFrame {
 			Constant.propUtil = new PropertiesUtils(configFile);
 			Constant.propUtil.init();
 
-			InteractionHandler.setActionCallback(new BillingCallback());
-			InteractionHandler.showMenu();
+			new BillingSystem();
 
 		} catch (Exception e) {
 //			logger.error(e.getMessage(), e);
 			logger.info("退出系统！");
 			System.exit(0);			
-//			InteractionHandler.handleException(e.getMessage());
 		}
     }
 }

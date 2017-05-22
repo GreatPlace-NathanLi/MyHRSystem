@@ -43,6 +43,30 @@ public class Util {
 
 		return year * 100 + month;
 	}
+	
+	public static Integer[] buildYearMonthIntArray(int startYearMonth) {
+		int startYear = startYearMonth / 100;
+		int startMonth = startYearMonth % 100;
+		ArrayList<Integer> timeList = new ArrayList<Integer>();
+		for(int y = startYear; y <= getCurrentYear(); y++) {
+			int m, endM;
+			if (y == startYear) {
+				m = startMonth;
+			} else {
+				m = 1;
+			}
+			if (y == getCurrentYear()) {
+				endM = getCurrentMonth();
+			} else {
+				endM = 12;
+			}
+			for (; m <= endM; m++) {
+				timeList.add(y * 100 + m);
+			}
+		}
+		Integer[] a = {};
+		return timeList.toArray(a);
+	}
 
 	public static int getCurrentYear() {
 		Calendar now = Calendar.getInstance();
@@ -351,6 +375,7 @@ public class Util {
 	
 	public static boolean isConfigMatched(String valueToMatch, String config) {
 		String configValue = Constant.propUtil.getStringEnEmpty(config);
+//		logger.debug("正在匹配：" + valueToMatch + " =>> " + configValue);
 		if (configValue.contains(Constant.DELIMITER2)) {
 			String[] s = configValue.split(Constant.DELIMITER2);
 			for (String c : s) {
@@ -423,6 +448,13 @@ public class Util {
 		for (int i = 1; i<=12; i++) {
 			logger.debug(201700 + i + "高温补贴-" + Util.getHighTemperatureAllowance(2017, i));
 		}
+		
+		for (int i : Util.buildYearMonthIntArray(201308)) {
+			logger.debug(i);
+		}
+		
+		logger.debug(isConfigMatched("吉电", Constant.CONFIG_汇总表加班费显示为其他单位));
+		logger.debug(isConfigMatched("吉电", Constant.CONFIG_汇总表标题显示时间单位));
 	}
 	
 }

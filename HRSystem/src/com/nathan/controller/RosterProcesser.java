@@ -502,6 +502,9 @@ public class RosterProcesser extends AbstractExcelOperater {
 	public void validateRosters() throws Exception {
 		String rostersRootPath = Constant.propUtil.getStringValue("user.花名册根目录", Constant.ROSTER_ROOT_PATH);
 		rostersRootPath = InteractionHandler.handleRostersPathInput(rostersRootPath);
+		if (rostersRootPath == null) {
+			return;
+		}
 		long startTime = System.nanoTime();
 		logger.info(Constant.LINE0);
 		logger.info("校验花名册开始...");

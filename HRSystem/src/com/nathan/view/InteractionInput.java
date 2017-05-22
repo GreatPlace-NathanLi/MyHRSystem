@@ -10,9 +10,13 @@ public class InteractionInput {
 	
 	private int startPayMonth;
 	
+	private int startYearMonth;
+	
 	private int endPayYear;
 	
 	private int endPayMonth;
+	
+	private int endYearMonth;
 
 	/**
 	 * @return the company
@@ -71,6 +75,20 @@ public class InteractionInput {
 	}
 
 	/**
+	 * @return the startYearMonth
+	 */
+	public int getStartYearMonth() {
+		return startYearMonth;
+	}
+
+	/**
+	 * @param startYearMonth the startYearMonth to set
+	 */
+	public void setStartYearMonth(int startYearMonth) {
+		this.startYearMonth = startYearMonth;
+	}
+
+	/**
 	 * @return the endPayYear
 	 */
 	public int getEndPayYear() {
@@ -98,15 +116,29 @@ public class InteractionInput {
 		this.endPayMonth = endPayMonth;
 	}
 
+	/**
+	 * @return the endYearMonth
+	 */
+	public int getEndYearMonth() {
+		return endYearMonth;
+	}
+
+	/**
+	 * @param endYearMonth the endYearMonth to set
+	 */
+	public void setEndYearMonth(int endYearMonth) {
+		this.endYearMonth = endYearMonth;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
-		return "InteractionInput [company=" + company + ", projectLeader=" + projectLeader + ", startPayYear="
-				+ startPayYear + ", startPayMonth=" + startPayMonth + ", endPayYear=" + endPayYear + ", endPayMonth="
-				+ endPayMonth + "]";
+		return "InteractionInput [company=" + company + ", projectLeader=" + projectLeader + ", startYearMonth="
+				+ startYearMonth + ", endYearMonth=" + endYearMonth + ", startPayYear=" + startPayYear
+				+ ", startPayMonth=" + startPayMonth + ", endPayYear=" + endPayYear + ", endPayMonth=" + endPayMonth
+				+ "]";
 	}
-	
-	
+
 }
