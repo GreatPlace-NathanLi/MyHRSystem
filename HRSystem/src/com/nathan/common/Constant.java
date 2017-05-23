@@ -39,6 +39,7 @@ public class Constant {
 	
 	public static final String HANDLE_AUTO = "自动";
 	public static final String HANDLE_MANUAL = "人工";
+	public static final String HANDLE_禁止 = "禁止";
 	
 	public static final String ATTENDANCE_SHEET_FLAG = "是";
 	public static final String FLAG_YES = "是";
@@ -46,6 +47,7 @@ public class Constant {
 	
 	public static final String YES = "Y";
 	public static final String NO = "N";
+	public static final String ALL = "ALL";
 	
 	public static final String ROSTER_CASH = "花名册";
 	public static final String ROSTER_BANK = "网银";

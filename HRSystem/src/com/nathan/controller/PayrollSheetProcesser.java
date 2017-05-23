@@ -774,6 +774,19 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			throw new PayrollSheetProcessException("保存工资表出错，" + e.getMessage());
 		}
 	}
+	
+	protected void preWrite(String filePath) {
+		removeVirtualPayrollSheetIfExists(filePath);
+	}
+
+	private void removeVirtualPayrollSheetIfExists(String filePath) {
+		if (!filePath.contains("虚拟_")) {
+			return;
+		}
+		if (delete(filePath)) {
+			logger.debug("删除虚拟工资表：" + filePath);
+		}
+	}
 
 	protected void writeContent(WritableWorkbook wwb) throws Exception {
 		WritableSheet sheet = wwb.getSheet(0);

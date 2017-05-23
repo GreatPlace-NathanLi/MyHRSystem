@@ -389,7 +389,7 @@ public class Util {
 			}
 			return false;
 		}
-		return configValue.trim().equals(valueToMatch);
+		return configValue.trim().equals(valueToMatch) || Constant.ALL.equals(configValue);
 	}
 	
 	public static double getDailyPayByBasePay(double basePay) {

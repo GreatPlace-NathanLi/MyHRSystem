@@ -24,11 +24,13 @@ public class PrintingProcesser {
 
 	private static boolean isPrintingManualHandling = true;
 	private static boolean isPaperSwitchManualHandling = true;
+	private static boolean isPrintingNotAllowed = false;
 
 	private static int totalTaskSize = 0;
 	private static int completedTaskSize = 0;
 
 	public PrintingProcesser() {
+		isPrintingNotAllowed = isPrintingNotAllowed();
 		resetPrintTasks();
 	}
 	
@@ -44,7 +46,11 @@ public class PrintingProcesser {
 		}
 	}
 
-	public void processPrintTasks() throws Exception {	
+	public void processPrintTasks() throws Exception {
+		if (isPrintingNotAllowed) {
+			logger.info("打印功能被禁止！");
+			return;
+		}
 		totalTaskSize = A4_PrintTasks.size() + A5_PrintTasks.size() + others_PrintTasks.size();
 		if (totalTaskSize == 0) {
 			logger.info("没有文件需要打印！");
@@ -123,6 +129,11 @@ public class PrintingProcesser {
 		String handling = Constant.propUtil.getStringValue("user.打印.纸张切换方式", Constant.HANDLE_MANUAL);
 		return Constant.HANDLE_MANUAL.equals(handling);
 	}
+	
+	private boolean isPrintingNotAllowed() {
+		String printingHandling = Constant.propUtil.getStringValue("user.打印.默认处理方式", Constant.HANDLE_MANUAL);
+		return Constant.HANDLE_禁止.equals(printingHandling);
+	}
 
 	public static void createExcelPrintTask(SheetType sheetType, String filePath, int fromSheetIndex, int toSheetIndex)
 			throws Exception {
@@ -141,6 +152,10 @@ public class PrintingProcesser {
 	
 	private static void createExcelPrintTask(SheetType sheetType, String filePath, int fromSheetIndex, int toSheetIndex, String sheetName)
 			throws Exception {
+		if (isPrintingNotAllowed) {
+			logger.info("打印功能被禁止！");
+			return;
+		}
 		String paperSize = Constant.propUtil.getStringValue(getPagerSizeConfigKey(sheetType), Constant.PAGE_SIZE_A4);
 		int copies = Constant.propUtil.getIntValue(getCopiesConfigKey(sheetType), 1);
 		ExcelPrintTask printTask = new ExcelPrintTask();
