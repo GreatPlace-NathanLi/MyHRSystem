@@ -66,10 +66,12 @@ public class Constant {
 	public static final String CONFIG_日薪高 = "user.日薪高";
 	public static final String CONFIG_日薪中 = "user.日薪中";
 	public static final String CONFIG_日薪低 = "user.日薪低";
-	public static final String CONFIG_制表人 = "user.制表人";
-	public static final String CONFIG_复核人 = "user.复核人";
+	public static final String CONFIG_工资表_制表人 = "user.工资表.制表人";
+	public static final String CONFIG_工资表_复核人 = "user.工资表.复核人";
+	public static final String CONFIG_付款单据_制表人 = "user.付款手续单据.制表人";
 	public static final String CONFIG_汇总表加班费显示为其他单位 = "user.汇总表加班费显示为其他单位";
 	public static final String CONFIG_汇总表标题显示时间单位 = "user.汇总表标题显示时间单位";
+	public static final String CONFIG_汇总表不显示制表人单位 = "user.汇总表不显示制表人单位";
 	public static final String CONFIG_默认工资表指定月份 = "user.默认工资表指定月份";
 	public static final String CONFIG_默认开票处理方式 = "user.默认开票处理方式";
 	public static final String CONFIG_默认借人处理方式 = "user.默认借人处理方式";

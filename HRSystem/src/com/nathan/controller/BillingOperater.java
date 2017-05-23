@@ -53,7 +53,7 @@ public class BillingOperater {
 			logger.info("处理工资表");
 			payrollSheetProcesser.processPayrollSheet(billingPlanProcesser.getBillingPlanBook(), rosterProcesser);
 		} catch(Exception e) {
-			logger.error("开票中途出错");
+			logger.error("开票中途被中止或者出错");
 			endBilling();
 			throw e;
 		}

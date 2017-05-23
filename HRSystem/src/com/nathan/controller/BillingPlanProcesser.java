@@ -4,10 +4,12 @@ import org.apache.log4j.Logger;
 
 import com.nathan.common.Constant;
 import com.nathan.exception.BillingPlanProcessException;
+import com.nathan.exception.BillingSuspendException;
 import com.nathan.model.BillingPlan;
 import com.nathan.model.BillingPlanBook;
 import com.nathan.model.BillingPlan.BillingStatus;
 import com.nathan.service.AbstractExcelOperater;
+import com.nathan.view.InteractionHandler;
 
 import jxl.Cell;
 import jxl.CellType;
@@ -33,11 +35,12 @@ public class BillingPlanProcesser extends AbstractExcelOperater {
 		this.billingPlanBook = new BillingPlanBook();
 	}
 
-	public void processBillingPlanInput(String filePath) throws BillingPlanProcessException {
+	public void processBillingPlanInput(String filePath) throws Exception {
 
 		readBillingInput(filePath);
 		if (billingPlanBook.getTotalBillingPlanSize() == 0) {
-			throw new BillingPlanProcessException("没有可处理的开票计划！");
+			InteractionHandler.handleProgressCompleted("没有可处理的开票计划！");
+			throw new BillingSuspendException("没有可处理的开票计划！");
 		}
 
 		logger.info("计算开票计划结果...");

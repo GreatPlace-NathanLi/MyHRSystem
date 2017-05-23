@@ -3,6 +3,7 @@ package com.nathan.controller;
 import org.apache.log4j.Logger;
 
 import com.nathan.common.Constant;
+import com.nathan.common.Util;
 
 public class VirtualBillingOperater extends BillingOperater {
 	
@@ -44,4 +45,10 @@ public class VirtualBillingOperater extends BillingOperater {
 		}
 	}
 	
+	protected void preWrite(String filePath) {
+		if(Util.deleteFile(filePath)) {
+			logger.debug("É¾³ý¾ÉµÄÐéÄâ¿ªÆ±ÎÄµµ£º" + filePath);
+		}
+	}
+
 }

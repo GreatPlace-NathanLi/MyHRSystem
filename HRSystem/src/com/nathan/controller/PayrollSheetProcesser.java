@@ -802,7 +802,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		String sheetName = payrollSheet.getPayrollSheetName();
 		wwb.copySheet(0, sheetName, sheetIndex);
 		WritableSheet newSheet = wwb.getSheet(sheetIndex);
-		writeSheet(newSheet, payrollSheet, sheetIndex);
+		writeSheet(newSheet, payrollSheet);
 		writeFooter(newSheet, Util.getFooterContents(payrollSheet.getProjectUnit(),
 				payrollSheet.getContractID(), SheetType.工资表.getSheetID()));
 		
@@ -812,12 +812,17 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	private void writeSummarySheet(WritableWorkbook wwb, PayrollSheet payrollSheet, int sheetIndex) throws Exception {
 		String sheetName = payrollSheet.getSummarySheetName();
 		wwb.copySheet(1, sheetName, sheetIndex);
-		writeSheet(wwb.getSheet(sheetIndex), payrollSheet, sheetIndex);
+		writeSheet(wwb.getSheet(sheetIndex), payrollSheet);
+		
+		if (needToDeleteSummarySheetTabulator(payrollSheet.getProjectUnit())) {
+			WritableSheet newSheet = wwb.getSheet(sheetIndex);
+			newSheet.removeRow(newSheet.getRows() - 1);
+		}
 		
 		PrintingProcesser.createExcelPrintTask(SheetType.汇总表, filePath, sheetIndex, sheetName);
 	}
 
-	private void writeSheet(WritableSheet newSheet, PayrollSheet payrollSheet, int sheetIndex) throws Exception {
+	private void writeSheet(WritableSheet newSheet, PayrollSheet payrollSheet) throws Exception {
 		updatePayrollInfo(payrollSheet, newSheet);
 		fillPayrollSheet(payrollSheet, newSheet);
 	}
@@ -882,6 +887,10 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 	private boolean needToChangeSummarySheetTitle(String projectUnit) {
 		return Util.isConfigMatched(projectUnit, Constant.CONFIG_汇总表标题显示时间单位);
+	}
+	
+	private boolean needToDeleteSummarySheetTabulator(String projectUnit) {
+		return Util.isConfigMatched(projectUnit, Constant.CONFIG_汇总表不显示制表人单位);
 	}
 
 	private void fillPayrollSheet(PayrollSheet payrollSheet, WritableSheet sheet) throws Exception {

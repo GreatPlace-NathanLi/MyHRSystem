@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 
 import com.nathan.common.Constant;
 import com.nathan.common.Util;
+import com.nathan.exception.BillingSuspendException;
 
 public class InteractionHandler {
 
@@ -98,39 +99,31 @@ public class InteractionHandler {
 
 	public static void handleBilling() {
 		Object[] options = { "正常开票", "虚拟开票", "返回", "退出" };
-		int feedback = JOptionPane.showOptionDialog(frame, "工资表制作", title, JOptionPane.DEFAULT_OPTION,
-				JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
-		if (feedback == -1 || feedback == 2) {
-			try {
+		try {
+			int feedback = JOptionPane.showOptionDialog(frame, "工资表制作", title, JOptionPane.DEFAULT_OPTION,
+					JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+			if (feedback == -1 || feedback == 2) {
 				callback.returnPerformed(ActionType.Billing);
-			} catch (Exception e) {
-				logger.error(e.getMessage(), e);
-				InteractionHandler.handleException(e.getMessage());
+				return;
+//				showMenu();
 			}
-			return;
-//			showMenu();
-		}
-		if (feedback == 3) {
-			exit(ActionType.Billing);
-		}
-		if (feedback == 0) {
-			try {
+			if (feedback == 3) {
+				exit(ActionType.Billing);
+			}
+			if (feedback == 0) {
 				actionType = ActionType.Billing;
 				callback.actionPerformed(ActionType.Billing);
-			} catch (Exception e) {
-				logger.error(e.getMessage(), e);
-				handleException(e.getMessage());
 			}
-		}
-		if (feedback == 1) {
-			try {
+			if (feedback == 1) {
 				actionType = ActionType.VirtualBilling;
 				callback.actionPerformed(ActionType.VirtualBilling);
-			} catch (Exception e) {
-				logger.error(e.getMessage(), e);
-				handleException(e.getMessage());
 			}
-		}
+		} catch (BillingSuspendException se) {
+			logger.info("开票被中止！" + se.getMessage());
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			handleException(e.getMessage());
+		}	
 	}
 	
 	public static void handleAggregation() {
@@ -264,15 +257,7 @@ public class InteractionHandler {
 		int feedback = JOptionPane.showOptionDialog(frame, contractID + "开票人数不足，还差" + remainPayCount + "人，请选择处理方式",
 				title, JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[2]);
 
-		if (feedback == 1) {
-			// String company = JOptionPane.showInputDialog(null, "请输入单位：",
-			// title, JOptionPane.INFORMATION_MESSAGE);
-			// logger.debug("单位： " + company);
-			// while (Constant.EMPTY_STRING.equals(company)) {
-			// company = JOptionPane.showInputDialog(null, "单位不能为空！ 请输入借人单位：",
-			// title, JOptionPane.INFORMATION_MESSAGE);
-			// }
-			
+		if (feedback == 1) {		
 			String path = Constant.propUtil.getStringEnEmpty("user.花名册根目录");
 			Object[] companyList = Util.getFoldersUnderPath(path).toArray();
 			String company = (String) JOptionPane.showInputDialog(frame, "请指定一个借人单位：", title,
@@ -281,6 +266,7 @@ public class InteractionHandler {
 
 			if (company == null) {
 				handleProgressCompleted("开票中止！");
+				throw new BillingSuspendException();
 			}
 
 			// String projectLeader = JOptionPane.showInputDialog(null,
@@ -300,6 +286,7 @@ public class InteractionHandler {
 
 			if (projectLeader == null) {
 				handleProgressCompleted("开票中止！");
+				throw new BillingSuspendException();
 			}
 			
 			InteractionInput input = new InteractionInput();
@@ -350,6 +337,7 @@ public class InteractionHandler {
 		if (!handleIsGoOn(contractID + message)) {
 			callback.actionSuspend(ActionType.Billing);
 			handleProgressCompleted("开票中止！");
+			throw new BillingSuspendException();
 		}
 	}
 
@@ -431,7 +419,7 @@ public class InteractionHandler {
 		if (result <= 0) {
 			callback.actionSuspend(ActionType.Billing);
 			handleProgressCompleted("开票中止！");
-			return -1;
+			throw new BillingSuspendException();
 		}
 		return 1;
 	}

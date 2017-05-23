@@ -89,11 +89,15 @@ public class Util {
 	}
 
 	public static String getTabulator() {
-		return Constant.propUtil.getStringEnEmpty("user.制表人");
+		return Constant.propUtil.getStringEnEmpty(Constant.CONFIG_工资表_制表人);
+	}
+	
+	public static String getPaymentDocTabulator() {
+		return Constant.propUtil.getStringEnEmpty(Constant.CONFIG_付款单据_制表人);
 	}
 	
 	public static String getReviewer() {
-		return Constant.propUtil.getStringEnEmpty("user.复核人");
+		return Constant.propUtil.getStringEnEmpty(Constant.CONFIG_工资表_复核人);
 	}
 
 	public static double getHighTemperatureAllowance(int year, int month) throws Exception {

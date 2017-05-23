@@ -81,7 +81,7 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 		
 		logInfo(sheet);
 
-		Label tabulator = new Label(3, 2, Util.getTabulator(), sheet.getCell(3, 2).getCellFormat());
+		Label tabulator = new Label(3, 2, Util.getPaymentDocTabulator(), sheet.getCell(3, 2).getCellFormat());
 		sheet.addCell(tabulator);
 
 		Label contractID = new Label(1, 3, billingPlan.getContractID(), sheet.getCell(1, 3).getCellFormat());
@@ -130,7 +130,7 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 
 		cell = sheet.getWritableCell(0, 6);
 		String tabulator = ((Label) cell).getString();
-		tabulator = tabulator.replace("NNN", Util.getTabulator());
+		tabulator = tabulator.replace("NNN", Util.getPaymentDocTabulator());
 		((Label) cell).setString(tabulator);
 
 		Label projectUnit = new Label(0, 2, billingPlan.getProjectUnit(), sheet.getCell(0, 2).getCellFormat());

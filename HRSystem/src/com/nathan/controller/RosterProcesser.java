@@ -191,7 +191,7 @@ public class RosterProcesser extends AbstractExcelOperater {
 
 		int rsRows = readsheet.getRows();
 
-		logger.debug("总列数：" + rsColumns + ", 总行数：" + rsRows);
+		logger.debug(readsheet.getName() + " - 总列数：" + rsColumns + ", 总行数：" + rsRows);
 
 		boolean isRosterWithStatistics = isRosterWithStatistics(readsheet);
 		int i = 0;
@@ -203,7 +203,7 @@ public class RosterProcesser extends AbstractExcelOperater {
 		for (; i < rsRows; i++) {
 			ProjectMember member = new ProjectMember();
 
-			member.setOrderNumber(Integer.valueOf(readsheet.getCell(0, i).getContents()));
+			member.setOrderNumber(Integer.valueOf(readsheet.getCell(0, i).getContents().trim()));
 			member.setName(readsheet.getCell(1, i).getContents());
 			member.setBasePay(((NumberCell) readsheet.getCell(2, i)).getValue());
 			member.setContractStartAndEndTime(readsheet.getCell(3, i).getContents());
