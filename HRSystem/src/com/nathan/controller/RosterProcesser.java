@@ -145,8 +145,10 @@ public class RosterProcesser extends AbstractExcelOperater {
 	}
 	
 	public String getRosterFilePath(String company, String projectLeader, int year) {
-		String rosterFile = Constant.propUtil.getStringValue("user.花名册路径", Constant.ROSTER_FILE);
-		String filePath = rosterFile.replaceAll("NNN", projectLeader).replaceAll("YYYY", String.valueOf(year)).replace("UUUU", company);
+		String filePath = Constant.propUtil.getStringValue("user.花名册路径", Constant.ROSTER_FILE);
+		filePath = filePath.replaceAll("NNN", projectLeader);
+		filePath = filePath.replaceAll("YYYY", String.valueOf(year));
+		filePath = filePath.replace("UUUU", company);
 		return filePath;
 	}
 
@@ -165,11 +167,11 @@ public class RosterProcesser extends AbstractExcelOperater {
 			read(filePath);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
-			throw new RosterProcessException("读取花名册出错，" + e.getMessage());
+			throw new RosterProcessException(filePath + ", 读取花名册出错，" + e.getMessage());
 		}
 	}
 
-	protected void readContent(Workbook readwb) {
+	protected void readContent(Workbook readwb) throws Exception {
 		Sheet cashSheet = readwb.getSheet(Constant.ROSTER_CASH);
 		if (cashSheet != null) {
 			readSheet(cashSheet, roster);
@@ -181,6 +183,9 @@ public class RosterProcesser extends AbstractExcelOperater {
 			bankRoster.setLocation(roster.getLocation());
 			readSheet(bankSheet, bankRoster);
 			roster.setBankRoster(bankRoster);
+		}
+		if (cashSheet == null && bankSheet == null) {
+			throw new RosterProcessException("现金和网银花名册都不存在！");
 		}
 	}
 	

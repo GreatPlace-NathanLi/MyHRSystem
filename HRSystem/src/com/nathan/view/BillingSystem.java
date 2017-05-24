@@ -2,7 +2,9 @@ package com.nathan.view;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
@@ -52,13 +54,22 @@ public class BillingSystem extends JFrame {
         setVisible(true); // 设置窗口可视
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // 关闭窗口时退出程序
-        setLocationRelativeTo(null);
+//      setLocationRelativeTo(null);
+        setLocation(this);
         setAlwaysOnTop(true);
-        
+                     
         InteractionHandler.setFrame(this);
         InteractionHandler.setActionCallback(new BillingSystemCallback());
     }
 
+    private void setLocation(JFrame frame) {
+    	 int windowWidth = frame.getWidth(); // 获得窗口宽
+    	 Toolkit kit = Toolkit.getDefaultToolkit(); // 定义工具包
+    	 Dimension screenSize = kit.getScreenSize(); // 获取屏幕的尺寸
+    	 int screenWidth = screenSize.width; // 获取屏幕的宽
+    	 
+    	 setLocation(screenWidth / 2 - windowWidth / 2, 0);
+    }
 
     private JToolBar createJToolBar(Action[] actions) { // 创建工具条
         JToolBar toolBar = new JToolBar(); // 实例化工具条

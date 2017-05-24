@@ -67,8 +67,12 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 		int totalToDo = billingPlanBook.getTotalBillingPlanSize();
 		int totalDone = 0;
-		for (String projectLeader : billingPlanBook.getProjectLeaderBillingPlanMap().keySet()) {
-			List<BillingPlan> billingPlanList = billingPlanBook.getBillingByProjectLeader(projectLeader);
+		
+		if (isBillingManualHandling) {
+			InteractionHandler.handleIsBillingGoOn("总共有" + totalToDo + "个计划需要开票");
+		}
+//		for (String projectLeader : billingPlanBook.getProjectLeaderBillingPlanMap().keySet()) {
+			List<BillingPlan> billingPlanList = billingPlanBook.getBillingPlanList();
 
 			for (BillingPlan billingPlan : billingPlanList) {
 				totalDone++;
@@ -96,7 +100,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 					}
 				}
 			}
-		}
+//		}
 	}
 
 	public boolean isNeededToUpdateBillingPlanBook() {
@@ -398,7 +402,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	private List<String> getAlternatedProjectLeaderList(String company, int year) {
 		String path = Constant.propUtil.getStringEnEmpty("user.花名册领队目录");
 		path = path.replace("YYYY", String.valueOf(year)).replace("UUUU", company);
-		return Util.parseProjectLeadersUnderPath(path);
+		return Util.parseProjectLeadersFromRosterFileUnderPath(path);
 	}
 
 	private void deleteOldBillingInfoForSingleBillingPlan(BillingPlan billingPlan, RosterProcesser rosterProcesser)

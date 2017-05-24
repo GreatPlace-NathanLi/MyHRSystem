@@ -24,12 +24,12 @@ public class BillingSystemCallback implements ActionCallback {
 		case Billing:
 			operater = new BillingOperater();
 			operater.startBilling();
-			InteractionHandler.handleProgressCompleted("开票完成！");
+			InteractionHandler.handleProgressCompleted("开票结束！");
 			break;
 		case VirtualBilling:
 			virtualBillingOperater = new VirtualBillingOperater();
 			virtualBillingOperater.startBilling();
-			InteractionHandler.handleProgressCompleted("虚拟开票完成！");
+			InteractionHandler.handleProgressCompleted("虚拟开票结束！");
 			break;
 		case Aggregating:
 			InteractionInput input = InteractionHandler.handleAggregationInput();
@@ -111,8 +111,6 @@ public class BillingSystemCallback implements ActionCallback {
 			}
 			if (virtualBillingOperater != null) {
 				virtualBillingOperater.release();
-				virtualBillingOperater.deleteFilesAfterPrinting();
-				virtualBillingOperater.saveBillingPlan();
 				virtualBillingOperater = null;
 			}
 			break;

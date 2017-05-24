@@ -174,7 +174,7 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 		logger.error(e.getMessage(), e);
 		if (InteractionHandler.handleWriteRetry(e.getMessage())) {	
 			write(inFile, outFile);
-			logger.info("文件已被释放，重新保存：" + outFile);
+			logger.info("尝试重新保存：" + outFile);
 		}
 	}
 

@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 
 import com.nathan.common.Constant;
 import com.nathan.common.PropertiesUtils;
+import com.nathan.exception.BillingSuspendException;
 import com.nathan.view.ActionType;
 import com.nathan.view.BillingSystemCallback;
 import com.nathan.view.InteractionHandler;
@@ -53,14 +54,15 @@ public class BillingOperater {
 			logger.info("处理工资表");
 			payrollSheetProcesser.processPayrollSheet(billingPlanProcesser.getBillingPlanBook(), rosterProcesser);
 		} catch(Exception e) {
-			logger.error("开票中途被中止或者出错");
+			if (e instanceof BillingSuspendException) {
+				throw e;
+			}
+			logger.error("开票中途被中止或者出错", e);
+			InteractionHandler.handleExceptionWarning("开票中途出错: " + e.getMessage());
+		} finally {
+			logger.info(Constant.LINE1);
 			endBilling();
-			throw e;
-		}
-		
-		logger.info(Constant.LINE1);
-
-		endBilling();
+		}			
 
 		long endTime = System.nanoTime();
 		logger.info(Constant.LINE0);

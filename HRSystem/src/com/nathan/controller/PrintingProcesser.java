@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 
 import com.nathan.common.Constant;
 import com.nathan.common.Util;
+import com.nathan.exception.PrintingSuspendException;
 import com.nathan.model.SheetType;
 import com.nathan.service.ExcelPrinter;
 import com.nathan.service.JacobPrinter;
@@ -71,7 +72,7 @@ public class PrintingProcesser {
 		}	
 	}
 
-	private static void processPrintTasks(List<ExcelPrintTask> printTasks) {
+	private static void processPrintTasks(List<ExcelPrintTask> printTasks) throws PrintingSuspendException {
 		for (ExcelPrintTask task : printTasks) {
 			completedTaskSize++;
 			boolean skip = false;
@@ -101,13 +102,16 @@ public class PrintingProcesser {
 			processPrintTasks(A5_PrintTasks);
 
 			processPrintTasks(others_PrintTasks);		
+		} catch (PrintingSuspendException e) {
+			logger.info("打印被中止！" + e.getMessage());
 		} finally {
+
 			printer.close();
 			completedTaskSize = 0;
 		}
 		
 		if (isPrintingManualHandling) {
-			InteractionHandler.handleProgressCompleted("打印全部完成！");  
+			InteractionHandler.handleProgressCompleted("打印结束！");  
 		}
 	}
 	

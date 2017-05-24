@@ -3,6 +3,7 @@ package com.nathan.view;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.text.DecimalFormat;
 import java.util.List;
@@ -185,6 +186,19 @@ public class AggregatingResultGUI extends JPanel {
 		frame.pack();
 		frame.setVisible(true);
 		frame.setAlwaysOnTop(true);
+		setLocation(frame);
+		
+	}
+	
+	private static void setLocation(JFrame frame) {
+		int windowWidth = frame.getWidth(); // 获得窗口宽
+		int windowHeight = frame.getHeight(); // 获得窗口高
+		Toolkit kit = Toolkit.getDefaultToolkit(); // 定义工具包
+		Dimension screenSize = kit.getScreenSize(); // 获取屏幕的尺寸
+		int screenWidth = screenSize.width; // 获取屏幕的宽
+		int screenHeight = screenSize.height; // 获取屏幕的高
+
+		frame.setLocation(screenWidth / 2 - windowWidth / 2, screenHeight / 4 - windowHeight / 2);
 	}
 	
 	public static void main(String[] args) {

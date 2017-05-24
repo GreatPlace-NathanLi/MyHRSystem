@@ -8,6 +8,7 @@ import org.apache.log4j.Logger;
 import com.nathan.common.Constant;
 import com.nathan.common.Util;
 import com.nathan.exception.BillingSuspendException;
+import com.nathan.exception.PrintingSuspendException;
 
 public class InteractionHandler {
 
@@ -37,7 +38,7 @@ public class InteractionHandler {
 		logger.debug("单位： " + company);
 
 		String path = companyPath + company;
-		Object[] projectLeaderList = Util.parseProjectLeadersFromFileUnderPath(path).toArray();
+		Object[] projectLeaderList = Util.parseProjectLeadersFromRosterFileUnderPath(path).toArray();
 		String projectLeader = (String) JOptionPane.showInputDialog(null, "请选择领队：", title,
 				JOptionPane.INFORMATION_MESSAGE, null, projectLeaderList, projectLeaderList[0]);
 		logger.debug("领队： " + projectLeader);
@@ -98,7 +99,7 @@ public class InteractionHandler {
 	}
 
 	public static void handleBilling() {
-		Object[] options = { "正常开票", "虚拟开票", "返回", "退出" };
+		Object[] options = { "普通开票", "虚拟开票", "返回", "退出" };
 		try {
 			int feedback = JOptionPane.showOptionDialog(frame, "工资表制作", title, JOptionPane.DEFAULT_OPTION,
 					JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
@@ -122,33 +123,34 @@ public class InteractionHandler {
 			logger.info("开票被中止！" + se.getMessage());
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
-			handleException(e.getMessage());
+			handleException("开票中途出错：" + e.getMessage());
 		}	
 	}
 	
 	public static void handleAggregation() {
 		Object[] options = { "劳务费汇总", "借款还款汇总", "返回", "退出" };
-		int feedback = JOptionPane.showOptionDialog(frame, "项目汇总", title, JOptionPane.DEFAULT_OPTION,
-				JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
-		if (feedback == -1 || feedback == 2) {
-//			showMenu();
-			return;
-		}
-		if (feedback == 3) {
-			exit();
-		}
-		if (feedback == 0) {
-			try {
+		try {
+			int feedback = JOptionPane.showOptionDialog(frame, "项目汇总", title, JOptionPane.DEFAULT_OPTION,
+					JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+			if (feedback == -1 || feedback == 2) {
+//				showMenu();
+				return;
+			}
+			if (feedback == 3) {
+				exit();
+			}
+			if (feedback == 0) {
 				actionType = ActionType.Aggregating;
 				callback.actionPerformed(ActionType.Aggregating);
-			} catch (Exception e) {
-				logger.error(e.getMessage(), e);
-				handleException(e.getMessage());
 			}
+			if (feedback == 1) {
+				handleToDo(options[feedback], 1);
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			handleException("汇总中途出错：" + e.getMessage());
 		}
-		if (feedback == 1) {
-			handleToDo(options[feedback], 1);
-		}
+		
 	}
 	
 	public static String handleCompanyInput() {
@@ -215,7 +217,7 @@ public class InteractionHandler {
 			callback.actionPerformed(ActionType.RosterValidation);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
-			handleException(e.getMessage());
+			handleException("校验花名册中途出错：" + e.getMessage());
 		}
 	}
 
@@ -279,7 +281,7 @@ public class InteractionHandler {
 			// }
 
 			String path1 = path + company;
-			Object[] projectLeaderList = Util.parseProjectLeadersFromFileUnderPath(path1).toArray();
+			Object[] projectLeaderList = Util.parseProjectLeadersFromRosterFileUnderPath(path1).toArray();
 			String projectLeader = (String) JOptionPane.showInputDialog(frame, "请指定一个借人领队：", title,
 					JOptionPane.INFORMATION_MESSAGE, null, projectLeaderList, projectLeaderList[0]);
 			logger.debug("借人领队： " + projectLeader);
@@ -332,20 +334,25 @@ public class InteractionHandler {
 
 		return input;
 	}
+	
+	public static void handleIsBillingGoOn(String message) throws Exception {
+		handleIsBillingGoOn("", message); 
+	}
 
 	public static void handleIsBillingGoOn(String contractID, String message) throws Exception {
 		if (!handleIsGoOn(contractID + message)) {
-			callback.actionSuspend(ActionType.Billing);
+//			callback.actionSuspend(ActionType.Billing);
 			handleProgressCompleted("开票中止！");
 			throw new BillingSuspendException();
 		}
 	}
 
-	public static boolean handleIsGoOn(String message) throws Exception {
+	public static boolean handleIsGoOn(String message) {
 		boolean isGoOn = false;
 		Object[] options = { "是", "取消" };
 		int feedback = JOptionPane.showOptionDialog(frame, message + "，是否继续？", title, JOptionPane.DEFAULT_OPTION,
 				JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+		logger.debug("handleIsGoOn feedback:" + feedback);
 		if (feedback == 0) {
 			isGoOn = true;
 		}
@@ -412,12 +419,18 @@ public class InteractionHandler {
 			exit();
 		}
 	}
+	
+	public static void handleExceptionWarning(String message) {
+		Object[] options = { "返回"};
+		JOptionPane.showOptionDialog(frame, message, title, JOptionPane.DEFAULT_OPTION,
+				JOptionPane.ERROR_MESSAGE, null, options, options[0]);
+	}
 
 	public static int confirmExit(int remainPayCount) throws Exception {
 		int result = JOptionPane.showConfirmDialog(frame, "是否要取消开票？", "借人处理", JOptionPane.YES_NO_OPTION);
 		logger.debug("是否要取消开票？ " + result);
 		if (result <= 0) {
-			callback.actionSuspend(ActionType.Billing);
+//			callback.actionSuspend(ActionType.Billing);
 			handleProgressCompleted("开票中止！");
 			throw new BillingSuspendException();
 		}
@@ -449,7 +462,7 @@ public class InteractionHandler {
 		return path;
 	}
 	
-	public static boolean handlePrintTaskConfirmation(String message, int totalToDo, int totalDone) {
+	public static boolean handlePrintTaskConfirmation(String message, int totalToDo, int totalDone) throws PrintingSuspendException {
 		boolean skip = true;
 		Object[] options = {"继续", "跳过", "返回", "退出"};
 		message = message + "   ( 进度：" + totalDone + " / " + totalToDo + " )";
@@ -457,10 +470,8 @@ public class InteractionHandler {
 				JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
 		logger.debug("feedback " + feedback);
 		if (feedback == -1 || feedback == 2) {
-			try {
-				callback.returnPerformed(actionType);
-			} catch (Exception e) {
-				e.printStackTrace();
+			if (confirmPrintingExit() == 1) {
+				handlePrintTaskConfirmation(message, totalToDo, totalDone);
 			}
 //			showMenu();
 		}
@@ -474,5 +485,15 @@ public class InteractionHandler {
 			skip = false;
 		}
 		return skip;
+	}
+	
+	public static int confirmPrintingExit() throws PrintingSuspendException {
+		int result = JOptionPane.showConfirmDialog(frame, "是否要取消打印？", "打印处理", JOptionPane.YES_NO_OPTION);
+		logger.debug("是否要取消打印？ " + result);
+		if (result <= 0) {
+			handleProgressCompleted("打印中止！");
+			throw new PrintingSuspendException();
+		}
+		return 1;
 	}
 }

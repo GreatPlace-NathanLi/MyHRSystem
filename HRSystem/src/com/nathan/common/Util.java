@@ -214,13 +214,15 @@ public class Util {
 		return projectLeaderList;
 	}
 	
-	public static List<String> parseProjectLeadersFromFileUnderPath(String path) {
+	public static List<String> parseProjectLeadersFromRosterFileUnderPath(String path) {
 		List<File> list = getFiles(path, new ArrayList<File>());
 		ArrayList<String> projectLeaderList = new ArrayList<String>();
 		for (int i = 0; i < list.size(); i++) {
-			String name = list.get(i).getName();
-			if (list.get(i).isFile()) {
-				projectLeaderList.add(name.substring(0, name.length() - 12));
+			String fileName = list.get(i).getName();
+			if (list.get(i).isFile() && fileName.contains("花名册")) {
+				String projectLeaderName = fileName.substring(0, fileName.length() - 12);
+//				logger.debug(fileName + " - " + projectLeaderName);
+				projectLeaderList.add(projectLeaderName);
 			}
 		}
 		HashSet<String> h = new HashSet<String>(projectLeaderList);
@@ -414,8 +416,8 @@ public class Util {
 	}
 
 	public static void main(String[] args) throws Exception {
-		Util.parseProjectLeadersFromFileUnderPath("F:/work/project/德盛人力项目管理系统/in/花名册/湛江雷能");
-		Util.parseProjectLeadersFromFileUnderPath("F:/work/project/德盛人力项目管理系统/in/花名册/雷能电力");
+//		Util.parseProjectLeadersFromFileUnderPath("F:/work/project/德盛人力项目管理系统/in/花名册/湛江雷能");
+		Util.parseProjectLeadersFromRosterFileUnderPath("F:/work/project/德盛人力项目管理系统/in/花名册/雷能电力");
 
 		ArrayList<String> filesList = new ArrayList<String>();
 //		Util.listAllFileUnderPath(Constant.ROSTER_ROOT_PATH, filesList);

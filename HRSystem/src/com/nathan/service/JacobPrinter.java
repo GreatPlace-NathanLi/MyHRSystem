@@ -79,20 +79,22 @@ public class JacobPrinter implements ExcelPrinter {
 							.toDispatch();
 					Variant sheetName = Dispatch.get(sheet, "name");
 					logger.info("正在打印: " + sheetName);
-					Dispatch.call(sheet, "PrintOut", argsList);
-					Dispatch.call(workbook, "save");  
-				    Dispatch.call(workbook, "Close" ,  new  Variant(false));  
+					Dispatch.call(sheet, "PrintOut", argsList);	
 				}
 				
 				returnFlg = true;
+				logger.info("打印完成!");
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			e.printStackTrace();
-		} finally {
+		} finally {		
+			Dispatch.call(workbook, "save");  
+			logger.debug("save");
+		    Dispatch.call(workbook, "Close" ,  new  Variant(false));  
+		    logger.debug("close");;
 //			close();
 		}
-		logger.info("打印完成!");
 		return returnFlg;
 	}
 	
