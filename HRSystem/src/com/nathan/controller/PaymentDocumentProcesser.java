@@ -152,7 +152,12 @@ public class PaymentDocumentProcesser extends AbstractExcelOperater {
 				sheet.getCell(6, 2).getCellFormat());
 		sheet.addCell(totalAdministrationExpenses);
 		
-		buildFooter(sheet, SheetType.费用明细表);
+		buildHeader(sheet, SheetType.费用明细表);
+	}
+	
+	private void buildHeader(WritableSheet sheet, SheetType type) {
+		writeHeader(sheet, Util.getFooterContents(billingPlan.getProjectUnit(),
+				billingPlan.getContractID(), type.getSheetID()));
 	}
 	
 	private void buildFooter(WritableSheet sheet, SheetType type) {

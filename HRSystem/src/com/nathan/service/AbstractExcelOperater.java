@@ -158,6 +158,15 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 		}
 	}
 	
+	protected void writeHeader(WritableSheet sheet, String content) {
+		HeaderFooter header = sheet.getSettings().getHeader();
+		logger.debug("old header:" + header);	
+		header.getCentre().setFontSize(8);
+		header.getCentre().append(content);
+		sheet.getSettings().setHeader(header);
+		logger.debug("new header:" + sheet.getSettings().getHeader());
+	}
+	
 	protected void writeFooter(WritableSheet sheet, String content) {
 		HeaderFooter footer = sheet.getSettings().getFooter();
 		logger.debug("old footer:" + footer);	
