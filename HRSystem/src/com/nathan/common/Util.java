@@ -232,16 +232,22 @@ public class Util {
 		return projectLeaderList;
 	}
 
-	public static void listAllFileUnderPath(String filepath, ArrayList<String> filesList) throws Exception {
+	public static void listAllFileUnderPath(String filepath, ArrayList<String> filesList, String prefixFilter) throws Exception {
 		try {
-
+			if (filepath.contains(Constant.DELIMITER3)) {
+				String[] s = filepath.split(Constant.DELIMITER33);
+				filepath = s[0];
+				prefixFilter = s[1];
+			}
+			logger.debug("List all files under: " + filepath + " with prefixFilter: " + prefixFilter);
+			
 			File file = new File(filepath);
 			if (!file.isDirectory()) {
 				// System.out.println("文件");
 				// System.out.println("path=" + file.getPath());
-				System.out.println("absolutepath=" + file.getAbsolutePath());
+//				System.out.println("absolutepath=" + file.getAbsolutePath());
 				// System.out.println("name=" + file.getName());
-				parseFilePath(file.getAbsolutePath(), filesList);
+				parseFilePath(file, filesList, prefixFilter);
 			} else if (file.isDirectory()) {
 				// System.out.println("文件夹");
 				String[] filelist = file.list();
@@ -249,11 +255,11 @@ public class Util {
 					File readfile = new File(filepath + "\\" + filelist[i]);
 					if (!readfile.isDirectory()) {
 						// System.out.println("path=" + readfile.getPath());
-						System.out.println("absolutepath=" + readfile.getAbsolutePath());
+//						System.out.println("absolutepath=" + readfile.getAbsolutePath());
 						// System.out.println("name=" + readfile.getName());
-						parseFilePath(readfile.getAbsolutePath(), filesList);
+						parseFilePath(readfile, filesList, prefixFilter);
 					} else if (readfile.isDirectory()) {
-						listAllFileUnderPath(filepath + "\\" + filelist[i], filesList);
+						listAllFileUnderPath(filepath + "\\" + filelist[i], filesList, prefixFilter);
 					}
 				}
 			}
@@ -262,8 +268,10 @@ public class Util {
 		}
 	}
 
-	private static void parseFilePath(String filePath, ArrayList<String> filesList) {
-		if (filePath.contains("花名册.xls")) {
+	private static void parseFilePath(File file, ArrayList<String> filesList, String prefixFilter) {
+		String fileName = file.getName();
+		String filePath = file.getAbsolutePath();
+		if (fileName.contains("花名册.xls") && (prefixFilter == null || fileName.startsWith(prefixFilter))) {
 			filePath = filePath.replaceAll("\\\\", "/");
 			filesList.add(filePath);
 		}
@@ -485,9 +493,21 @@ public class Util {
 //		
 //		logger.debug(isConfigMatched("吉电", Constant.CONFIG_汇总表加班费显示为其他单位));
 //		logger.debug(isConfigMatched("吉电", Constant.CONFIG_汇总表标题显示时间单位));
-		logger.debug(1666.00 % 130);
-		logger.debug(1666.00 /130);
-		logger.debug(((int)74.00/10 /7 + 1)*10);
+//		logger.debug(1666.00 % 130);
+//		logger.debug(1666.00 /130);
+//		logger.debug(((int)74.00/10 /7 + 1)*10);
+		
+		String s = "F:/work/project/德盛人力项目管理系统/in/花名册/雷能电力";
+		String s1 = s + "*" + "陈志强";
+		String sa[] = s1.split("\\*");
+		logger.debug(sa[0]);
+		logger.debug(sa[1]);
+		
+		ArrayList<String> filesList = new ArrayList<String>();
+		Util.listAllFileUnderPath(s1, filesList, null);
+		for (String file : filesList) {
+			logger.debug(file);
+		}
 
 	}
 	

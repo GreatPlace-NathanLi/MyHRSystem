@@ -35,6 +35,8 @@ public class Constant {
 	public static final String DELIMITER00 = "\\|";
 	public static final String DELIMITER1 = "-";
 	public static final String DELIMITER2 = ",";
+	public static final String DELIMITER3 = "*";
+	public static final String DELIMITER33 = "\\*";
 	public static final String EMPTY_STRING = "";
 	
 	public static final String MATCHES = "[A-Za-z]:\\\\[^:?\"><*]*";  

@@ -167,7 +167,7 @@ public class RosterProcesser extends AbstractExcelOperater {
 			read(filePath);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
-			throw new RosterProcessException(filePath + ", 读取花名册出错，" + e.getMessage());
+			throw new RosterProcessException("读取花名册出错，" + e.getMessage());
 		}
 	}
 
@@ -517,7 +517,7 @@ public class RosterProcesser extends AbstractExcelOperater {
 
 		ArrayList<String> filesList = new ArrayList<String>();
 		
-		Util.listAllFileUnderPath(rostersRootPath, filesList);
+		Util.listAllFileUnderPath(rostersRootPath, filesList, null);
 		
 		String result = null;
 		if (InteractionHandler.handleIsGoOn("总共有" + filesList.size() + "份花名册需要校验")) {
@@ -559,12 +559,12 @@ public class RosterProcesser extends AbstractExcelOperater {
 		sb.append(rostersRootPath);
 		sb.append(" 花名册校验完成，");
 		if (failedFilesList.size()>0) {
-			sb.append(failedFilesList.size()).append("份花名册没有通过校验：");
+			sb.append(failedFilesList.size()).append("份花名册没有通过校验：\r\n");
 			for (int i = 0; i < failedFilesList.size(); i++) {
 				sb.append("\r\n").append(failedFilesList.get(i));
-				sb.append("(").append(failedReasonList.get(i)).append(")");
+				sb.append(" ( ").append(failedReasonList.get(i)).append(")");
 			}
-			sb.append("\r\n").append("可在log文件中查找具体原因。");
+			sb.append("\r\n\r\n").append("可在log文件中查找具体原因。");
 		} else {
 			sb.append("全部花名册通过！");
 		}
