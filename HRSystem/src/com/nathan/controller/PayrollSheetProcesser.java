@@ -54,10 +54,21 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	private boolean isNeededToCreateAlternatedPorjectLeaderPayrollSheet = false;
 
 	private int firstProcessingYear = 0;
+	
+	private double lowDailyPay = 150;
+	private double highDailyPay = 170;
+	private double overtimePayStep = 10;
+	private double minOvertiemPay = 50;
+	private double maxOvertimePay = 140;
 
 	public PayrollSheetProcesser() {
 		this.isNeededToCreateAlternatedPorjectLeaderPayrollSheet = Constant.YES.equals(Constant.propUtil
 				.getStringValue("system.isNeededToCreateAlternatedPorjectLeaderPayrollSheet", Constant.NO));
+		this.lowDailyPay = Util.getLowDailyPay();
+		this.highDailyPay = Util.getHighDailyPay();
+		this.overtimePayStep = Util.getOvertimePayStep();
+		this.minOvertiemPay = Util.getMinOvertimePay();
+		this.maxOvertimePay = Util.getMaxOvertimePay();
 	}
 
 	public void processPayrollSheet(BillingPlanBook billingPlanBook, RosterProcesser rosterProcesser) throws Exception {
@@ -67,40 +78,41 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 		int totalToDo = billingPlanBook.getTotalBillingPlanSize();
 		int totalDone = 0;
-		
+
 		if (isBillingManualHandling) {
 			InteractionHandler.handleIsBillingGoOn("总共有" + totalToDo + "个计划需要开票");
 		}
-//		for (String projectLeader : billingPlanBook.getProjectLeaderBillingPlanMap().keySet()) {
-			List<BillingPlan> billingPlanList = billingPlanBook.getBillingPlanList();
+		// for (String projectLeader :
+		// billingPlanBook.getProjectLeaderBillingPlanMap().keySet()) {
+		List<BillingPlan> billingPlanList = billingPlanBook.getBillingPlanList();
 
-			for (BillingPlan billingPlan : billingPlanList) {
-				totalDone++;
-				billingPlan.initBillingStatus();
-				logger.debug("isReconstruction: " + billingPlan.isReconstruction());
-				logger.debug("isToDelete: " + billingPlan.isToDelete());
-				if ((billingPlan.isReconstruction() || billingPlan.isToDelete()) && !isVirtualBilling()) {
-					deleteOldBillingInfoForSingleBillingPlan(billingPlan, rosterProcesser);
-					billingPlan.setBillingStatus(BillingStatus.已删除);
-					isNeededToUpdateBillingPlanBook = true;
-					if (isBillingManualHandling) {
-						InteractionHandler.handleBillingProgressReport(billingPlan.getContractID(),
-								billingPlan.getBillingStatus().name(), totalToDo, totalDone);
-					}
-				}
-				logger.debug("isToCreate: " + billingPlan.isToCreate());
-				if (billingPlan.isToCreate()) {
-					preProcess(billingPlan, rosterProcesser);
-					buildPayrollSheetForSingleBillingPlan(billingPlan, rosterProcesser);
-					billingPlan.setBillingStatus(BillingStatus.已制作);
-					isNeededToUpdateBillingPlanBook = true;
-					if (isBillingManualHandling) {
-						InteractionHandler.handleBillingProgressReport(billingPlan.getContractID(),
-								billingPlan.getBillingStatus().name(), totalToDo, totalDone);
-					}
+		for (BillingPlan billingPlan : billingPlanList) {
+			totalDone++;
+			billingPlan.initBillingStatus();
+			logger.debug("isReconstruction: " + billingPlan.isReconstruction());
+			logger.debug("isToDelete: " + billingPlan.isToDelete());
+			if ((billingPlan.isReconstruction() || billingPlan.isToDelete())) {
+				deleteOldBillingInfoForSingleBillingPlan(billingPlan, rosterProcesser);
+				billingPlan.setBillingStatus(BillingStatus.已删除);
+				isNeededToUpdateBillingPlanBook = true;
+				if (isBillingManualHandling) {
+					InteractionHandler.handleBillingProgressReport(billingPlan.getContractID(),
+							billingPlan.getBillingStatus().name(), totalToDo, totalDone);
 				}
 			}
-//		}
+			logger.debug("isToCreate: " + billingPlan.isToCreate());
+			if (billingPlan.isToCreate()) {
+				preProcess(billingPlan, rosterProcesser);
+				buildPayrollSheetForSingleBillingPlan(billingPlan, rosterProcesser);
+				billingPlan.setBillingStatus(BillingStatus.已制作);
+				isNeededToUpdateBillingPlanBook = true;
+				if (isBillingManualHandling) {
+					InteractionHandler.handleBillingProgressReport(billingPlan.getContractID(),
+							billingPlan.getBillingStatus().name(), totalToDo, totalDone);
+				}
+			}
+		}
+		// }
 	}
 
 	public boolean isNeededToUpdateBillingPlanBook() {
@@ -231,6 +243,8 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 		if (this.firstProcessingYear == 0) {
 			this.firstProcessingYear = processingYear;
+		} else {
+			this.firstProcessingYear = Math.min(this.firstProcessingYear, processingYear);
 		}
 
 		if (remainPayCount > availablePayCount) {
@@ -456,6 +470,10 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 	private int deleteOldRosterCursors(String company, String projectLeader, String contractID, int payYear,
 			RosterProcesser rosterProcesser) throws Exception {
+		if (isVirtualBilling()) {
+			logger.debug("虚拟开票无需删除花名册游标， 领队： " + projectLeader + "，合同号：" + contractID + ", 年份：" + payYear);
+			return 0;
+		}
 		logger.info("删除花名册游标， 领队： " + projectLeader + "，合同号：" + contractID + ", 年份：" + payYear);
 
 		rosterProcesser.processRoster(company, projectLeader, payYear, true);
@@ -611,7 +629,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			if (!isVirtualBilling()) {
 				rosterProcesser.updateProjectMemberRoster(true);
 				logger.info(Constant.LINE1);
-			}			
+			}
 
 			if (subPlan.isAttendanceSheetRequired()) {
 				attendanceSheetProcesser.processAttendanceSheet(subPlan, payrollSheetList);
@@ -700,8 +718,10 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		roster.setNewCursor(payrollSheet.getPayMonth(), payrollSheet.getContractID(), totalAmount);
 
 		double remainAmount = totalAmount - tempAmount;
+		logger.debug("round a - remainAmount:" + remainAmount);
 		int loop = 0;
-		for (int i = 0; i < payrollCount; i++) {
+		int i = 0;
+		for (; i < payrollCount; i++) {
 			if (isRemainAmountTooBig(remainAmount)) {
 				Payroll payroll = payrollSheet.getPayrollList().get(i);
 				payroll.increaseWorkingDays(1);
@@ -724,26 +744,141 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			}
 		}
 
-		for (int i = 0; i < payrollCount; i++) {
-			if (payrollCount == 1) {
-				payrollSheet.getPayrollList().get(i).setOvertimePay(remainAmount);
-				break;
-			}
-			if (isRemainAmountTooBig(remainAmount) || remainAmount >= Constant.DEFAULT_OVERTIME_PAY * 2) {
-				if (payrollSheet.getPayrollList().get(i).getTotalPay() + Constant.DEFAULT_OVERTIME_PAY > taxThreshold) {
-					continue;
-				}
-				payrollSheet.getPayrollList().get(i).setOvertimePay(Constant.DEFAULT_OVERTIME_PAY);
-				remainAmount -= Constant.DEFAULT_OVERTIME_PAY;
-			} else if (payrollSheet.getPayrollList().get(i).getTotalPay() + remainAmount < taxThreshold) {
-				payrollSheet.getPayrollList().get(i).setOvertimePay(remainAmount);
-				break;
-			}
+		logger.debug("round b - remainAmount:" + remainAmount);
+
+		// if (i == 0) {
+		// i = payrollCount - 1;
+		// }
+		// logger.debug("last totalPay: " + payrollSheet.getPayrollList().get(i
+		// - 1).getTotalPay());
+		// if (payrollSheet.getPayrollList().get(i - 1).getTotalPay() >=
+		// taxThreshold - 50) {
+		// payrollSheet.getPayrollList().get(i - 1).decreaseWorkingDays(1);
+		// remainAmount += payrollSheet.getPayrollList().get(i -
+		// 1).getDailyPay();
+		// }
+		// logger.debug("round c - remainAmount:" + remainAmount);
+
+		// for (int i = 0; i < payrollCount; i++) {
+		// if (payrollCount == 1) {
+		// payrollSheet.getPayrollList().get(i).setOvertimePay(remainAmount);
+		// break;
+		// }
+		// if (isRemainAmountTooBig(remainAmount) || remainAmount >=
+		// Constant.DEFAULT_OVERTIME_PAY * 2) {
+		// if (payrollSheet.getPayrollList().get(i).getTotalPay() +
+		// Constant.DEFAULT_OVERTIME_PAY > taxThreshold) {
+		// continue;
+		// }
+		// payrollSheet.getPayrollList().get(i).setOvertimePay(Constant.DEFAULT_OVERTIME_PAY);
+		// remainAmount -= Constant.DEFAULT_OVERTIME_PAY;
+		// } else if (payrollSheet.getPayrollList().get(i).getTotalPay() +
+		// remainAmount < taxThreshold) {
+		// payrollSheet.getPayrollList().get(i).setOvertimePay(remainAmount);
+		// break;
+		// }
+		// }
+
+		remainAmount = assignOvertimePay(payrollSheet, remainAmount, taxThreshold);
+
+		logger.debug("round c - remainAmount:" + remainAmount);
+		if (remainAmount > 0) {
+			throw new PayrollSheetProcessException(payrollSheet.getContractID() + "加班费分配无法满足要求！");
 		}
 
 		adjustPerformancePay(payrollSheet);
 
 		logger.debug("分表金额: " + totalAmount);
+	}
+
+	private double assignOvertimePay(PayrollSheet payrollSheet, double remainAmount, double taxThreshold) {
+		int payrollCount = payrollSheet.getPayrollNumber();
+		if (payrollCount == 1) {
+			payrollSheet.getPayrollList().get(0).setOvertimePay(remainAmount);
+			return 0;
+		}
+
+		double draftOvertimePay;
+		if (remainAmount <= maxOvertimePay) {
+			draftOvertimePay = remainAmount;
+		} else {
+			draftOvertimePay = ((int) (remainAmount / overtimePayStep / payrollCount) + 1) * overtimePayStep;
+			draftOvertimePay = Math.max(minOvertiemPay, draftOvertimePay);
+		}
+
+		double finalOvertimePay = 0;
+
+		for (double tempOvertimePay = draftOvertimePay; tempOvertimePay <= maxOvertimePay; tempOvertimePay += overtimePayStep) {
+			logger.debug("tempOvertimePay: " + tempOvertimePay);
+			double result = rehearsal(tempOvertimePay, payrollSheet, remainAmount, taxThreshold);
+			if (result <= 0) {
+				finalOvertimePay = tempOvertimePay;
+				break;
+			}
+		}
+		logger.debug("round 1 finalOvertimePay: " + finalOvertimePay);
+
+		if (finalOvertimePay <= 0) {
+			for (double tempOvertimePay = draftOvertimePay - overtimePayStep; tempOvertimePay >= 0; tempOvertimePay -= overtimePayStep) {
+				logger.debug("tempOvertimePay: " + tempOvertimePay);
+				double result = rehearsal(tempOvertimePay, payrollSheet, remainAmount, taxThreshold);
+				if (result <= 0) {
+					finalOvertimePay = tempOvertimePay;
+					break;
+				}
+			}
+			logger.debug("round 2 finalOvertimePay: " + finalOvertimePay);
+		}
+
+		for (int i = 0; i < payrollCount; i++) {
+			if (isRemainAmountTooBig(remainAmount) || remainAmount >= finalOvertimePay) {
+				if (payrollSheet.getPayrollList().get(i).getTotalPay() + finalOvertimePay >= taxThreshold) {
+					continue;
+				}
+				payrollSheet.getPayrollList().get(i).setOvertimePay(finalOvertimePay);
+				remainAmount -= finalOvertimePay;
+				if (remainAmount <= 0) {
+					break;
+				}
+			} else if (i >= 1 && remainAmount < minOvertiemPay && finalOvertimePay + remainAmount <= maxOvertimePay
+					&& payrollSheet.getPayrollList().get(i - 1).getTotalPay() + finalOvertimePay
+							+ remainAmount < taxThreshold) {
+				payrollSheet.getPayrollList().get(i).setOvertimePay(finalOvertimePay + remainAmount);
+				remainAmount -= remainAmount;
+				break;
+			} else if (payrollSheet.getPayrollList().get(i).getTotalPay() + remainAmount < taxThreshold) {
+				payrollSheet.getPayrollList().get(i).setOvertimePay(remainAmount);
+				remainAmount -= remainAmount;
+				break;
+			}
+		}
+		return remainAmount;
+	}
+
+	private double rehearsal(double defaultOvertimePay, PayrollSheet payrollSheet, double remainAmount,
+			double taxThreshold) {
+		for (int i = 0; i < payrollSheet.getPayrollNumber(); i++) {
+			if (isRemainAmountTooBig(remainAmount) || remainAmount >= defaultOvertimePay) {
+				if (payrollSheet.getPayrollList().get(i).getTotalPay() + defaultOvertimePay >= taxThreshold) {
+					continue;
+				}
+				remainAmount -= defaultOvertimePay;
+				logger.debug(i + " remainAmount: " + remainAmount);
+				if (remainAmount <= 0) {
+					break;
+				}
+			} else if (i >= 1 && remainAmount < minOvertiemPay && defaultOvertimePay + remainAmount <= maxOvertimePay
+					&& payrollSheet.getPayrollList().get(i - 1).getTotalPay() + defaultOvertimePay
+							+ remainAmount < taxThreshold) {
+				remainAmount -= remainAmount;
+				break;
+			} else if (payrollSheet.getPayrollList().get(i).getTotalPay() + remainAmount < taxThreshold) {
+				remainAmount -= remainAmount;
+				break;
+			}
+		}
+		logger.debug("rehearsal remainAmount: " + remainAmount);
+		return remainAmount;
 	}
 
 	public void adjustPerformancePay(PayrollSheet payrollSheet) {
@@ -763,7 +898,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	}
 
 	private boolean isRemainAmountTooBig(double remainAmount) {
-		return remainAmount >= Constant.LOW_DAILY_PAY * 2 || remainAmount > Constant.HIGH_DAILY_PAY + 50;
+		return remainAmount >= lowDailyPay * 2 || remainAmount > highDailyPay + 50;
 	}
 
 	public void writePayrollSheet(String templatePath, String filePath, List<PayrollSheet> payrollSheetList)
@@ -778,19 +913,19 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			throw new PayrollSheetProcessException("保存工资表出错，" + e.getMessage());
 		}
 	}
-	
-	protected void preWrite(String filePath) {
-		removeVirtualPayrollSheetIfExists(filePath);
-	}
 
-	private void removeVirtualPayrollSheetIfExists(String filePath) {
-		if (!filePath.contains("虚拟_")) {
-			return;
-		}
-		if (delete(filePath)) {
-			logger.debug("删除虚拟工资表：" + filePath);
-		}
-	}
+//	protected void preWrite(String filePath) {
+//		removeVirtualPayrollSheetIfExists(filePath);
+//	}
+//
+//	private void removeVirtualPayrollSheetIfExists(String filePath) {
+//		if (!filePath.contains("虚拟_")) {
+//			return;
+//		}
+//		if (delete(filePath)) {
+//			logger.debug("删除虚拟工资表：" + filePath);
+//		}
+//	}
 
 	protected void writeContent(WritableWorkbook wwb) throws Exception {
 		WritableSheet sheet = wwb.getSheet(0);
@@ -804,7 +939,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		for (int i = 0; i < payrollSheetList.size() * 2; i += 2) {
 			int j = i;
 			if (i > 0) {
-				j = i/2;
+				j = i / 2;
 			}
 			PayrollSheet payrollSheet = payrollSheetList.get(j);
 			writePayrollSheet(wwb, payrollSheet, i + sheetNumber);
@@ -820,9 +955,9 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		wwb.copySheet(0, sheetName, sheetIndex);
 		WritableSheet newSheet = wwb.getSheet(sheetIndex);
 		writeSheet(newSheet, payrollSheet);
-		writeFooter(newSheet, Util.getFooterContents(payrollSheet.getProjectUnit(),
-				payrollSheet.getContractID(), SheetType.工资表.getSheetID()));
-		
+		writeFooter(newSheet, Util.getFooterContents(payrollSheet.getProjectUnit(), payrollSheet.getContractID(),
+				SheetType.工资表.getSheetID()));
+
 		PrintingProcesser.createExcelPrintTask(SheetType.工资表, filePath, sheetIndex, sheetName);
 	}
 
@@ -830,12 +965,12 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		String sheetName = payrollSheet.getSummarySheetName();
 		wwb.copySheet(1, sheetName, sheetIndex);
 		writeSheet(wwb.getSheet(sheetIndex), payrollSheet);
-		
+
 		if (needToDeleteSummarySheetTabulator(payrollSheet.getProjectUnit())) {
 			WritableSheet newSheet = wwb.getSheet(sheetIndex);
 			newSheet.removeRow(newSheet.getRows() - 1);
 		}
-		
+
 		PrintingProcesser.createExcelPrintTask(SheetType.汇总表, filePath, sheetIndex, sheetName);
 	}
 
@@ -883,7 +1018,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		if (needToChangeOvertimePaySubject(payrollSheet.getProjectUnit())) {
 			cell = sheet.getWritableCell(4, 2);
 			((Label) cell).setString("其他");
-			
+
 			cell = sheet.getWritableCell(15, 2);
 			((Label) cell).setString("其他");
 		}
@@ -905,7 +1040,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	private boolean needToChangeSummarySheetTitle(String projectUnit) {
 		return Util.isConfigMatched(projectUnit, Constant.CONFIG_汇总表标题显示时间单位);
 	}
-	
+
 	private boolean needToDeleteSummarySheetTabulator(String projectUnit) {
 		return Util.isConfigMatched(projectUnit, Constant.CONFIG_汇总表不显示制表人单位);
 	}
@@ -998,10 +1133,10 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	}
 
 	protected int calcDraftWorkingDayCount(int payrollCount, double totalAmount, double taxThreshold) {
-		int initWorkingDayCount = (int) Math.floor(totalAmount / payrollCount / Constant.HIGH_DAILY_PAY);
-		while (Constant.HIGH_DAILY_PAY * initWorkingDayCount > taxThreshold) {
+		int initWorkingDayCount = (int) Math.floor(totalAmount / payrollCount / highDailyPay);
+		while (highDailyPay * initWorkingDayCount > taxThreshold) {
 			logger.debug("initWorkingDayCount: " + initWorkingDayCount + ", draft total:"
-					+ Constant.HIGH_DAILY_PAY * initWorkingDayCount);
+					+ highDailyPay * initWorkingDayCount);
 			initWorkingDayCount--;
 		}
 		return initWorkingDayCount;

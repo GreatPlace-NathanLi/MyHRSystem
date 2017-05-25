@@ -3,7 +3,6 @@ package com.nathan.controller;
 import org.apache.log4j.Logger;
 
 import com.nathan.common.Constant;
-import com.nathan.common.Util;
 
 public class VirtualBillingOperater extends BillingOperater {
 	
@@ -42,12 +41,6 @@ public class VirtualBillingOperater extends BillingOperater {
 		if(isNeededToDeleteFileAfterPrinting) {
 			logger.info("删除虚拟开票生成的文档...");
 			printingProcesser.deleteFilesAfterPrinting();
-		}
-	}
-	
-	protected void preWrite(String filePath) {
-		if(Util.deleteFile(filePath)) {
-			logger.debug("删除旧的虚拟开票文档：" + filePath);
 		}
 	}
 

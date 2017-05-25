@@ -522,6 +522,7 @@ public class RosterProcesser extends AbstractExcelOperater {
 		String result = null;
 		if (InteractionHandler.handleIsGoOn("总共有" + filesList.size() + "份花名册需要校验")) {
 			ArrayList<String> failedFilesList = new ArrayList<String>();
+			ArrayList<String> failedReasonList = new ArrayList<String>();
 			for (String file : filesList) {
 				logger.info("校验：" + file);			
 				try {
@@ -534,10 +535,11 @@ public class RosterProcesser extends AbstractExcelOperater {
 				} catch(Exception e) {
 					logger.info("校验不通过，原因：" + e.getMessage());
 					failedFilesList.add(file);
+					failedReasonList.add(e.getMessage());
 				}		
 				logger.info(Constant.LINE1);
 			}		
-			result = buildValidationResult(failedFilesList);
+			result = buildValidationResult(rostersRootPath, failedFilesList, failedReasonList);
 		} else {
 			result = "校验花名册中止！";
 		}	
@@ -552,15 +554,17 @@ public class RosterProcesser extends AbstractExcelOperater {
 		InteractionHandler.handleProgressCompleted(result);
 	}
 	
-	private String buildValidationResult(ArrayList<String> failedFilesList) {
+	private String buildValidationResult(String rostersRootPath, ArrayList<String> failedFilesList, ArrayList<String> failedReasonList) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("花名册校验完成，");
+		sb.append(rostersRootPath);
+		sb.append(" 花名册校验完成，");
 		if (failedFilesList.size()>0) {
 			sb.append(failedFilesList.size()).append("份花名册没有通过校验：");
-			for (String file : failedFilesList) {
-				sb.append("\r\n").append(file);
+			for (int i = 0; i < failedFilesList.size(); i++) {
+				sb.append("\r\n").append(failedFilesList.get(i));
+				sb.append("(").append(failedReasonList.get(i)).append(")");
 			}
-			sb.append("\r\n").append("可在log文件中查找原因。");
+			sb.append("\r\n").append("可在log文件中查找具体原因。");
 		} else {
 			sb.append("全部花名册通过！");
 		}

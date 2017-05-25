@@ -271,15 +271,6 @@ public class InteractionHandler {
 				throw new BillingSuspendException();
 			}
 
-			// String projectLeader = JOptionPane.showInputDialog(null,
-			// "请输入领队：", title, JOptionPane.INFORMATION_MESSAGE);
-			// logger.debug("领队： " + projectLeader);
-			// while (Constant.EMPTY_STRING.equals(projectLeader)) {
-			// projectLeader = JOptionPane.showInputDialog(null, "领队不能为空！
-			// 请输入领队：", title,
-			// JOptionPane.INFORMATION_MESSAGE);
-			// }
-
 			String path1 = path + company;
 			Object[] projectLeaderList = Util.parseProjectLeadersFromRosterFileUnderPath(path1).toArray();
 			String projectLeader = (String) JOptionPane.showInputDialog(frame, "请指定一个借人领队：", title,
@@ -453,13 +444,43 @@ public class InteractionHandler {
 	}
 
 	public static String handleRostersPathInput(String defaultPath) {
-		String path = (String) JOptionPane.showInputDialog(frame, "请输入所需校验花名册的路径", "花名册校验",
-				JOptionPane.INFORMATION_MESSAGE, null, null, defaultPath);
-		logger.debug("校验花名册路径 ：" + path);
-		if (path == null) {
-//			showMenu();
-		}
-		return path;
+		title = "花名册校验";
+		Object[] options = { "指定路径校验", "指定单位领队校验", "取消"};
+			int feedback = JOptionPane.showOptionDialog(frame, "请选择校验方式：", title, JOptionPane.DEFAULT_OPTION,
+					JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+			if (feedback == -1 || feedback == 2) {
+				return null;
+			}
+			if (feedback == 0) {
+				String path = (String) JOptionPane.showInputDialog(frame, "请输入所需校验花名册的路径", title,
+						JOptionPane.INFORMATION_MESSAGE, null, null, defaultPath);
+				logger.debug("校验花名册路径 ：" + path);
+				return path;
+			}
+			if (feedback == 1) {
+				Object[] companyList = Util.getFoldersUnderPath(defaultPath).toArray();
+				String company = (String) JOptionPane.showInputDialog(frame, "请指定校验单位：", title,
+						JOptionPane.INFORMATION_MESSAGE, null, companyList, companyList[0]);
+				logger.debug("校验单位： " + company);
+
+				if (company == null) {
+//					handleProgressCompleted("花名册校验中止！");
+					return null;
+				}
+
+				String path1 = defaultPath + company;
+				Object[] projectLeaderList = Util.parseProjectLeadersFromRosterFileUnderPath(path1).toArray();
+				String projectLeader = (String) JOptionPane.showInputDialog(frame, "请指定校验领队：", title,
+						JOptionPane.INFORMATION_MESSAGE, null, projectLeaderList, projectLeaderList[0]);
+				logger.debug("校验领队： " + projectLeader);
+
+				if (projectLeader == null) {
+//					handleProgressCompleted("花名册校验中止！");
+					return null;
+				}
+				return path1 + "/" + projectLeader;
+			}
+			return null;
 	}
 	
 	public static boolean handlePrintTaskConfirmation(String message, int totalToDo, int totalDone) throws PrintingSuspendException {

@@ -398,17 +398,41 @@ public class Util {
 		double dailyPay = 0.0;
 		double midBasePay = Constant.propUtil.getDoubleValue(Constant.CONFIG_基本工资中位数, Constant.MID_BASE_PAY);
 		if (basePay > midBasePay) {
-			dailyPay = Constant.propUtil.getDoubleValue(Constant.CONFIG_日薪高, Constant.HIGH_DAILY_PAY);
+			dailyPay = getHighDailyPay();
 		} else if (basePay == midBasePay) {
-			dailyPay = Constant.propUtil.getDoubleValue(Constant.CONFIG_日薪中, Constant.MID_DAILY_PAY);
+			dailyPay = getMidDailyPay();
 		} else {
-			dailyPay = Constant.propUtil.getDoubleValue(Constant.CONFIG_日薪低, Constant.LOW_DAILY_PAY);
+			dailyPay = getLowDailyPay();
 		}
 		return dailyPay;
 	}
 	
+	public static double getHighDailyPay() {
+		 return Constant.propUtil.getDoubleValue(Constant.CONFIG_日薪高, Constant.HIGH_DAILY_PAY);
+	}
+	
+	public static double getMidDailyPay() {
+		 return Constant.propUtil.getDoubleValue(Constant.CONFIG_日薪中, Constant.MID_DAILY_PAY);
+	}
+	
+	public static double getLowDailyPay() {
+		 return Constant.propUtil.getDoubleValue(Constant.CONFIG_日薪低, Constant.LOW_DAILY_PAY);
+	}
+	
 	public static double getMinPerformancePay() {
-		return Constant.propUtil.getDoubleValue(Constant.CONFIG_绩效下限, Constant.MID_BASE_PAY);
+		return Constant.propUtil.getDoubleValue(Constant.CONFIG_绩效下限, Constant.MIN_PERFORMANCE_PAY);
+	}
+	
+	public static double getMaxOvertimePay() {
+		return Constant.propUtil.getDoubleValue(Constant.CONFIG_加班费上限, Constant.MAX_OVERTIME_PAY);
+	}
+	
+	public static double getMinOvertimePay() {
+		return Constant.propUtil.getDoubleValue(Constant.CONFIG_加班费下限, Constant.MIN_OVERTIME_PAY);
+	}
+	
+	public static double getOvertimePayStep() {
+		return Constant.propUtil.getDoubleValue(Constant.CONFIG_加班费计算步幅, Constant.OVERTIME_PAY_STEP);
 	}
 	
 	public static String getFooterContents(String company, String contractID, int order) {
@@ -417,50 +441,55 @@ public class Util {
 
 	public static void main(String[] args) throws Exception {
 //		Util.parseProjectLeadersFromFileUnderPath("F:/work/project/德盛人力项目管理系统/in/花名册/湛江雷能");
-		Util.parseProjectLeadersFromRosterFileUnderPath("F:/work/project/德盛人力项目管理系统/in/花名册/雷能电力");
+//		Util.parseProjectLeadersFromRosterFileUnderPath("F:/work/project/德盛人力项目管理系统/in/花名册/雷能电力");
+//
+//		ArrayList<String> filesList = new ArrayList<String>();
+////		Util.listAllFileUnderPath(Constant.ROSTER_ROOT_PATH, filesList);
+//		System.out.println(filesList);
+//
+//		System.out.println(getYearFromFilePath("F:/work/project/德盛人力项目管理系统/in/花名册/湛江雷能/2017/张一2017年花名册.xls"));
+//
+//		List<File> list = getFileSort("F:/work/project/德盛人力项目管理系统/backup/");
+//		for (int i = 0; i < list.size(); i++) {
+//			if (i >= 100 && list.get(i).lastModified() < System.currentTimeMillis() - Constant.ONE_DAY) {
+////				System.out.println("delete " + list.get(i).getName() + " : " + list.get(i).lastModified());
+////				list.get(i).delete();
+//			}
+//		}
+//		
+//		Constant.propUtil.init();
+//		for (int i = 1; i<=12; i++) {
+//			logger.debug(201600 + i + "社保金额-" + Util.getSocialSecurityAmount(2016, i));
+//		}
+//		for (int i = 1; i<=12; i++) {
+//			logger.debug(201700 + i + "社保金额-" + Util.getSocialSecurityAmount(2017, i));
+//		}
+//		
+//		for (int i = 1; i<=12; i++) {
+//			logger.debug(201600 + i + "个税起征点-" + Util.getIndividualIncomeTaxThreshold(2016, i));
+//		}
+//		for (int i = 1; i<=12; i++) {
+//			logger.debug(201700 + i + "个税起征点-" + Util.getIndividualIncomeTaxThreshold(2017, i));
+//		}
+//		
+//		for (int i = 1; i<=12; i++) {
+//			logger.debug(201600 + i + "高温补贴-" + Util.getHighTemperatureAllowance(2016, i));
+//		}
+//		for (int i = 1; i<=12; i++) {
+//			logger.debug(201700 + i + "高温补贴-" + Util.getHighTemperatureAllowance(2017, i));
+//		}
+//		
+//		for (int i : Util.buildYearMonthIntArray(201308)) {
+//			logger.debug(i);
+//		}
+//		
+//		logger.debug(isConfigMatched("吉电", Constant.CONFIG_汇总表加班费显示为其他单位));
+//		logger.debug(isConfigMatched("吉电", Constant.CONFIG_汇总表标题显示时间单位));
+		logger.debug(1666.00 % 130);
+		logger.debug(1666.00 /130);
+		logger.debug(((int)74.00/10 /7 + 1)*10);
 
-		ArrayList<String> filesList = new ArrayList<String>();
-//		Util.listAllFileUnderPath(Constant.ROSTER_ROOT_PATH, filesList);
-		System.out.println(filesList);
-
-		System.out.println(getYearFromFilePath("F:/work/project/德盛人力项目管理系统/in/花名册/湛江雷能/2017/张一2017年花名册.xls"));
-
-		List<File> list = getFileSort("F:/work/project/德盛人力项目管理系统/backup/");
-		for (int i = 0; i < list.size(); i++) {
-			if (i >= 100 && list.get(i).lastModified() < System.currentTimeMillis() - Constant.ONE_DAY) {
-//				System.out.println("delete " + list.get(i).getName() + " : " + list.get(i).lastModified());
-//				list.get(i).delete();
-			}
-		}
-		
-		Constant.propUtil.init();
-		for (int i = 1; i<=12; i++) {
-			logger.debug(201600 + i + "社保金额-" + Util.getSocialSecurityAmount(2016, i));
-		}
-		for (int i = 1; i<=12; i++) {
-			logger.debug(201700 + i + "社保金额-" + Util.getSocialSecurityAmount(2017, i));
-		}
-		
-		for (int i = 1; i<=12; i++) {
-			logger.debug(201600 + i + "个税起征点-" + Util.getIndividualIncomeTaxThreshold(2016, i));
-		}
-		for (int i = 1; i<=12; i++) {
-			logger.debug(201700 + i + "个税起征点-" + Util.getIndividualIncomeTaxThreshold(2017, i));
-		}
-		
-		for (int i = 1; i<=12; i++) {
-			logger.debug(201600 + i + "高温补贴-" + Util.getHighTemperatureAllowance(2016, i));
-		}
-		for (int i = 1; i<=12; i++) {
-			logger.debug(201700 + i + "高温补贴-" + Util.getHighTemperatureAllowance(2017, i));
-		}
-		
-		for (int i : Util.buildYearMonthIntArray(201308)) {
-			logger.debug(i);
-		}
-		
-		logger.debug(isConfigMatched("吉电", Constant.CONFIG_汇总表加班费显示为其他单位));
-		logger.debug(isConfigMatched("吉电", Constant.CONFIG_汇总表标题显示时间单位));
 	}
+	
 	
 }
