@@ -6,9 +6,11 @@ import com.nathan.controller.AggregatingOperater;
 import com.nathan.controller.BillingOperater;
 import com.nathan.controller.RosterProcesser;
 import com.nathan.controller.VirtualBillingOperater;
+import com.nathan.model.AggregatingCriteria;
+import com.nathan.model.AggregatingType;
 
 public class BillingSystemCallback implements ActionCallback {
-	
+
 	private static Logger logger = Logger.getLogger(BillingSystemCallback.class);
 
 	private BillingOperater operater = null;
@@ -31,27 +33,43 @@ public class BillingSystemCallback implements ActionCallback {
 			virtualBillingOperater.startBilling();
 			InteractionHandler.handleProgressCompleted("虚拟开票结束！");
 			break;
-		case Aggregating:
-			InteractionInput input = InteractionHandler.handleAggregationInput();
+		case ServiceFeeAggregating:
+			InteractionInput input = InteractionHandler.handleAggregationInput(AggregatingType.劳务费);
 			if (input == null) {
-//				InteractionHandler.handleProgressCompleted("汇总中止！");
 				return;
 			}
 			if (aggregatingOperater == null) {
 				aggregatingOperater = new AggregatingOperater();
 			}
-			aggregatingOperater.startAggregating(input.getCompany(), input.getProjectLeader(),
-					input.getStartYearMonth(), input.getEndYearMonth());
-//			InteractionHandler.handleProgressCompleted("汇总完成！");
+			aggregatingOperater.startAggregating(AggregatingType.劳务费, getAggregatingCriteria(input));
+			break;
+		case BorrowingAggregating:
+			InteractionInput input1 = InteractionHandler.handleAggregationInput(AggregatingType.借款情况);
+			if (input1 == null) {
+				return;
+			}
+			if (aggregatingOperater == null) {
+				aggregatingOperater = new AggregatingOperater();
+			}
+			aggregatingOperater.startAggregating(AggregatingType.借款情况, getAggregatingCriteria(input1));
 			break;
 		case RosterValidation:
 			RosterProcesser rosterProcesser = new RosterProcesser();
 			rosterProcesser.validateRosters();
-//			InteractionHandler.handleProgressCompleted("花名册校验完成！");
 		default:
 			break;
 		}
 
+	}
+	
+	private AggregatingCriteria getAggregatingCriteria(InteractionInput input) {
+		AggregatingCriteria criteria = new AggregatingCriteria();
+		criteria.setCompany(input.getCompany());
+		criteria.setProjectLeader(input.getProjectLeader());
+		criteria.setStartYearMonthInt(input.getStartYearMonth());
+		criteria.setEndYearMonthInt(input.getEndYearMonth());
+		logger.debug(criteria);
+		return criteria;
 	}
 
 	@Override

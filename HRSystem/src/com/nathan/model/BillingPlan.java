@@ -37,6 +37,11 @@ public class BillingPlan {
 	private int endPayMonth;
 	private String attendanceSheetFlag;
 	
+	private int bollowingDateInt;	
+	private double bollowingAmount = 0.0;	
+	private int repaymentDateInt;	
+	private double repaymentAmount = 0.0;
+	
 	private int rowIndex;
 	private transient int processingPayCount = 0;
 	private transient double processingTotalPay = 0.0;
@@ -700,6 +705,62 @@ public class BillingPlan {
 	public void setAttendanceSheetFlag(String attendanceSheetFlag) {
 		this.attendanceSheetFlag = attendanceSheetFlag;
 		this.isAttendanceSheetRequired = Constant.ATTENDANCE_SHEET_FLAG.equals(attendanceSheetFlag);
+	}
+
+	/**
+	 * @return the bollowingDateInt
+	 */
+	public int getBollowingDateInt() {
+		return bollowingDateInt;
+	}
+
+	/**
+	 * @param bollowingDateInt the bollowingDateInt to set
+	 */
+	public void setBollowingDateInt(int bollowingDateInt) {
+		this.bollowingDateInt = bollowingDateInt;
+	}
+
+	/**
+	 * @return the bollowingAmount
+	 */
+	public double getBollowingAmount() {
+		return bollowingAmount;
+	}
+
+	/**
+	 * @param bollowingAmount the bollowingAmount to set
+	 */
+	public void setBollowingAmount(double bollowingAmount) {
+		this.bollowingAmount = bollowingAmount;
+	}
+
+	/**
+	 * @return the repaymentDateInt
+	 */
+	public int getRepaymentDateInt() {
+		return repaymentDateInt;
+	}
+
+	/**
+	 * @param repaymentDateInt the repaymentDateInt to set
+	 */
+	public void setRepaymentDateInt(int repaymentDateInt) {
+		this.repaymentDateInt = repaymentDateInt;
+	}
+
+	/**
+	 * @return the repaymentAmount
+	 */
+	public double getRepaymentAmount() {
+		return repaymentAmount;
+	}
+
+	/**
+	 * @param repaymentAmount the repaymentAmount to set
+	 */
+	public void setRepaymentAmount(double repaymentAmount) {
+		this.repaymentAmount = repaymentAmount;
 	}
 
 	/**

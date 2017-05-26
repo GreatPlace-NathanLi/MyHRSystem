@@ -79,6 +79,22 @@ public class AggregatingInputProcesser extends BillingPlanProcesser {
 				if (cell.getType().equals(CellType.NUMBER)) {
 					billingPLan.setWithdrawalFee(((NumberCell) cell).getValue());
 				}
+				
+				try {
+					cell = readsheet.getCell(31, rowIndex);
+					billingPLan.setBollowingDateInt(getIntValue(cell));
+					
+					cell = readsheet.getCell(32, rowIndex);
+					billingPLan.setBollowingAmount(getDoubleValue(cell));
+					
+					cell = readsheet.getCell(33, rowIndex);
+					billingPLan.setRepaymentDateInt(getIntValue(cell));
+					
+					cell = readsheet.getCell(34, rowIndex);
+					billingPLan.setRepaymentAmount(getDoubleValue(cell));
+				} catch (Exception e) {
+					logger.error(e.getMessage());					
+				}				
 
 				billingPlanBook.addBillingPlan(billingPLan);
 			}

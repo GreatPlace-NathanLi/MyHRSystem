@@ -1,9 +1,14 @@
 package com.nathan.controller;
 
-public interface AggregatingResultProcesser {
+import com.nathan.model.AggregatingCriteria;
+import com.nathan.model.AggregatingResultSheet;
 
-	public void save(Object result);
+public interface AggregatingResultProcesser {
 	
-	public void print(Object result);
+	public AggregatingResultSheet process(Object processingData, AggregatingCriteria criteria) throws Exception;
+
+	public void save(AggregatingResultSheet result);
+	
+	public void print(AggregatingResultSheet result);
 
 }

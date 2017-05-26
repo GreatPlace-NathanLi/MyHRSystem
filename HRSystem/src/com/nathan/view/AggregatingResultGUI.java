@@ -5,7 +5,6 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.text.DecimalFormat;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -25,6 +24,9 @@ import org.apache.log4j.Logger;
 
 import com.nathan.controller.AggregatingResultProcesser;
 import com.nathan.controller.ServiceFeeSummarySheetProcesser;
+import com.nathan.model.AggregatingResultSheet;
+import com.nathan.model.BorrowingSummary;
+import com.nathan.model.BorrowingSummarySheet;
 import com.nathan.model.ServiceFeeSummary;
 import com.nathan.model.ServiceFeeSummarySheet;
 
@@ -34,27 +36,25 @@ public class AggregatingResultGUI extends JPanel {
 	private static Logger logger = Logger.getLogger(AggregatingResultGUI.class);
 
 	private JTable table;
-//	
-//	private AggregatingResultProcesser aggregatingResultProcesser;
-//	
-//	private Object aggregatingResult;
 
 //	public AggregatingResultGUI() {
 //
 //	}
 
-	public AggregatingResultGUI(Object aggregatingResult, AggregatingResultProcesser aggregatingResultProcesser) {
+	public AggregatingResultGUI(AggregatingResultSheet aggregatingResult, AggregatingResultProcesser aggregatingResultProcesser) {
 		super();
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		
-//		this.aggregatingResult = aggregatingResult;
-//		this.aggregatingResultProcesser = aggregatingResultProcesser;
-
-		if (aggregatingResult != null && aggregatingResult instanceof ServiceFeeSummarySheet) {
+		if (aggregatingResult instanceof ServiceFeeSummarySheet) {
 			ServiceFeeSummaryTableModel serviceFeeSummaryTable = new ServiceFeeSummaryTableModel();
 			logger.info("create ServiceFeeSummaryTableModel");
-			serviceFeeSummaryTable.setData((ServiceFeeSummarySheet) aggregatingResult);
+			serviceFeeSummaryTable.setData(aggregatingResult);
 			table = new JTable(serviceFeeSummaryTable);
+		} else if (aggregatingResult instanceof BorrowingSummarySheet) {
+			BorrowingSummaryTableModel borrowingSummaryTable = new BorrowingSummaryTableModel();
+			borrowingSummaryTable.setData(aggregatingResult);
+			logger.info("create BorrowingSummaryTableModel");
+			table = new JTable(borrowingSummaryTable);
 		}
 
 		// table.getTableHeader().setPreferredSize(new Dimension(0,25));
@@ -79,7 +79,7 @@ public class AggregatingResultGUI extends JPanel {
 	}
 
 	class ServiceFeeSummaryTableModel extends AbstractTableModel {
-		final DecimalFormat formatter = new DecimalFormat("###,##0.00");
+//		final DecimalFormat formatter = new DecimalFormat("###,##0.00");
 		private String[] columnNames = { "派遣单位", "月份", "开票金额", "工资", "劳务费", "备注" };
 		// private Object[][] data = {
 		// {"实业总", new Integer(201601), new Double(1716180.35), new
@@ -89,14 +89,18 @@ public class AggregatingResultGUI extends JPanel {
 		// {"合计", null, new Double(470000),new Double(1937400.00), new
 		// Double(122600.00), ""}
 		// };
-		private Object[][] data = null;
+		protected Object[][] data = null;
+		
+		public void setColumnNames(String[] columnNames) {
+			this.columnNames = columnNames;
+		}
 
-		public void setData(ServiceFeeSummarySheet serviceFeeSummarySheet) {
+		public void setData(AggregatingResultSheet aggregatingResult) {
+			ServiceFeeSummarySheet serviceFeeSummarySheet = (ServiceFeeSummarySheet) aggregatingResult;
 			List<ServiceFeeSummary> serviceFeeSummaryList = serviceFeeSummarySheet.getServiceFeeSummaryList();
 			int size = serviceFeeSummaryList.size();
-			data = new Object[size + 1][6];
-			int row = 0;
-			for (; row < size; row++) {
+			data = new Object[size + 1][6];			
+			for (int row = 0; row < size; row++) {
 				data[row][0] = serviceFeeSummaryList.get(row).getCompany();
 				data[row][1] = serviceFeeSummaryList.get(row).getYearMonthInt();
 				data[row][2] = serviceFeeSummaryList.get(row).getInvoiceAmount();
@@ -126,6 +130,36 @@ public class AggregatingResultGUI extends JPanel {
 			return data[row][col];
 		}
 	}
+	
+	class BorrowingSummaryTableModel extends ServiceFeeSummaryTableModel {
+		
+		private String[] columnNames = {"领队", "单位", "合同编号", "借款日期", "借款金额", "还款日期", "还款金额", "备注" };
+		
+		{
+			super.columnNames = columnNames;
+		}
+		
+		public void setData(AggregatingResultSheet aggregatingResult) {
+			BorrowingSummarySheet borrowingSummarySheet = (BorrowingSummarySheet) aggregatingResult;
+			List<BorrowingSummary> borrowingSummaryList = borrowingSummarySheet.getBorrowingSummaryList();
+			int size = borrowingSummaryList.size();
+			data = new Object[size + 1][8];	
+			for (int row = 0; row < size; row++) {
+				BorrowingSummary summary = borrowingSummaryList.get(row);
+				data[row][0] = summary.getProjectLeader();
+				data[row][1] = summary.getCompany();
+				data[row][2] = summary.getContractID();
+				data[row][3] = summary.getBorrowingDateInt();
+				data[row][4] = summary.getBorrowingAmount();
+				data[row][5] = summary.getRepaymentDateInt();
+				data[row][6] = summary.getRepaymentAmount();
+				data[row][7] = summary.getRemark();
+			}
+			data[size][0] = "合计";
+			data[size][4] = borrowingSummarySheet.getBorrowingAmountSum();
+			data[size][6] = borrowingSummarySheet.getRepaymentAmountSum();
+		}		
+	}
 
 	private JToolBar createJToolBar(Action[] actions) { // 创建工具条
 		JToolBar toolBar = new JToolBar(); // 实例化工具条
@@ -140,9 +174,9 @@ public class AggregatingResultGUI extends JPanel {
 
 	class SaveAction extends AbstractAction {
 		private AggregatingResultProcesser aggregatingResultProcesser;
-		private Object aggregatingResult;
+		private AggregatingResultSheet aggregatingResult;
 		
-		public SaveAction(Object aggregatingResult, AggregatingResultProcesser aggregatingResultProcesser) {
+		public SaveAction(AggregatingResultSheet aggregatingResult, AggregatingResultProcesser aggregatingResultProcesser) {
 			super("保存");
 			this.aggregatingResult = aggregatingResult;
 			this.aggregatingResultProcesser = aggregatingResultProcesser;
@@ -155,9 +189,9 @@ public class AggregatingResultGUI extends JPanel {
 
 	class PrintAction extends AbstractAction {
 		private AggregatingResultProcesser aggregatingResultProcesser;
-		private Object aggregatingResult;
+		private AggregatingResultSheet aggregatingResult;
 		
-		public PrintAction(Object aggregatingResult, AggregatingResultProcesser aggregatingResultProcesser) {
+		public PrintAction(AggregatingResultSheet aggregatingResult, AggregatingResultProcesser aggregatingResultProcesser) {
 			super("打印");
 			this.aggregatingResult = aggregatingResult;
 			this.aggregatingResultProcesser = aggregatingResultProcesser;
@@ -172,13 +206,20 @@ public class AggregatingResultGUI extends JPanel {
 	 * Create the GUI and show it. For thread safety, this method should be
 	 * invoked from the event-dispatching thread.
 	 */
-	public static void createAndShowServiceFeeSummaryTableGUI(Object result, AggregatingResultProcesser aggregatingResultProcesser) {	
+	public static void createAndShowAggregatingResultGUI(AggregatingResultSheet aggregatingResult, AggregatingResultProcesser aggregatingResultProcesser) {	
 		// Create and set up the window.
-		JFrame frame = new JFrame("派遣队劳务费汇总结果");
+		JFrame frame = new JFrame();		
+		if (aggregatingResult instanceof ServiceFeeSummarySheet) {
+			frame = new JFrame("派遣队劳务费汇总结果");
+		}
+		if (aggregatingResult instanceof BorrowingSummarySheet) {
+			frame = new JFrame("领队借款情况汇总结果");
+		}
+		
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
 		// Create and set up the content pane.
-		AggregatingResultGUI newContentPane = new AggregatingResultGUI(result, aggregatingResultProcesser);
+		AggregatingResultGUI newContentPane = new AggregatingResultGUI(aggregatingResult, aggregatingResultProcesser);
 		newContentPane.setOpaque(true); // content panes must be opaque
 		frame.setContentPane(newContentPane);
 		
@@ -206,7 +247,7 @@ public class AggregatingResultGUI extends JPanel {
 		// creating and showing this application's GUI.
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				createAndShowServiceFeeSummaryTableGUI(new ServiceFeeSummarySheet(), new ServiceFeeSummarySheetProcesser());
+				createAndShowAggregatingResultGUI(new ServiceFeeSummarySheet(), new ServiceFeeSummarySheetProcesser());
 			}
 		});
 

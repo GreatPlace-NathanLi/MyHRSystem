@@ -2,6 +2,7 @@ package com.nathan.common;
 
 public class Constant {
 	
+	public static final String SYSTEM_NAME = "德盛人力项目管理";
 	public static final double MID_BASE_PAY = 1500;
 	public static final double LOW_DAILY_PAY = 150;
 	public static final double MID_DAILY_PAY = 160;
@@ -87,5 +88,16 @@ public class Constant {
 	public static final String CONFIG_默认开票处理方式 = "user.默认开票处理方式";
 	public static final String CONFIG_默认借人处理方式 = "user.默认借人处理方式";
 	public static final String CONFIG_开票计划路径 = "user.开票计划路径";
+	
+	public static final String CONFIG_汇总_输入路径 = "user.汇总.输入路径";
+	public static final String CONFIG_汇总_劳务费_模板路径 = "user.汇总.劳务费.模板路径";
+	public static final String CONFIG_汇总_劳务费_输出路径 = "user.汇总.劳务费.输出路径";
+	public static final String CONFIG_汇总_借款情况_模板路径 = "user.汇总.借款情况.模板路径";
+	public static final String CONFIG_汇总_借款情况_输出路径 = "user.汇总.借款情况.输出路径";
+	
+	public static final String CONFIG_SYSTEM_checkConfigPath = "system.checkConfigPath";
+	public static final String CONFIG_SYSTEM_checkExpireDate = "system.checkExpireDate";
+	public static final String CONFIG_SYSTEM_expireDate = "system.expireDate";
+	public static final String CONFIG_SYSTEM_NAME = "system.name";
 	
 }

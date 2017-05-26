@@ -232,7 +232,7 @@ public class RosterProcesser extends AbstractExcelOperater {
 			parseCursors(readsheet, isRosterWithStatistics, roster);
 		}
 
-		logger.debug(roster);
+//		logger.debug(roster);
 	}
 
 	private void parseCursors(Sheet readsheet, boolean isRosterWithStatistics, ProjectMemberRoster roster) {

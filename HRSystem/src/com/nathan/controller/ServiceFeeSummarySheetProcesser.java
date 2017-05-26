@@ -9,6 +9,8 @@ import org.apache.log4j.Logger;
 import com.nathan.common.Constant;
 import com.nathan.common.Util;
 import com.nathan.exception.ServiceFeeSummarySheetProcessException;
+import com.nathan.model.AggregatingCriteria;
+import com.nathan.model.AggregatingResultSheet;
 import com.nathan.model.BillingPlan;
 import com.nathan.model.ServiceFeeSummary;
 import com.nathan.model.ServiceFeeSummarySheet;
@@ -36,8 +38,11 @@ public class ServiceFeeSummarySheetProcesser extends AbstractExcelOperater imple
 		this.companyYearMonthSummaryMap = new TreeMap<String, ServiceFeeSummary>();
 	}
 
-	public ServiceFeeSummarySheet processServiceFeeSummarySheet(List<BillingPlan> resultList, String company, int startYearMonth,
-			int endYearMonth) throws Exception {
+	public ServiceFeeSummarySheet process(Object processingData, AggregatingCriteria criteria) throws Exception {
+		
+		@SuppressWarnings("unchecked")
+		List<BillingPlan> resultList = (List<BillingPlan>)processingData; 
+		
 		for (BillingPlan billingPlan : resultList) {
 			ServiceFeeSummary summary = getServiceFeeSummaryFromCache(billingPlan);
 			summary.setYearMonthInt(billingPlan.getBillingYearMonthInt());
@@ -45,11 +50,11 @@ public class ServiceFeeSummarySheetProcesser extends AbstractExcelOperater imple
 					billingPlan.getTotalAdministrationExpenses());
 		}
 		serviceFeeSummarySheet = new ServiceFeeSummarySheet();
-		serviceFeeSummarySheet.setCompany(company);
-		serviceFeeSummarySheet.setStartYearMonthInt(startYearMonth);
-		serviceFeeSummarySheet.setEndYearMonthInt(endYearMonth);
+		serviceFeeSummarySheet.setCompany(criteria.getCompany());
+		serviceFeeSummarySheet.setStartYearMonthInt(criteria.getStartYearMonthInt());
+		serviceFeeSummarySheet.setEndYearMonthInt(criteria.getEndYearMonthInt());
 		for (ServiceFeeSummary summary : companyYearMonthSummaryMap.values()) {
-			summary.setCompany(company);
+			summary.setCompany(criteria.getCompany());
 			serviceFeeSummarySheet.addServiceFeeSummary(summary);
 		}
 		logger.debug(serviceFeeSummarySheet.getServiceFeeSummaryList());
@@ -91,7 +96,7 @@ public class ServiceFeeSummarySheetProcesser extends AbstractExcelOperater imple
 	}
 
 	private String buildServiceFeeSummaryFilePath(ServiceFeeSummarySheet summarySheet, boolean isTemp) throws Exception {
-		String filePath = Constant.propUtil.getStringDisEmpty("user.汇总.输出路径");
+		String filePath = Constant.propUtil.getStringDisEmpty(Constant.CONFIG_汇总_劳务费_输出路径);
 		if (isTemp) {
 			filePath = filePath.replace("UUUU", "TEMP_" + summarySheet.getCompany());
 		} else {
@@ -103,7 +108,7 @@ public class ServiceFeeSummarySheetProcesser extends AbstractExcelOperater imple
 	}
 
 	private String buildServiceFeeSummaryTemplatePath() throws Exception {
-		String paymentDocumentTemplateFile = Constant.propUtil.getStringDisEmpty("user.汇总.模板路径");
+		String paymentDocumentTemplateFile = Constant.propUtil.getStringDisEmpty(Constant.CONFIG_汇总_劳务费_模板路径);
 		return paymentDocumentTemplateFile;
 	}
 
@@ -185,7 +190,7 @@ public class ServiceFeeSummarySheetProcesser extends AbstractExcelOperater imple
 	}
 
 	@Override
-	public void save(Object result) {
+	public void save(AggregatingResultSheet result) {
 		logger.debug("save");
 		if (serviceFeeSummarySheet!= null && result instanceof ServiceFeeSummarySheet) {
 			try {
@@ -197,7 +202,7 @@ public class ServiceFeeSummarySheetProcesser extends AbstractExcelOperater imple
 	}
 
 	@Override
-	public void print(Object result) {
+	public void print(AggregatingResultSheet result) {
 		logger.debug("print");
 		if (serviceFeeSummarySheet!= null && result instanceof ServiceFeeSummarySheet) {
 			try {

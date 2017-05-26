@@ -446,6 +446,14 @@ public class Util {
 	public static String getFooterContents(String company, String contractID, int order) {
 		return company + Constant.DELIMITER1 + contractID + Constant.DELIMITER1 + order;
 	}
+	
+	public static boolean needToCheckConfigPath() {
+		return Constant.YES.equals(Constant.propUtil.getStringValue(Constant.CONFIG_SYSTEM_checkConfigPath, Constant.YES));
+	}
+	
+	public static boolean needToCheckExpireDate() {
+		return Constant.YES.equals(Constant.propUtil.getStringValue(Constant.CONFIG_SYSTEM_checkExpireDate, Constant.NO));
+	}
 
 	public static void main(String[] args) throws Exception {
 //		Util.parseProjectLeadersFromFileUnderPath("F:/work/project/德盛人力项目管理系统/in/花名册/湛江雷能");

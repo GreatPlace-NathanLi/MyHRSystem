@@ -28,6 +28,8 @@ public class BillingSystem extends JFrame {
 	private static Logger logger = Logger.getLogger(BillingSystem.class);
 	
 	private static int expireDate = 20170620;
+	
+	public static String systemName = Constant.SYSTEM_NAME;
 
 //	private static final long serialVersionUID = 8944798469568082934L;
 //
@@ -37,20 +39,21 @@ public class BillingSystem extends JFrame {
 
     JFileChooser filechooser = new JFileChooser(); // 文件选择器
 
-    public BillingSystem() { // 构造函数
-        super("德盛人力项目管理"); // 调用父类构造函数
+    public BillingSystem() { // 构造函数   
+        super(systemName); // 调用父类构造函数
 
         Action[] actions = // Action数组,各种操作命令
                 {
                     new MakePayrollAction(),
                     new SummarizeAction(),
                     new RosterValidationAction(),
-                    new ExitAction() };
+//                  new ExitAction() 
+                    };
 
         Container container = this.getContentPane(); // 得到容器
         container.add(createJToolBar(actions), BorderLayout.NORTH); // 增加工具栏
 
-        setSize(280, 68); // 设置窗口尺寸
+        setSize(270, 68); // 设置窗口尺寸
         setVisible(true); // 设置窗口可视
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // 关闭窗口时退出程序
@@ -125,7 +128,7 @@ public class BillingSystem extends JFrame {
 
     class SummarizeAction extends AbstractAction {
         public SummarizeAction() {
-            super("汇总");
+            super("项目汇总");
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -172,10 +175,11 @@ public class BillingSystem extends JFrame {
 			Constant.propUtil = new PropertiesUtils(configFile);
 			Constant.propUtil.init();
 
+			systemName = Constant.propUtil.getStringValue(Constant.CONFIG_SYSTEM_NAME, Constant.SYSTEM_NAME);
 			new BillingSystem();
 
 		} catch (Exception e) {
-//			logger.error(e.getMessage(), e);
+			logger.error(e.getMessage(), e);
 			logger.info("退出系统！");
 			System.exit(0);			
 		}

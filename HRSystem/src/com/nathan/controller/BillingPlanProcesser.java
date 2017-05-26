@@ -48,7 +48,8 @@ public class BillingPlanProcesser extends AbstractExcelOperater {
 		billingPlanBook.buildProjectLeaderBillingPlanMap();
 		billingPlanBook.buildProjectLeaderPayrollCountMap();
 
-		logger.info("开票计划： " + billingPlanBook);
+//		logger.info("开票数量： " + billingPlanBook);
+		logger.info("开票计划数量： " + billingPlanBook.getTotalBillingPlanSize());
 	}
 
 	public void readBillingInput(String filePath) throws BillingPlanProcessException {

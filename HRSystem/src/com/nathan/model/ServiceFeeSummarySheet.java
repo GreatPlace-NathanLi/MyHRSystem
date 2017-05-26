@@ -3,14 +3,8 @@ package com.nathan.model;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ServiceFeeSummarySheet {
-	
-	private String company;
-	
-	private int startYearMonthInt;
-	
-	private int endYearMonthInt;
-	
+public class ServiceFeeSummarySheet extends AggregatingResultSheet {
+		
 	private double invoiceAmountSum = 0.0;
 	
 	private double totalPaySum = 0.0;
@@ -31,48 +25,6 @@ public class ServiceFeeSummarySheet {
 		this.invoiceAmountSum += summary.getInvoiceAmount();
 		this.totalPaySum += summary.getTotalPay();
 		this.totalAdministrationExpensesSum += summary.getTotalAdministrationExpenses();
-	}
-	
-	/**
-	 * @return the company
-	 */
-	public String getCompany() {
-		return company;
-	}
-
-	/**
-	 * @param company the company to set
-	 */
-	public void setCompany(String company) {
-		this.company = company;
-	}
-
-	/**
-	 * @return the startYearMonthInt
-	 */
-	public int getStartYearMonthInt() {
-		return startYearMonthInt;
-	}
-
-	/**
-	 * @param startYearMonthInt the startYearMonthInt to set
-	 */
-	public void setStartYearMonthInt(int startYearMonthInt) {
-		this.startYearMonthInt = startYearMonthInt;
-	}
-
-	/**
-	 * @return the endYearMonthInt
-	 */
-	public int getEndYearMonthInt() {
-		return endYearMonthInt;
-	}
-
-	/**
-	 * @param endYearMonthInt the endYearMonthInt to set
-	 */
-	public void setEndYearMonthInt(int endYearMonthInt) {
-		this.endYearMonthInt = endYearMonthInt;
 	}
 
 	/**
@@ -136,8 +88,8 @@ public class ServiceFeeSummarySheet {
 	 */
 	@Override
 	public String toString() {
-		return "ServiceFeeSummarySheet [company=" + company + ", startYearMonthInt=" + startYearMonthInt
-				+ ", endYearMonthInt=" + endYearMonthInt + ", serviceFeeSummaryList=" + serviceFeeSummaryList + "]";
+		return "ServiceFeeSummarySheet [company=" + this.getCompany() + ", startYearMonthInt=" + this.getStartYearMonthInt()
+				+ ", endYearMonthInt=" + this.getEndYearMonthInt() + ", serviceFeeSummaryList=" + serviceFeeSummaryList + "]";
 	}
 
 }

@@ -9,12 +9,13 @@ import com.nathan.common.Constant;
 import com.nathan.common.Util;
 import com.nathan.exception.BillingSuspendException;
 import com.nathan.exception.PrintingSuspendException;
+import com.nathan.model.AggregatingType;
 
 public class InteractionHandler {
 
 	private static Logger logger = Logger.getLogger(InteractionHandler.class);
 
-	private static String title = "德盛人力项目管理";
+	private static String title;
 
 	private static ActionCallback callback;
 
@@ -23,12 +24,7 @@ public class InteractionHandler {
 	private static JFrame frame;
 
 	public static void main(String[] args) throws Exception {
-		// Object[] options = { "确认", "取消" };
-		// int i = JOptionPane.showOptionDialog(null, "一键开票", "德盛人力项目管理",
-		// JOptionPane.DEFAULT_OPTION,
-		// JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
-		// logger.debug("JOptionPane " + i);
-		//
+
 		Constant.propUtil.init();
 
 		String companyPath = Constant.propUtil.getStringEnEmpty("user.花名册根目录");
@@ -83,10 +79,12 @@ public class InteractionHandler {
 	}
 
 	public static void handleBilling() {
+		title = BillingSystem.systemName;
 		Object[] options = { "普通开票", "虚拟开票", "返回", "退出" };
 		try {
 			int feedback = JOptionPane.showOptionDialog(frame, "工资表制作", title, JOptionPane.DEFAULT_OPTION,
 					JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+			title = "工资表制作";
 			if (feedback == -1 || feedback == 2) {
 				callback.returnPerformed(ActionType.Billing);
 				return;
@@ -112,7 +110,8 @@ public class InteractionHandler {
 	}
 
 	public static void handleAggregation() {
-		Object[] options = { "劳务费汇总", "借款还款汇总", "返回", "退出" };
+		title = BillingSystem.systemName;
+		Object[] options = { "劳务费汇总", "借款情况汇总", "返回", "退出" };
 		try {
 			int feedback = JOptionPane.showOptionDialog(frame, "项目汇总", title, JOptionPane.DEFAULT_OPTION,
 					JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
@@ -124,11 +123,12 @@ public class InteractionHandler {
 				exit();
 			}
 			if (feedback == 0) {
-				actionType = ActionType.Aggregating;
-				callback.actionPerformed(ActionType.Aggregating);
+				actionType = ActionType.ServiceFeeAggregating;
+				callback.actionPerformed(ActionType.ServiceFeeAggregating);
 			}
 			if (feedback == 1) {
-				handleToDo(options[feedback], 1);
+				actionType = ActionType.BorrowingAggregating;
+				callback.actionPerformed(ActionType.BorrowingAggregating);
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
@@ -143,6 +143,16 @@ public class InteractionHandler {
 		String company = (String) handleListSelection(companyArray, "请指定一个汇总单位：", title);
 		logger.debug("汇总单位： " + company);
 		return company;
+	}
+
+	public static String handleProjectLeaderInput(String company) {
+		String path = Constant.propUtil.getStringEnEmpty("user.花名册根目录");
+		path = path + company;
+		Object[] projectLeaderList = Util.parseProjectLeadersFromRosterFileUnderPath(path).toArray();
+		String projectLeader = (String) JOptionPane.showInputDialog(frame, "请指定汇总领队：", title,
+				JOptionPane.INFORMATION_MESSAGE, null, projectLeaderList, projectLeaderList[0]);
+		logger.debug("汇总领队： " + projectLeader);
+		return projectLeader;
 	}
 
 	private static int handleStartYearMonthIntegerInput(int startTime) {
@@ -170,12 +180,24 @@ public class InteractionHandler {
 				list[list.length - 1]);
 	}
 
-	public static InteractionInput handleAggregationInput() {
-		title = "劳务费汇总";
+	public static InteractionInput handleAggregationInput(AggregatingType aggregatingType) {
+		if (AggregatingType.劳务费.equals(aggregatingType)) {
+			title = "劳务费汇总";
+		} else if (AggregatingType.借款情况.equals(aggregatingType)) {
+			title = "借款情况汇总";
+		}
 		String company = handleCompanyInput();
 		if (company == null) {
 			return null;
 		}
+		
+		String projectLeader = null;
+		if (AggregatingType.借款情况.equals(aggregatingType)) {
+			projectLeader = handleProjectLeaderInput(company);
+			if (projectLeader == null) {
+				return null;
+			}
+		}	
 
 		int startYearMonth = handleStartYearMonthIntegerInput(201101);
 		if (startYearMonth == 0) {
@@ -189,6 +211,7 @@ public class InteractionHandler {
 
 		InteractionInput input = new InteractionInput();
 		input.setCompany(company);
+		input.setProjectLeader(projectLeader);
 		input.setStartYearMonth(startYearMonth);
 		input.setEndYearMonth(endYearMonth);
 		logger.debug(input);
@@ -203,6 +226,58 @@ public class InteractionHandler {
 			logger.error(e.getMessage(), e);
 			handleException("校验花名册中途出错：" + e.getMessage());
 		}
+	}
+	
+	public static String handleRostersPathInput(String defaultPath) {
+		title = BillingSystem.systemName;
+		Object[] options = { "路径校验", "单位领队校验", "返回", "退出" };
+		int feedback = JOptionPane.showOptionDialog(frame, "花名册校验", title, JOptionPane.DEFAULT_OPTION,
+				JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+		title = "花名册校验";
+		if (feedback == -1 || feedback == 2) {
+			return null;
+		}
+		if (feedback == 3) {
+			exit();
+		}
+		if (feedback == 0) {
+			String path = (String) JOptionPane.showInputDialog(frame, "请输入所需校验花名册的路径", title,
+					JOptionPane.INFORMATION_MESSAGE, null, null, defaultPath);
+			logger.debug("校验花名册路径 ：" + path);
+			return path;
+		}
+		if (feedback == 1) {
+			Object[] companyList = Util.getFoldersUnderPath(defaultPath).toArray();
+			String company = (String) JOptionPane.showInputDialog(frame, "请指定校验单位：", title,
+					JOptionPane.INFORMATION_MESSAGE, null, companyList, companyList[0]);
+			logger.debug("校验单位： " + company);
+
+			if (company == null) {
+				return null;
+			} else {
+				Object[] options1 = { "开始校验", "选择领队", "取消"};
+				int feedback1 = JOptionPane.showOptionDialog(frame, "校验单位： " + company + "\r\n\r\n请选择下一步：", title, JOptionPane.DEFAULT_OPTION,
+						JOptionPane.INFORMATION_MESSAGE, null, options1, options1[0]);
+				if (feedback1 == -1 || feedback1 == 2) {
+					return null;
+				}
+				if (feedback1 == 0) {
+					return defaultPath + company;
+				}
+			}
+
+			String path1 = defaultPath + company;
+			Object[] projectLeaderList = Util.parseProjectLeadersFromRosterFileUnderPath(path1).toArray();
+			String projectLeader = (String) JOptionPane.showInputDialog(frame, "请指定校验领队：", title,
+					JOptionPane.INFORMATION_MESSAGE, null, projectLeaderList, projectLeaderList[0]);
+			logger.debug("校验领队： " + projectLeader);
+
+			if (projectLeader == null) {
+				return null;
+			}
+			return path1 + Constant.DELIMITER3 + projectLeader;
+		}
+		return null;
 	}
 
 	public static void handleProgressCompleted(String status) {
@@ -344,7 +419,10 @@ public class InteractionHandler {
 	}
 
 	public static String handleConfigPath() {
-		String path = (String) JOptionPane.showInputDialog(frame, "请输入配置文件路径", "德盛人力项目管理",
+//		if (!Util.needToCheckConfigPath()) {
+//			return Constant.CONFIG_FILE;
+//		}
+		String path = (String) JOptionPane.showInputDialog(frame, "请输入系统配置文件路径", BillingSystem.systemName,
 				JOptionPane.INFORMATION_MESSAGE, null, null, Constant.CONFIG_FILE);
 		logger.debug("系统配置文件: " + path);
 		if (path == null) {
@@ -354,6 +432,9 @@ public class InteractionHandler {
 	}
 
 	public static void handleExpireChecking(int expireDate) {
+//		if (!Util.needToCheckExpireDate()) {
+//			return;
+//		}
 		if (Util.getCurrentDateInt() > expireDate) {
 			logger.error("Exception: 本测试版本已经超过有效期，请使用最新版本。");
 			JOptionPane.showMessageDialog(frame, "本测试版本已经超过有效期，请使用最新版本。", "警告", JOptionPane.ERROR_MESSAGE);
@@ -428,57 +509,6 @@ public class InteractionHandler {
 		Util.housekeep();
 		logger.info("退出系统！");
 		System.exit(0);
-	}
-
-	public static String handleRostersPathInput(String defaultPath) {
-		title = "花名册校验";
-		Object[] options = { "路径校验", "单位领队校验", "返回", "退出" };
-		int feedback = JOptionPane.showOptionDialog(frame, "请选择校验方式：", title, JOptionPane.DEFAULT_OPTION,
-				JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
-		if (feedback == -1 || feedback == 2) {
-			return null;
-		}
-		if (feedback == 3) {
-			exit();
-		}
-		if (feedback == 0) {
-			String path = (String) JOptionPane.showInputDialog(frame, "请输入所需校验花名册的路径", title,
-					JOptionPane.INFORMATION_MESSAGE, null, null, defaultPath);
-			logger.debug("校验花名册路径 ：" + path);
-			return path;
-		}
-		if (feedback == 1) {
-			Object[] companyList = Util.getFoldersUnderPath(defaultPath).toArray();
-			String company = (String) JOptionPane.showInputDialog(frame, "请指定校验单位：", title,
-					JOptionPane.INFORMATION_MESSAGE, null, companyList, companyList[0]);
-			logger.debug("校验单位： " + company);
-
-			if (company == null) {
-				return null;
-			} else {
-				Object[] options1 = { "开始校验", "选择领队", "取消"};
-				int feedback1 = JOptionPane.showOptionDialog(frame, "校验单位： " + company + "\r\n\r\n请选择下一步：", title, JOptionPane.DEFAULT_OPTION,
-						JOptionPane.INFORMATION_MESSAGE, null, options1, options1[0]);
-				if (feedback1 == -1 || feedback1 == 2) {
-					return null;
-				}
-				if (feedback1 == 0) {
-					return defaultPath + company;
-				}
-			}
-
-			String path1 = defaultPath + company;
-			Object[] projectLeaderList = Util.parseProjectLeadersFromRosterFileUnderPath(path1).toArray();
-			String projectLeader = (String) JOptionPane.showInputDialog(frame, "请指定校验领队：", title,
-					JOptionPane.INFORMATION_MESSAGE, null, projectLeaderList, projectLeaderList[0]);
-			logger.debug("校验领队： " + projectLeader);
-
-			if (projectLeader == null) {
-				return null;
-			}
-			return path1 + Constant.DELIMITER3 + projectLeader;
-		}
-		return null;
 	}
 
 	public static boolean handlePrintTaskConfirmation(String message, int totalToDo, int totalDone)
