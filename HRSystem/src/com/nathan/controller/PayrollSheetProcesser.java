@@ -816,7 +816,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 				break;
 			}
 		}
-		logger.debug("round 1 finalOvertimePay: " + finalOvertimePay);
+		logger.debug("round 1 finalOvertimePay: " + finalOvertimePay + "  remainAmount:" + remainAmount);
 
 		if (finalOvertimePay <= 0) {
 			for (double tempOvertimePay = draftOvertimePay - overtimePayStep; tempOvertimePay >= 0; tempOvertimePay -= overtimePayStep) {
@@ -827,7 +827,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 					break;
 				}
 			}
-			logger.debug("round 2 finalOvertimePay: " + finalOvertimePay);
+			logger.debug("round 2 finalOvertimePay: " + finalOvertimePay + "  remainAmount:" + remainAmount);
 		}
 
 		for (int i = 0; i < payrollCount; i++) {
@@ -843,7 +843,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			} else if (i >= 1 && remainAmount < minOvertiemPay && finalOvertimePay + remainAmount <= maxOvertimePay
 					&& payrollSheet.getPayrollList().get(i - 1).getTotalPay() + finalOvertimePay
 							+ remainAmount < taxThreshold) {
-				payrollSheet.getPayrollList().get(i).setOvertimePay(finalOvertimePay + remainAmount);
+				payrollSheet.getPayrollList().get(i - 1).setOvertimePay(finalOvertimePay + remainAmount);
 				remainAmount -= remainAmount;
 				break;
 			} else if (payrollSheet.getPayrollList().get(i).getTotalPay() + remainAmount < taxThreshold) {
