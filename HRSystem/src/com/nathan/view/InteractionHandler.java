@@ -136,50 +136,7 @@ public class InteractionHandler {
 		}
 
 	}
-
-	public static String handleCompanyInput() {
-		String path = Constant.propUtil.getStringEnEmpty("user.花名册根目录");
-		Object[] companyArray = Util.getFoldersUnderPath(path).toArray();
-		String company = (String) handleListSelection(companyArray, "请指定一个汇总单位：", title);
-		logger.debug("汇总单位： " + company);
-		return company;
-	}
-
-	public static String handleProjectLeaderInput(String company) {
-		String path = Constant.propUtil.getStringEnEmpty("user.花名册根目录");
-		path = path + company;
-		Object[] projectLeaderList = Util.parseProjectLeadersFromRosterFileUnderPath(path).toArray();
-		String projectLeader = (String) JOptionPane.showInputDialog(frame, "请指定汇总领队：", title,
-				JOptionPane.INFORMATION_MESSAGE, null, projectLeaderList, projectLeaderList[0]);
-		logger.debug("汇总领队： " + projectLeader);
-		return projectLeader;
-	}
-
-	private static int handleStartYearMonthIntegerInput(int startTime) {
-		Object[] timeArray = Util.buildYearMonthIntArray(startTime);
-		Object time = handleListSelection(timeArray, "请指定起始时间(YYYYMM)：", title);
-		if (time == null) {
-			return 0;
-		}
-		logger.debug("起始时间： " + time);
-		return (Integer) time;
-	}
-
-	private static int handleEndYearMonthIntegerInput(int startTime) {
-		Object[] timeArray = Util.buildYearMonthIntArray(startTime);
-		Object time = handleListSelection(timeArray, "请指定终止时间(YYYYMM)：", title);
-		if (time == null) {
-			return 0;
-		}
-		logger.debug("终止时间： " + time);
-		return (Integer) time;
-	}
-
-	private static Object handleListSelection(Object[] list, String message, String title) {
-		return JOptionPane.showInputDialog(frame, message, title, JOptionPane.INFORMATION_MESSAGE, null, list,
-				list[list.length - 1]);
-	}
-
+	
 	public static InteractionInput handleAggregationInput(AggregatingType aggregatingType) {
 		if (AggregatingType.劳务费.equals(aggregatingType)) {
 			title = "劳务费汇总";
@@ -217,6 +174,61 @@ public class InteractionHandler {
 		logger.debug(input);
 
 		return input;
+	}
+
+	public static String handleCompanyInput() {
+		String path = Constant.propUtil.getStringEnEmpty("user.花名册根目录");
+		Object[] companyArray = Util.getFoldersUnderPath(path).toArray();
+		if (companyArray == null || companyArray.length == 0) {
+			handleWarning(path + " 目录下没有任何单位！");
+			return null;
+		}
+		String company = (String) handleListSelection(companyArray, "请指定汇总单位：", title);
+		logger.debug("汇总单位： " + company);
+		return company;
+	}
+
+	public static String handleProjectLeaderInput(String company) {
+		String path = Constant.propUtil.getStringEnEmpty("user.花名册根目录");
+		path = path + company;
+		Object[] projectLeaderList = Util.parseProjectLeadersFromRosterFileUnderPath(path).toArray();
+		if (projectLeaderList == null || projectLeaderList.length == 0) {
+			handleWarning(path + " 目录下没有任何领队花名册！");
+			return null;
+		}
+		String projectLeader = (String) handleListSelection(projectLeaderList, "请指定汇总领队：", title);
+		logger.debug("汇总领队： " + projectLeader);
+		return projectLeader;
+	}
+
+	private static int handleStartYearMonthIntegerInput(int startTime) {
+		Object[] timeArray = Util.buildYearMonthIntArray(startTime);
+		Object time = handleListSelection(timeArray, "请指定起始时间(YYYYMM)：", title);
+		if (time == null) {
+			return 0;
+		}
+		logger.debug("起始时间： " + time);
+		return (Integer) time;
+	}
+
+	private static int handleEndYearMonthIntegerInput(int startTime) {
+		Object[] timeArray = Util.buildYearMonthIntArray(startTime);
+		Object time = handleListSelection(timeArray, "请指定终止时间(YYYYMM)：", title);
+		if (time == null) {
+			return 0;
+		}
+		logger.debug("终止时间： " + time);
+		return (Integer) time;
+	}
+
+	private static Object handleListSelection(Object[] list, String message, String title) {
+		return JOptionPane.showInputDialog(frame, message, title, JOptionPane.INFORMATION_MESSAGE, null, list,
+				list[list.length - 1]);
+	}
+	
+	public static void handleWarning(String message) {
+		logger.info(message);
+		JOptionPane.showMessageDialog(frame, message, title, JOptionPane.WARNING_MESSAGE);
 	}
 
 	public static void handleRosterValidation() {

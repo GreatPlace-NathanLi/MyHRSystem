@@ -93,7 +93,7 @@ public class AggregatingInputProcesser extends BillingPlanProcesser {
 					cell = readsheet.getCell(34, rowIndex);
 					billingPLan.setRepaymentAmount(getDoubleValue(cell));
 				} catch (Exception e) {
-					logger.error(e.getMessage());					
+					logger.debug(e.getMessage(), e);					
 				}				
 
 				billingPlanBook.addBillingPlan(billingPLan);

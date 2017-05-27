@@ -33,7 +33,7 @@ public class AggregatingOperater {
 		if (aggregatingInputProcesser == null) {
 			aggregatingInputProcesser = new AggregatingInputProcesser();
 		}
-		billingPlanList = null;
+
 		if (billingPlanList == null) {
 			String billingFile = getAggregatingInputFilePath();
 			logger.info("从本地读取开票计划输入： " + billingFile);

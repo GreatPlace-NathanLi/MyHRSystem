@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.text.DecimalFormat;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -59,7 +60,7 @@ public class AggregatingResultGUI extends JPanel {
 
 		// table.getTableHeader().setPreferredSize(new Dimension(0,25));
 		table.setRowHeight(20);
-		table.setPreferredScrollableViewportSize(new Dimension(800, 170));
+		table.setPreferredScrollableViewportSize(new Dimension(1000, 280));
 		table.setFillsViewportHeight(true);
 
 		DefaultTableCellRenderer tcr = new DefaultTableCellRenderer();// 单元格渲染器
@@ -80,6 +81,7 @@ public class AggregatingResultGUI extends JPanel {
 
 	class ServiceFeeSummaryTableModel extends AbstractTableModel {
 //		final DecimalFormat formatter = new DecimalFormat("###,##0.00");
+		protected final DecimalFormat decimalFormat = new DecimalFormat("###0.00");
 		private String[] columnNames = { "派遣单位", "月份", "开票金额", "工资", "劳务费", "备注" };
 		// private Object[][] data = {
 		// {"实业总", new Integer(201601), new Double(1716180.35), new
@@ -99,19 +101,19 @@ public class AggregatingResultGUI extends JPanel {
 			ServiceFeeSummarySheet serviceFeeSummarySheet = (ServiceFeeSummarySheet) aggregatingResult;
 			List<ServiceFeeSummary> serviceFeeSummaryList = serviceFeeSummarySheet.getServiceFeeSummaryList();
 			int size = serviceFeeSummaryList.size();
-			data = new Object[size + 1][6];			
+			data = new Object[size + 2][6];
 			for (int row = 0; row < size; row++) {
 				data[row][0] = serviceFeeSummaryList.get(row).getCompany();
 				data[row][1] = serviceFeeSummaryList.get(row).getYearMonthInt();
-				data[row][2] = serviceFeeSummaryList.get(row).getInvoiceAmount();
-				data[row][3] = serviceFeeSummaryList.get(row).getTotalPay();
-				data[row][4] = serviceFeeSummaryList.get(row).getTotalAdministrationExpenses();
+				data[row][2] = decimalFormat.format(serviceFeeSummaryList.get(row).getInvoiceAmount());
+				data[row][3] = decimalFormat.format(serviceFeeSummaryList.get(row).getTotalPay());
+				data[row][4] = decimalFormat.format(serviceFeeSummaryList.get(row).getTotalAdministrationExpenses());
 				data[row][5] = serviceFeeSummaryList.get(row).getRemark();
 			}
-			data[size][0] = "合计";
-			data[size][2] = serviceFeeSummarySheet.getInvoiceAmountSum();
-			data[size][3] = serviceFeeSummarySheet.getTotalPaySum();
-			data[size][4] = serviceFeeSummarySheet.getTotalAdministrationExpensesSum();
+			data[size + 1][0] = "合计";
+			data[size + 1][2] = decimalFormat.format(serviceFeeSummarySheet.getInvoiceAmountSum());
+			data[size + 1][3] = decimalFormat.format(serviceFeeSummarySheet.getTotalPaySum());
+			data[size + 1][4] = decimalFormat.format(serviceFeeSummarySheet.getTotalAdministrationExpensesSum());
 		}
 
 		public int getColumnCount() {
@@ -143,21 +145,21 @@ public class AggregatingResultGUI extends JPanel {
 			BorrowingSummarySheet borrowingSummarySheet = (BorrowingSummarySheet) aggregatingResult;
 			List<BorrowingSummary> borrowingSummaryList = borrowingSummarySheet.getBorrowingSummaryList();
 			int size = borrowingSummaryList.size();
-			data = new Object[size + 1][8];	
+			data = new Object[size + 2][8];	
 			for (int row = 0; row < size; row++) {
 				BorrowingSummary summary = borrowingSummaryList.get(row);
 				data[row][0] = summary.getProjectLeader();
 				data[row][1] = summary.getCompany();
 				data[row][2] = summary.getContractID();
 				data[row][3] = summary.getBorrowingDateInt();
-				data[row][4] = summary.getBorrowingAmount();
+				data[row][4] = decimalFormat.format(summary.getBorrowingAmount());
 				data[row][5] = summary.getRepaymentDateInt();
-				data[row][6] = summary.getRepaymentAmount();
+				data[row][6] = decimalFormat.format(summary.getRepaymentAmount());
 				data[row][7] = summary.getRemark();
 			}
-			data[size][0] = "合计";
-			data[size][4] = borrowingSummarySheet.getBorrowingAmountSum();
-			data[size][6] = borrowingSummarySheet.getRepaymentAmountSum();
+			data[size + 1][0] = "合计";
+			data[size + 1][4] = decimalFormat.format(borrowingSummarySheet.getBorrowingAmountSum());
+			data[size + 1][6] = decimalFormat.format(borrowingSummarySheet.getRepaymentAmountSum());
 		}		
 	}
 
@@ -239,7 +241,7 @@ public class AggregatingResultGUI extends JPanel {
 		int screenWidth = screenSize.width; // 获取屏幕的宽
 		int screenHeight = screenSize.height; // 获取屏幕的高
 
-		frame.setLocation(screenWidth / 2 - windowWidth / 2, screenHeight / 4 - windowHeight / 2);
+		frame.setLocation(screenWidth / 2 - windowWidth / 2, screenHeight / 3 - windowHeight / 2);
 	}
 	
 	public static void main(String[] args) {

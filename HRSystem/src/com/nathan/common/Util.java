@@ -154,7 +154,7 @@ public class Util {
 				folderList.add(array[i].getName());
 			}
 		}
-
+		Collections.sort(folderList);
 		return folderList;
 	}
 	
@@ -228,7 +228,9 @@ public class Util {
 		HashSet<String> h = new HashSet<String>(projectLeaderList);
 		projectLeaderList.clear();
 		projectLeaderList.addAll(h);
-		System.out.println("parseProjectLeadersFromFileUnderPath():" + projectLeaderList);
+		logger.debug("parseProjectLeadersFromFileUnderPath():" + projectLeaderList);
+		Collections.sort(projectLeaderList);
+		logger.debug("parseProjectLeadersFromFileUnderPath() sort:" + projectLeaderList);
 		return projectLeaderList;
 	}
 
@@ -456,12 +458,12 @@ public class Util {
 	}
 
 	public static void main(String[] args) throws Exception {
-//		Util.parseProjectLeadersFromFileUnderPath("F:/work/project/德盛人力项目管理系统/in/花名册/湛江雷能");
-//		Util.parseProjectLeadersFromRosterFileUnderPath("F:/work/project/德盛人力项目管理系统/in/花名册/雷能电力");
-//
-//		ArrayList<String> filesList = new ArrayList<String>();
-////		Util.listAllFileUnderPath(Constant.ROSTER_ROOT_PATH, filesList);
-//		System.out.println(filesList);
+		Util.parseProjectLeadersFromFolderUnderPath("F:/work/project/德盛人力项目管理系统/in/花名册/湛江雷能");
+		Util.parseProjectLeadersFromRosterFileUnderPath("F:/work/project/德盛人力项目管理系统/in/花名册/雷能电力");
+
+		ArrayList<String> filesList = new ArrayList<String>();
+		Util.listAllFileUnderPath(Constant.ROSTER_ROOT_PATH, filesList, null);
+		System.out.println(filesList);
 //
 //		System.out.println(getYearFromFilePath("F:/work/project/德盛人力项目管理系统/in/花名册/湛江雷能/2017/张一2017年花名册.xls"));
 //
@@ -511,9 +513,9 @@ public class Util {
 		logger.debug(sa[0]);
 		logger.debug(sa[1]);
 		
-		ArrayList<String> filesList = new ArrayList<String>();
-		Util.listAllFileUnderPath(s1, filesList, null);
-		for (String file : filesList) {
+		ArrayList<String> filesList1 = new ArrayList<String>();
+		Util.listAllFileUnderPath(s1, filesList1, null);
+		for (String file : filesList1) {
 			logger.debug(file);
 		}
 

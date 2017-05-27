@@ -18,6 +18,7 @@ import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 
 import com.nathan.common.Constant;
 import com.nathan.common.PropertiesUtils;
@@ -168,12 +169,14 @@ public class BillingSystem extends JFrame {
 
     public static void main(String[] args) {
         
-        try {
+        try {   	
 			InteractionHandler.handleExpireChecking(expireDate);
 
 			String configFile = InteractionHandler.handleConfigPath();
 			Constant.propUtil = new PropertiesUtils(configFile);
 			Constant.propUtil.init();
+			
+			PropertyConfigurator.configure(Constant.propUtil.getStringEnEmpty("system.log4j.conf"));
 
 			systemName = Constant.propUtil.getStringValue(Constant.CONFIG_SYSTEM_NAME, Constant.SYSTEM_NAME);
 			new BillingSystem();
