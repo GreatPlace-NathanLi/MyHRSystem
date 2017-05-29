@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 
 import com.nathan.common.Constant;
 import com.nathan.common.Util;
+import com.nathan.exception.BillingSuspendException;
 import com.nathan.exception.PayrollSheetProcessException;
 import com.nathan.exception.RosterProcessException;
 import com.nathan.model.BillingPlan;
@@ -136,54 +137,62 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	}
 
 	public void preProcess(BillingPlan billingPlan, RosterProcesser rosterProcesser) throws Exception {
-		logger.info("制作工资表预处理...");
-		int remainPayCount = billingPlan.getPayCount();
-		this.firstProcessingYear = 0;
-		remainPayCount = preProcessOnBankRoster(billingPlan, rosterProcesser, remainPayCount);
+		try {
+			logger.info("制作工资表预处理...");
+			int remainPayCount = billingPlan.getPayCount();
+			this.firstProcessingYear = 0;
+			remainPayCount = preProcessOnBankRoster(billingPlan, rosterProcesser, remainPayCount);
 
-		if (remainPayCount > 0) {
-			remainPayCount = preProcessOnCashRoster(billingPlan, rosterProcesser, remainPayCount);
-		} else {
-			setNeededToCreateBankPaymentSummarySheet(true);
-			billingPlan.setBankPaymentSummaryRequired(true);
-		}
+			if (remainPayCount > 0) {
+				remainPayCount = preProcessOnCashRoster(billingPlan, rosterProcesser, remainPayCount);
+			} else {
+				setNeededToCreateBankPaymentSummarySheet(true);
+				billingPlan.setBankPaymentSummaryRequired(true);
+			}
 
-		billingPlan.setBillingID(Math.max(billingPlan.getStartPayYear(), this.firstProcessingYear),
-				billingPlan.getPayCount() - remainPayCount);
+			billingPlan.setBillingID(Math.max(billingPlan.getStartPayYear(), this.firstProcessingYear),
+					billingPlan.getPayCount() - remainPayCount);
 
-		if (remainPayCount > 0) {
+			if (remainPayCount > 0) {
 
-			if (isFullUpManualHandling) {
-				InteractionInput input = null;
-				do {
-					input = InteractionHandler.handleFullUpManual(billingPlan.getContractID(), remainPayCount);
-					remainPayCount = handleFullUpManual(billingPlan, rosterProcesser, remainPayCount, input);
-				} while (input != null && remainPayCount > 0);
+				if (isFullUpManualHandling) {
+					InteractionInput input = null;
+					do {
+						input = InteractionHandler.handleFullUpManual(billingPlan.getContractID(), remainPayCount);
+						remainPayCount = handleFullUpManual(billingPlan, rosterProcesser, remainPayCount, input);
+					} while (input != null && remainPayCount > 0);
 
-				if (input == null) {
+					if (input == null) {
+						remainPayCount = handleFullUpAuto(billingPlan, rosterProcesser, remainPayCount);
+					}
+
+				} else {
 					remainPayCount = handleFullUpAuto(billingPlan, rosterProcesser, remainPayCount);
 				}
 
+				if (remainPayCount <= 0 && isBillingManualHandling) {
+					InteractionHandler.handleIsBillingGoOn(billingPlan.getContractID(), "借人已完成");
+				}
+			}
+
+			logger.debug(billingPlan.getSubPlanList());
+			logger.debug("BillingID: " + billingPlan.getBillingID() + ", AlternatedProjectLeaderRemark: "
+					+ billingPlan.getAlternatedProjectLeaderRemark());
+
+			if (remainPayCount > 0) {
+				throw new PayrollSheetProcessException(billingPlan.getContractID() + "花名册人数不足，无法开票！");
 			} else {
-				remainPayCount = handleFullUpAuto(billingPlan, rosterProcesser, remainPayCount);
+				if (isBillingManualHandling) {
+					InteractionHandler.handleIsBillingGoOn(billingPlan.getContractID(), "有足够人数开票");
+				}
 			}
-
-			if (remainPayCount <= 0 && isBillingManualHandling) {
-				InteractionHandler.handleIsBillingGoOn(billingPlan.getContractID(), "借人已完成");
+		} catch (Exception e) {
+			if (e instanceof BillingSuspendException) {
+				throw e;
 			}
-		}
-
-		logger.debug(billingPlan.getSubPlanList());
-		logger.debug("BillingID: " + billingPlan.getBillingID() + ", AlternatedProjectLeaderRemark: "
-				+ billingPlan.getAlternatedProjectLeaderRemark());
-
-		if (remainPayCount > 0) {
-			throw new PayrollSheetProcessException(billingPlan.getContractID() + "花名册人数不足，无法开票！");
-		} else {
-			if (isBillingManualHandling) {
-				InteractionHandler.handleIsBillingGoOn(billingPlan.getContractID(), "有足够人数开票");
-			}
-		}
+			logger.debug(e.getMessage(), e);
+			throw new PayrollSheetProcessException(" (" + billingPlan.getContractID() + ") " + e.getMessage());
+		}		
 	}
 
 	private int preProcessOnBankRoster(BillingPlan billingPlan, RosterProcesser rosterProcesser, int remainPayCount)
@@ -211,8 +220,19 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		int processingYear = billingPlan.getStartPayYear();
 		int endPayYear = billingPlan.getEndPayYear();
 		for (; processingYear <= endPayYear; processingYear++) {
-			remainPayCount = preProcessOnOwnRosterByYear(billingPlan, rosterProcesser, remainPayCount, rosterType,
-					processingYear);
+			try {
+				remainPayCount = preProcessOnOwnRosterByYear(billingPlan, rosterProcesser, remainPayCount, rosterType,
+						processingYear);
+			} catch (RosterProcessException re) {
+				logger.error(re.getMessage());
+				if (processingYear < endPayYear) {
+					logger.info("继续尝试寻找" + (processingYear + 1) + "年度花名册"); 
+					continue;
+				} else {
+					throw re;
+				}		
+			}
+			
 			if (remainPayCount <= 0) {
 				break;
 			}
@@ -442,7 +462,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		int payYear = billingPlan.getPayYearFromBillingID();
 		int payCount = billingPlan.getPayCountFromBillingID();
 		int releasedPayCount = 0;
-		while (releasedPayCount < payCount && payYear <= billingPlan.getEndPayYear()) {
+		while (releasedPayCount < payCount && payYear <= Util.getCurrentYear()) {
 			releasedPayCount += deleteOldRosterCursors(company, projectLeader, contractID, payYear, rosterProcesser);
 			deleteOldPayrollSheet(company, projectLeader, contractID, payYear);
 			payYear++;
@@ -578,23 +598,30 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		logger.info(Constant.LINE1);
 		logger.info("制作工资表 - 开票计划序号：" + billingPlan.getOrderNumber() + " 合同号：" + billingPlan.getContractID());
 
-		AttendanceSheetProcesser attendanceSheetProcesser = null;
-		if (billingPlan.isAttendanceSheetRequired()) {
-			attendanceSheetProcesser = new AttendanceSheetProcesser(billingPlan, isVirtualBilling());
-		}
+		try {
+			AttendanceSheetProcesser attendanceSheetProcesser = null;
+			if (billingPlan.isAttendanceSheetRequired()) {
+				attendanceSheetProcesser = new AttendanceSheetProcesser(billingPlan, isVirtualBilling());
+			}
 
-		for (SubBillingPlan subPlan : billingPlan.getSubPlanList()) {
-			subPlan.setProjectUnit(billingPlan.getProjectUnit());
-			subPlan.setProjectLeader(billingPlan.getProjectLeader());
-			subPlan.setContractID(billingPlan.getContractID());
-			subPlan.setTotalPay(billingPlan.getTotalPay());
-			subPlan.setPayCount(billingPlan.getPayCount());
-			subPlan.setProcessingProjectLeader(subPlan.getSubPlanProjectLeader());
-			subPlan.setAttendanceSheetFlag(billingPlan.getAttendanceSheetFlag());
-			subPlan.setAdministrationExpenses(billingPlan.getAdministrationExpenses());
+			for (SubBillingPlan subPlan : billingPlan.getSubPlanList()) {
+				subPlan.setProjectUnit(billingPlan.getProjectUnit());
+				subPlan.setProjectLeader(billingPlan.getProjectLeader());
+				subPlan.setContractID(billingPlan.getContractID());
+				subPlan.setTotalPay(billingPlan.getTotalPay());
+				subPlan.setPayCount(billingPlan.getPayCount());
+				subPlan.setProcessingProjectLeader(subPlan.getSubPlanProjectLeader());
+				subPlan.setAttendanceSheetFlag(billingPlan.getAttendanceSheetFlag());
+				subPlan.setAdministrationExpenses(billingPlan.getAdministrationExpenses());
 
-			buildPayrollSheetForSubBillingPlan(subPlan, rosterProcesser, attendanceSheetProcesser);
-		}
+				buildPayrollSheetForSubBillingPlan(subPlan, rosterProcesser, attendanceSheetProcesser);
+			}
+		} catch (Exception e) {
+			if (e instanceof BillingSuspendException) {
+				throw e;
+			}
+			throw new PayrollSheetProcessException(" (" + billingPlan.getContractID() + ") " + e.getMessage());
+		}		
 
 	}
 
