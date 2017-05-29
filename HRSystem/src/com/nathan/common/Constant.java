@@ -13,7 +13,7 @@ public class Constant {
 	public static final double MIN_PERFORMANCE_PAY = 50;
 	public static final String WORK_PATH = "F:/work/project/德盛人力项目管理系统/";
 	public static final String BACKUP_PATH = WORK_PATH + "backup/";
-	public static final String CONFIG_PATH = WORK_PATH + "conf/";
+	public static final String CONFIG_PATH = WORK_PATH + "config/";
 	public static final String CONFIG_FILE = CONFIG_PATH + "setting.properties";
 	public static final String BILLING_INPUT_FILE = WORK_PATH + "in/开票计划.xls";
 	public static final String BILLING_OUTPUT_FILE = WORK_PATH + "out/开票计划.xls";

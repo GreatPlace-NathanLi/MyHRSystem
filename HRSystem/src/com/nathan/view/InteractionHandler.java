@@ -189,6 +189,23 @@ public class InteractionHandler {
 	}
 
 	public static String handleProjectLeaderInput(String company) {
+		String projectLeader = null;
+		if(Constant.YES.equals(Constant.propUtil.getStringEnEmpty("system.allowInputProjectLearderByText"))) {
+			Object[] options = {"输入领队", "选择领队", "取消" };
+			int feedback = JOptionPane.showOptionDialog(frame, "汇总单位：" + company, title, JOptionPane.DEFAULT_OPTION,
+					JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+			
+			if (feedback == -1 || feedback == 2) {
+				return null;
+			}
+			if (feedback == 0) {
+				projectLeader = (String) JOptionPane.showInputDialog(frame, "请输入汇总领队：", title,
+						JOptionPane.INFORMATION_MESSAGE, null, null, null);
+				logger.debug("输入的汇总领队：" + projectLeader);
+				return projectLeader;
+			}		
+		}
+		
 		String path = Constant.propUtil.getStringEnEmpty("user.花名册根目录");
 		path = path + company;
 		Object[] projectLeaderList = Util.parseProjectLeadersFromRosterFileUnderPath(path).toArray();
@@ -196,8 +213,8 @@ public class InteractionHandler {
 			handleWarning(path + " 目录下没有任何领队花名册！");
 			return null;
 		}
-		String projectLeader = (String) handleListSelection(projectLeaderList, "请指定汇总领队：", title);
-		logger.debug("汇总领队： " + projectLeader);
+		projectLeader = (String) handleListSelection(projectLeaderList, "请指定汇总领队：", title);
+		logger.debug("指定的汇总领队： " + projectLeader);
 		return projectLeader;
 	}
 
