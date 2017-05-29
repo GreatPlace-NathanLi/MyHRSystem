@@ -36,11 +36,14 @@ public class RosterProcesser extends AbstractExcelOperater {
 	private ProjectMemberRoster roster;
 	
 	private Map<String, ProjectMemberRoster> rosterCache;
+	
+	private boolean isNeededToRemoveRosterStatistics = false;
 
 	private boolean isReconstruction;
 
 	public RosterProcesser() {
 		rosterCache = new ConcurrentHashMap<String, ProjectMemberRoster>();
+		isNeededToRemoveRosterStatistics = Constant.YES.equals(Constant.propUtil.getStringEnEmpty(Constant.CONFIG_SYSTEM_isNeededToRemoveRosterStatisticsRow));
 	}
 
 	public ProjectMemberRoster getRosterFormCache(String projectLeaderAndYear) {
@@ -54,7 +57,7 @@ public class RosterProcesser extends AbstractExcelOperater {
 	public ProjectMemberRoster processRoster(String company, String projectLeader, int year, boolean isReconstruction) throws RosterProcessException {
 		String key = company + projectLeader + year;
 		roster = getRosterFormCache(key);
-		if (roster == null || isReconstruction) {
+		if (roster == null || isReconstruction || isNeededToRemoveRosterStatistics) {
 			String rosterPath = getRosterFilePath(company, projectLeader, year);
 			if (!isRosterExists(company, projectLeader, year)) {
 				logger.info(projectLeader + "没有" + year + "年度花名册，尝试寻找公用花名册");
@@ -350,6 +353,7 @@ public class RosterProcesser extends AbstractExcelOperater {
 	
 	private void removeRosterStatistics(WritableSheet sheet) {
 		if (isRosterWithStatistics(sheet)) {
+			logger.debug("Remove RosterStatistics");
 			sheet.removeRow(0);
 		}
 	}
@@ -383,12 +387,20 @@ public class RosterProcesser extends AbstractExcelOperater {
 		if (bankSheet != null) {
 			writeRosterStatistics(bankSheet, roster.getBankRoster());
 			writeCursor(bankSheet, roster.getBankRoster());
+			removeRosterStatisticsIfNeeded(bankSheet);
 		}
 
 		WritableSheet cashSheet = wwb.getSheet(Constant.ROSTER_CASH);
 		if (cashSheet != null) {
 			writeRosterStatistics(cashSheet, roster);
 			writeCursor(cashSheet, roster);
+			removeRosterStatisticsIfNeeded(cashSheet);
+		}
+	}
+	
+	private void removeRosterStatisticsIfNeeded(WritableSheet sheet) {
+		if (isNeededToRemoveRosterStatistics) {
+			removeRosterStatistics(sheet);
 		}
 	}
 

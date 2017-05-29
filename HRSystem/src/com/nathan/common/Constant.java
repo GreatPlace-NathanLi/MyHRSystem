@@ -99,5 +99,6 @@ public class Constant {
 	public static final String CONFIG_SYSTEM_checkExpireDate = "system.checkExpireDate";
 	public static final String CONFIG_SYSTEM_expireDate = "system.expireDate";
 	public static final String CONFIG_SYSTEM_NAME = "system.name";
+	public static final String CONFIG_SYSTEM_isNeededToRemoveRosterStatisticsRow = "system.isNeededToRemoveRosterStatisticsRow";
 	
 }
