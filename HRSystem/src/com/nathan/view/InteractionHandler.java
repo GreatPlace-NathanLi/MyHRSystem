@@ -461,12 +461,12 @@ public class InteractionHandler {
 	}
 
 	public static void handleExpireChecking(int expireDate) {
-//		if (!Util.needToCheckExpireDate()) {
-//			return;
-//		}
+		if (!Util.needToCheckExpireDate()) {
+			return;
+		}
 		if (Util.getCurrentDateInt() > expireDate) {
-			logger.error("Exception: 本测试版本已经超过有效期，请使用最新版本。");
-			JOptionPane.showMessageDialog(frame, "本测试版本已经超过有效期，请使用最新版本。", "警告", JOptionPane.ERROR_MESSAGE);
+			logger.error("本版本已经超过有效期，请使用最新版本。");
+			JOptionPane.showMessageDialog(frame, "本版本已经超过有效期，请使用最新版本。", "警告", JOptionPane.ERROR_MESSAGE);
 			exit();
 		}
 	}

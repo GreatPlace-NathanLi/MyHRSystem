@@ -170,13 +170,13 @@ public class BillingSystem extends JFrame {
     public static void main(String[] args) {
         
         try {   	
-			InteractionHandler.handleExpireChecking(expireDate);
-
 			String configFile = InteractionHandler.handleConfigPath();
 			Constant.propUtil = new PropertiesUtils(configFile);
 			Constant.propUtil.init();
 			
 			PropertyConfigurator.configure(Constant.propUtil.getStringEnEmpty("system.log4j.conf"));
+			
+			InteractionHandler.handleExpireChecking(expireDate);
 
 			systemName = Constant.propUtil.getStringValue(Constant.CONFIG_SYSTEM_NAME, Constant.SYSTEM_NAME);
 			new BillingSystem();

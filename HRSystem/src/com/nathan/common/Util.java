@@ -454,7 +454,7 @@ public class Util {
 	}
 	
 	public static boolean needToCheckExpireDate() {
-		return Constant.YES.equals(Constant.propUtil.getStringValue(Constant.CONFIG_SYSTEM_checkExpireDate, Constant.NO));
+		return Constant.YES.equals(Constant.propUtil.getStringValue(Constant.CONFIG_SYSTEM_checkExpireDate, Constant.YES));
 	}
 
 	public static void main(String[] args) throws Exception {

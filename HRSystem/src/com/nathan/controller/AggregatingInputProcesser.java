@@ -99,8 +99,7 @@ public class AggregatingInputProcesser extends BillingPlanProcesser {
 				billingPlanBook.addBillingPlan(billingPLan);
 			}
 		} catch (Exception e) {
-			logger.error("第几行出错： " + count);
-			e.printStackTrace();
+			logger.error("第几行出错： " + count, e);
 		}
 
 	}

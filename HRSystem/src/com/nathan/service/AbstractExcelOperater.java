@@ -310,6 +310,10 @@ public abstract class AbstractExcelOperater implements ExcelOperater {
 
 	private String getBackupFilePath(String filePath) {
 		String backupPath = Constant.propUtil.getStringEnEmpty("user.文件备份路径");
+		if (!Util.isFileExists(backupPath)) {
+			new File(backupPath).mkdirs();
+		}
+		
 		return backupPath + Util.getFileNameFromPath(filePath) + ".backup." + System.currentTimeMillis();
 	}
 
