@@ -590,10 +590,20 @@ public class BillingPlan {
 			this.endPayYear = endPayTimeInInteger/100;
 			this.endPayMonth = endPayTimeInInteger%100;
 
+			if (Constant.YES.equals(Constant.propUtil.getStringValue(Constant.CONFIG_SYSTEM_isEndPayMonthLaterThanCurrentMonth, Constant.NO))) {
+				return;
+			}
+				
 			int currentYearMonth = Util.getCurrentYearMonthInt();
 			int currentYear = Util.getCurrentYear();
 			int currentMonth = Util.getCurrentMonth();
 			if (endPayTimeInInteger >= currentYearMonth) {
+				if (Constant.FLAG_YES.equals(Constant.propUtil.getStringEnEmpty(Constant.CONFIG_人员当月是否可用))) {
+					this.endPayTimeInInteger = currentYearMonth;
+					this.endPayYear = currentYear;
+					this.endPayMonth = currentMonth;
+					return;
+				}
 				if (currentMonth == 1) {
 					this.endPayYear = currentYear - 1;
 					this.endPayMonth = 12;
@@ -602,8 +612,7 @@ public class BillingPlan {
 					this.endPayTimeInInteger = currentYearMonth - 1;
 					this.endPayYear = currentYear;
 					this.endPayMonth = currentMonth - 1;
-				}
-				
+				}				
 			}
 		}
 	}

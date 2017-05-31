@@ -464,9 +464,11 @@ public class InteractionHandler {
 		if (!Util.needToCheckExpireDate()) {
 			return;
 		}
+		expireDate = Constant.propUtil.getIntValue(Constant.CONFIG_SYSTEM_expireDate, expireDate);
 		if (Util.getCurrentDateInt() > expireDate) {
-			logger.error("本版本已经超过有效期，请使用最新版本。");
-			JOptionPane.showMessageDialog(frame, "本版本已经超过有效期，请使用最新版本。", "警告", JOptionPane.ERROR_MESSAGE);
+			String message = "本版本已经超过有效期(" + expireDate + ")，请使用最新版本。";
+			logger.error(message);
+			JOptionPane.showMessageDialog(frame, message, "警告", JOptionPane.ERROR_MESSAGE);
 			exit();
 		}
 	}

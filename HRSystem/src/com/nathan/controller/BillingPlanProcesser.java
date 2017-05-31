@@ -173,14 +173,14 @@ public class BillingPlanProcesser extends AbstractExcelOperater {
 			billingPLan.setAttendanceSheetFlag(isEmpty(cell) ? null : cell.getContents());
 
 			validateBillingPlan(billingPLan);
-
+//			logger.debug(billingPLan);
 			billingPlanBook.addBillingPlan(billingPLan);
 		}
 
 	}
 
 	private String getDefaultStartAndEndPayTime() {
-		return Constant.propUtil.getStringEnEmpty("user.默认工资表指定月份");
+		return Constant.propUtil.getStringEnEmpty(Constant.CONFIG_默认工资表指定月份);
 	}
 
 	private boolean isToDoBillingPlan(Sheet readsheet, int rowIndex) {

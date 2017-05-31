@@ -85,6 +85,7 @@ public class Constant {
 	public static final String CONFIG_汇总表标题显示时间单位 = "user.汇总表标题显示时间单位";
 	public static final String CONFIG_汇总表不显示制表人单位 = "user.汇总表不显示制表人单位";
 	public static final String CONFIG_默认工资表指定月份 = "user.默认工资表指定月份";
+	public static final String CONFIG_人员当月是否可用 = "user.人员当月是否可用";
 	public static final String CONFIG_默认开票处理方式 = "user.默认开票处理方式";
 	public static final String CONFIG_默认借人处理方式 = "user.默认借人处理方式";
 	public static final String CONFIG_开票计划路径 = "user.开票计划路径";
@@ -100,5 +101,6 @@ public class Constant {
 	public static final String CONFIG_SYSTEM_expireDate = "system.expireDate";
 	public static final String CONFIG_SYSTEM_NAME = "system.name";
 	public static final String CONFIG_SYSTEM_isNeededToRemoveRosterStatisticsRow = "system.isNeededToRemoveRosterStatisticsRow";
+	public static final String CONFIG_SYSTEM_isEndPayMonthLaterThanCurrentMonth = "system.isEndPayMonthLaterThanCurrentMonth";
 	
 }
