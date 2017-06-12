@@ -456,14 +456,55 @@ public class Util {
 	public static boolean needToCheckExpireDate() {
 		return Constant.YES.equals(Constant.propUtil.getStringValue(Constant.CONFIG_SYSTEM_checkExpireDate, Constant.YES));
 	}
+	
+	public static void openTxtFile(String filePath) {
+		try {
+			Runtime.getRuntime().exec("cmd.exe  /c notepad " + filePath);
+		} catch (Exception e) {
+			logger.error("无法打开文件：" + filePath, e);
+		}
+	}
+	
+	public static String getCurrentAppPath() {
+		File directory = new File("");// 设定为当前文件夹
+		String path = null;
+		try {
+			path = directory.getAbsolutePath();
+		} catch (Exception e) {
+		}
+//		logger.debug("Current application path: " + path);
+		return path;
+	}
+	
+	public static String getSettingPropertiesPath() {
+		String path = getCurrentAppPath() + "/config/setting.properties";
+		if (!Util.isFileExists(path)) {
+			path = Constant.SETTING_CONFIG_FILE;
+		} 
+		logger.debug("Setting配置文件: " + path);
+		return path;
+	}
+	
+	public static String getLog4jPropertiesPath() {
+//		String path = Constant.propUtil.getStringEnEmpty(Constant.CONFIG_SYSTEM_log4jconfigPath);
+		String path = Constant.EMPTY_STRING;
+		if (Constant.EMPTY_STRING.equals(path)) {
+			path = getCurrentAppPath() + "/config/log4j.properties";
+			if (!Util.isFileExists(path)) {
+				path = Constant.LOG4J_CONFIG_FILE;
+			}
+		}
+		logger.debug("Log4j配置文件: " + path);
+		return path;
+	}
 
 	public static void main(String[] args) throws Exception {
-		Util.parseProjectLeadersFromFolderUnderPath("F:/work/project/德盛人力项目管理系统/in/花名册/湛江雷能");
-		Util.parseProjectLeadersFromRosterFileUnderPath("F:/work/project/德盛人力项目管理系统/in/花名册/雷能电力");
-
-		ArrayList<String> filesList = new ArrayList<String>();
-		Util.listAllFileUnderPath(Constant.ROSTER_ROOT_PATH, filesList, null);
-		System.out.println(filesList);
+//		Util.parseProjectLeadersFromFolderUnderPath("F:/work/project/德盛人力项目管理系统/in/花名册/湛江雷能");
+//		Util.parseProjectLeadersFromRosterFileUnderPath("F:/work/project/德盛人力项目管理系统/in/花名册/雷能电力");
+//
+//		ArrayList<String> filesList = new ArrayList<String>();
+//		Util.listAllFileUnderPath(Constant.ROSTER_ROOT_PATH, filesList, null);
+//		System.out.println(filesList);
 //
 //		System.out.println(getYearFromFilePath("F:/work/project/德盛人力项目管理系统/in/花名册/湛江雷能/2017/张一2017年花名册.xls"));
 //
@@ -507,18 +548,21 @@ public class Util {
 //		logger.debug(1666.00 /130);
 //		logger.debug(((int)74.00/10 /7 + 1)*10);
 		
-		String s = "F:/work/project/德盛人力项目管理系统/in/花名册/雷能电力";
-		String s1 = s + "*" + "陈志强";
-		String sa[] = s1.split("\\*");
-		logger.debug(sa[0]);
-		logger.debug(sa[1]);
-		
-		ArrayList<String> filesList1 = new ArrayList<String>();
-		Util.listAllFileUnderPath(s1, filesList1, null);
-		for (String file : filesList1) {
-			logger.debug(file);
-		}
+//		String s = "F:/work/project/德盛人力项目管理系统/in/花名册/雷能电力";
+//		String s1 = s + "*" + "陈志强";
+//		String sa[] = s1.split("\\*");
+//		logger.debug(sa[0]);
+//		logger.debug(sa[1]);
+//		
+//		ArrayList<String> filesList1 = new ArrayList<String>();
+//		Util.listAllFileUnderPath(s1, filesList1, null);
+//		for (String file : filesList1) {
+//			logger.debug(file);
+//		}
 
+		Util.openTxtFile(Constant.SETTING_CONFIG_FILE);
+		logger.debug(Util.getSettingPropertiesPath());
+		logger.debug(Util.getLog4jPropertiesPath());
 	}
 	
 	

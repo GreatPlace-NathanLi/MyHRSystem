@@ -16,6 +16,7 @@ import com.nathan.model.ServiceFeeSummary;
 import com.nathan.model.ServiceFeeSummarySheet;
 import com.nathan.model.SheetType;
 import com.nathan.service.AbstractExcelOperater;
+import com.nathan.view.InteractionHandler;
 
 import jxl.CellType;
 import jxl.FormulaCell;
@@ -66,6 +67,7 @@ public class ServiceFeeSummarySheetProcesser extends AbstractExcelOperater imple
 		String templatePath = buildServiceFeeSummaryTemplatePath();
 		String filePath = buildServiceFeeSummaryFilePath(summarySheet, false);
 		writeServiceFeeSummarySheet(templatePath, filePath, summarySheet);
+		InteractionHandler.handleProgressCompleted("文件已保存：" + filePath);
 		logger.info("保存劳务费汇总表：" + filePath);
 	}
 	

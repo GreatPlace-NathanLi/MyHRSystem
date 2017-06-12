@@ -30,14 +30,17 @@ public class JacobPrinter implements ExcelPrinter {
 	}
 	
 	public void init() {
-		logger.info("初始化打印机通道");
+		logger.info("开始初始化打印机通道");
 		ComThread.Release();
+		logger.debug("Release");
 		ComThread.InitSTA();
+		logger.debug("InitSTA");
 		workbooks = null;  //工作簿对象  
 	    workbook = null; //具体工作簿  
 	    sheets = null;// 获得sheets集合对象  
 	    sheet = null;// 当前sheet  
 		xl = new ActiveXComponent("Excel.Application");
+		logger.info("初始化打印机通道完毕");
 	}
 	
 	public void close() {

@@ -451,10 +451,12 @@ public class InteractionHandler {
 //		if (!Util.needToCheckConfigPath()) {
 //			return Constant.CONFIG_FILE;
 //		}
-		String path = (String) JOptionPane.showInputDialog(frame, "请输入系统配置文件路径", BillingSystem.systemName,
-				JOptionPane.INFORMATION_MESSAGE, null, null, Constant.CONFIG_FILE);
-		logger.debug("系统配置文件: " + path);
+		String path = Util.getSettingPropertiesPath();
+//		String path = (String) JOptionPane.showInputDialog(frame, "请输入系统配置文件路径", BillingSystem.systemName,
+//				JOptionPane.INFORMATION_MESSAGE, null, null, Util.getSettingPropertiesPath());
+//		logger.debug("系统配置文件: " + path);
 		if (path == null) {
+			logger.error("找不到配置文件!");
 			exit();
 		}
 		return path;

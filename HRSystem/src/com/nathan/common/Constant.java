@@ -14,7 +14,8 @@ public class Constant {
 	public static final String WORK_PATH = "F:/work/project/德盛人力项目管理系统/";
 	public static final String BACKUP_PATH = WORK_PATH + "backup/";
 	public static final String CONFIG_PATH = WORK_PATH + "config/";
-	public static final String CONFIG_FILE = CONFIG_PATH + "setting.properties";
+	public static final String SETTING_CONFIG_FILE = CONFIG_PATH + "setting.properties";
+	public static final String LOG4J_CONFIG_FILE = CONFIG_PATH + "log4j.properties";
 	public static final String BILLING_INPUT_FILE = WORK_PATH + "in/开票计划.xls";
 	public static final String BILLING_OUTPUT_FILE = WORK_PATH + "out/开票计划.xls";
 	public static final String ROSTER_ROOT_PATH = WORK_PATH + "in/花名册/";
@@ -57,7 +58,7 @@ public class Constant {
 	public static final String ROSTER_CASH = "花名册";
 	public static final String ROSTER_BANK = "网银";
 	
-	public static PropertiesUtils propUtil = new PropertiesUtils(CONFIG_FILE);
+	public static PropertiesUtils propUtil = new PropertiesUtils(SETTING_CONFIG_FILE);
 	
 	public static final long ONE_DAY = 86400000L;
 	
@@ -80,6 +81,7 @@ public class Constant {
 	
 	public static final String CONFIG_工资表_制表人 = "user.工资表.制表人";
 	public static final String CONFIG_工资表_复核人 = "user.工资表.复核人";
+	public static final String CONFIG_工资表_制表人是否显示为领队 = "user.工资表.制表人是否显示为领队";
 	public static final String CONFIG_付款单据_制表人 = "user.付款手续单据.制表人";
 	public static final String CONFIG_汇总表加班费显示为其他单位 = "user.汇总表加班费显示为其他单位";
 	public static final String CONFIG_汇总表标题显示时间单位 = "user.汇总表标题显示时间单位";
@@ -96,6 +98,7 @@ public class Constant {
 	public static final String CONFIG_汇总_借款情况_模板路径 = "user.汇总.借款情况.模板路径";
 	public static final String CONFIG_汇总_借款情况_输出路径 = "user.汇总.借款情况.输出路径";
 	
+	public static final String CONFIG_SYSTEM_log4jconfigPath = "system.log4j.configPath";
 	public static final String CONFIG_SYSTEM_checkConfigPath = "system.checkConfigPath";
 	public static final String CONFIG_SYSTEM_checkExpireDate = "system.checkExpireDate";
 	public static final String CONFIG_SYSTEM_expireDate = "system.expireDate";

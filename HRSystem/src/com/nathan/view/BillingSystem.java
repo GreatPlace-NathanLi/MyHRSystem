@@ -22,6 +22,7 @@ import org.apache.log4j.PropertyConfigurator;
 
 import com.nathan.common.Constant;
 import com.nathan.common.PropertiesUtils;
+import com.nathan.common.Util;
 
 @SuppressWarnings("serial")
 public class BillingSystem extends JFrame {
@@ -48,13 +49,14 @@ public class BillingSystem extends JFrame {
                     new MakePayrollAction(),
                     new SummarizeAction(),
                     new RosterValidationAction(),
+                    new ConfigurationAction()
 //                  new ExitAction() 
                     };
 
         Container container = this.getContentPane(); // 得到容器
         container.add(createJToolBar(actions), BorderLayout.NORTH); // 增加工具栏
 
-        setSize(270, 68); // 设置窗口尺寸
+        setSize(305, 68); // 设置窗口尺寸
         setVisible(true); // 设置窗口可视
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // 关闭窗口时退出程序
@@ -103,6 +105,16 @@ public class BillingSystem extends JFrame {
 
         public void actionPerformed(ActionEvent e) {
         	JOptionPane.showMessageDialog(BillingSystem.this, "查询功能正在完善中，请期待"); 
+        }
+    }
+    
+    class ConfigurationAction extends AbstractAction {
+        public ConfigurationAction() {
+            super("配置");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+        	Util.openTxtFile(Util.getSettingPropertiesPath()); 
         }
     }
     
@@ -169,12 +181,12 @@ public class BillingSystem extends JFrame {
 
     public static void main(String[] args) {
         
-        try {   	
+        try {
+        	PropertyConfigurator.configure(Util.getLog4jPropertiesPath());
+        	
 			String configFile = InteractionHandler.handleConfigPath();
 			Constant.propUtil = new PropertiesUtils(configFile);
-			Constant.propUtil.init();
-			
-			PropertyConfigurator.configure(Constant.propUtil.getStringEnEmpty("system.log4j.conf"));
+			Constant.propUtil.init();		
 			
 			InteractionHandler.handleExpireChecking(expireDate);
 

@@ -95,7 +95,7 @@ public class BillingPlanProcesser extends AbstractExcelOperater {
 			billingPLan.setRowIndex(rowIndex);
 
 			Cell cell = readsheet.getCell(0, rowIndex);
-			billingPLan.setOrderNumber(Integer.valueOf(cell.getContents()));
+			billingPLan.setOrderNumber(getIntValue(cell));
 
 			cell = readsheet.getCell(1, rowIndex);
 			billingPLan.setProjectUnit(cell.getContents());
@@ -178,6 +178,32 @@ public class BillingPlanProcesser extends AbstractExcelOperater {
 		}
 
 	}
+	
+	protected double getDoubleValue(Cell cell) {
+		if (CellType.NUMBER.equals(cell.getType())) {
+			return ((NumberCell) cell).getValue();
+		} else {
+			try {
+				return Double.valueOf(cell.getContents());
+			} catch (Exception e) {
+				// logger.error(e.getMessage());
+				// logger.error("第几行出错： " + count);
+			}
+		}
+		return 0.0;
+	}
+
+	protected int getIntValue(Cell cell) {
+
+		try {
+			return Integer.valueOf(cell.getContents().trim());
+		} catch (Exception e) {
+			// logger.error(e.getMessage());
+			// logger.error("第几行出错： " + count);
+		}
+
+		return 0;
+	}
 
 	private String getDefaultStartAndEndPayTime() {
 		return Constant.propUtil.getStringEnEmpty(Constant.CONFIG_默认工资表指定月份);
@@ -199,7 +225,16 @@ public class BillingPlanProcesser extends AbstractExcelOperater {
 		if (!bypassBillingOutputCalculation) {
 			return;
 		}
-		if (billingPlan.getProjectLeader() == null || "".equals(billingPlan.getProjectLeader())) {
+		if (billingPlan.getOrderNumber() <= 0) {
+			throw new BillingPlanProcessException("开票计划中序号必须大于0! 计划序号：" + billingPlan.getOrderNumber());
+		}
+		if (billingPlan.getProjectUnit() == null || Constant.EMPTY_STRING.equals(billingPlan.getProjectUnit())) {
+			throw new BillingPlanProcessException("开票计划中派遣单位不能为空! 计划序号：" + billingPlan.getOrderNumber());
+		}
+		if (billingPlan.getContractID() == null || Constant.EMPTY_STRING.equals(billingPlan.getContractID())) {
+			throw new BillingPlanProcessException("开票计划中合同编号不能为空! 计划序号：" + billingPlan.getOrderNumber());
+		}
+		if (billingPlan.getProjectLeader() == null || Constant.EMPTY_STRING.equals(billingPlan.getProjectLeader())) {
 			throw new BillingPlanProcessException("开票计划中领队不能为空! 计划序号：" + billingPlan.getOrderNumber());
 		}
 		if (billingPlan.getInvoiceAmount() <= 0) {

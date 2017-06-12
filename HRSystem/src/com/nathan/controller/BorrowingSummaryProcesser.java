@@ -14,6 +14,7 @@ import com.nathan.model.BorrowingSummary;
 import com.nathan.model.BorrowingSummarySheet;
 import com.nathan.model.SheetType;
 import com.nathan.service.AbstractExcelOperater;
+import com.nathan.view.InteractionHandler;
 
 import jxl.CellType;
 import jxl.FormulaCell;
@@ -62,6 +63,7 @@ public class BorrowingSummaryProcesser extends AbstractExcelOperater implements 
 		String templatePath = buildBorrowingSummaryTemplatePath();
 		String filePath = buildBorrowingSummaryFilePath(summarySheet, false);
 		writeBorrowingSummarySheet(templatePath, filePath, summarySheet);
+		InteractionHandler.handleProgressCompleted("文件已保存：" + filePath);
 		logger.info("保存劳务费汇总表：" + filePath);
 	}
 	

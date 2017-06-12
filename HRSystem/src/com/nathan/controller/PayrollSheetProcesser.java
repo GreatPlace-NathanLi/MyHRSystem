@@ -53,6 +53,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	private boolean isBillingManualHandling = true;
 	private boolean isFullUpManualHandling = true;
 	private boolean isNeededToCreateAlternatedPorjectLeaderPayrollSheet = false;
+	private boolean isShowTabulatorAsProjectLeader = false;
 
 	private int firstProcessingYear = 0;
 	
@@ -65,6 +66,8 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	public PayrollSheetProcesser() {
 		this.isNeededToCreateAlternatedPorjectLeaderPayrollSheet = Constant.YES.equals(Constant.propUtil
 				.getStringValue("system.isNeededToCreateAlternatedPorjectLeaderPayrollSheet", Constant.NO));
+		this.isShowTabulatorAsProjectLeader = Constant.FLAG_YES
+				.equals(Constant.propUtil.getStringValue(Constant.CONFIG_工资表_制表人是否显示为领队, Constant.FLAG_NO));
 		this.lowDailyPay = Util.getLowDailyPay();
 		this.highDailyPay = Util.getHighDailyPay();
 		this.overtimePayStep = Util.getOvertimePayStep();
@@ -981,7 +984,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		String sheetName = payrollSheet.getPayrollSheetName();
 		wwb.copySheet(0, sheetName, sheetIndex);
 		WritableSheet newSheet = wwb.getSheet(sheetIndex);
-		writeSheet(newSheet, payrollSheet);
+		writeSheet(newSheet, payrollSheet, isShowTabulatorAsProjectLeader);
 		writeFooter(newSheet, Util.getFooterContents(payrollSheet.getProjectUnit(), payrollSheet.getContractID(),
 				SheetType.工资表.getSheetID()));
 
@@ -991,7 +994,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 	private void writeSummarySheet(WritableWorkbook wwb, PayrollSheet payrollSheet, int sheetIndex) throws Exception {
 		String sheetName = payrollSheet.getSummarySheetName();
 		wwb.copySheet(1, sheetName, sheetIndex);
-		writeSheet(wwb.getSheet(sheetIndex), payrollSheet);
+		writeSheet(wwb.getSheet(sheetIndex), payrollSheet, false);
 
 		if (needToDeleteSummarySheetTabulator(payrollSheet.getProjectUnit())) {
 			WritableSheet newSheet = wwb.getSheet(sheetIndex);
@@ -1001,8 +1004,8 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		PrintingProcesser.createExcelPrintTask(SheetType.汇总表, filePath, sheetIndex, sheetName);
 	}
 
-	private void writeSheet(WritableSheet newSheet, PayrollSheet payrollSheet) throws Exception {
-		updatePayrollInfo(payrollSheet, newSheet);
+	private void writeSheet(WritableSheet newSheet, PayrollSheet payrollSheet, boolean isShowTabulatorAsProjectLeader) throws Exception {
+		updatePayrollInfo(payrollSheet, newSheet, isShowTabulatorAsProjectLeader);
 		fillPayrollSheet(payrollSheet, newSheet);
 	}
 
@@ -1015,7 +1018,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		return name;
 	}
 
-	private void updatePayrollInfo(PayrollSheet payrollSheet, WritableSheet sheet) {
+	private void updatePayrollInfo(PayrollSheet payrollSheet, WritableSheet sheet, boolean isShowTabulatorAsProjectLeader) {
 
 		WritableCell cell = sheet.getWritableCell(2, 0);
 		String title = ((Label) cell).getString();
@@ -1031,7 +1034,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 		cell = sheet.getWritableCell(0, 6);
 		String tabulator = ((Label) cell).getString();
-		tabulator = tabulator.replace("NNN", Util.getTabulator());
+		tabulator = tabulator.replace("NNN", isShowTabulatorAsProjectLeader ? payrollSheet.getLeader() : Util.getTabulator());
 		((Label) cell).setString(tabulator);
 
 		cell = sheet.getWritableCell(15, 6);

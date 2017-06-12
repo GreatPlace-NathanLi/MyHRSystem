@@ -104,32 +104,6 @@ public class AggregatingInputProcesser extends BillingPlanProcesser {
 
 	}
 
-	private double getDoubleValue(Cell cell) {
-		if (CellType.NUMBER.equals(cell.getType())) {
-			return ((NumberCell) cell).getValue();
-		} else {
-			try {
-				return Double.valueOf(cell.getContents());
-			} catch (Exception e) {
-				// logger.error(e.getMessage());
-				// logger.error("第几行出错： " + count);
-			}
-		}
-		return 0.0;
-	}
-
-	private int getIntValue(Cell cell) {
-
-		try {
-			return Integer.valueOf(cell.getContents().trim());
-		} catch (Exception e) {
-			// logger.error(e.getMessage());
-			// logger.error("第几行出错： " + count);
-		}
-
-		return 0;
-	}
-
 	private boolean isToDoBillingPlan(Sheet readsheet, int rowIndex) {
 		Cell cell = readsheet.getCell(0, rowIndex);
 		boolean isToDo = !isEmpty(cell) && CellType.NUMBER.equals(cell.getType());
