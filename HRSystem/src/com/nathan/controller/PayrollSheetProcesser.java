@@ -487,6 +487,8 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 			deleteOldRosterCursors(company, projectLeader, contractID, payYear, rosterProcesser);
 			if (isNeededToCreateAlternatedPorjectLeaderPayrollSheet) {
 				deleteOldPayrollSheet(company, projectLeader, contractID, payYear);
+			} else {
+				deleteOldPayrollSheet(company, billingPlan.getProjectLeader(), contractID, payYear);
 			}
 		}
 	}
@@ -982,6 +984,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 	private void writePayrollSheet(WritableWorkbook wwb, PayrollSheet payrollSheet, int sheetIndex) throws Exception {
 		String sheetName = payrollSheet.getPayrollSheetName();
+		sheetName = validateSheetName(wwb, sheetName);
 		wwb.copySheet(0, sheetName, sheetIndex);
 		WritableSheet newSheet = wwb.getSheet(sheetIndex);
 		writeSheet(newSheet, payrollSheet, isShowTabulatorAsProjectLeader);
@@ -993,6 +996,7 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 
 	private void writeSummarySheet(WritableWorkbook wwb, PayrollSheet payrollSheet, int sheetIndex) throws Exception {
 		String sheetName = payrollSheet.getSummarySheetName();
+		sheetName = validateSheetName(wwb, sheetName);
 		wwb.copySheet(1, sheetName, sheetIndex);
 		writeSheet(wwb.getSheet(sheetIndex), payrollSheet, false);
 
@@ -1002,6 +1006,14 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		}
 
 		PrintingProcesser.createExcelPrintTask(SheetType.»ã×Ü±í, filePath, sheetIndex, sheetName);
+	}
+	
+	private String validateSheetName(WritableWorkbook wwb, String sheetName) {
+		Sheet sheet = wwb.getSheet(sheetName);
+		if (sheet != null) {
+			sheetName = sheetName + Constant.DELIMITER1 + 1;
+		}
+		return sheetName;
 	}
 
 	private void writeSheet(WritableSheet newSheet, PayrollSheet payrollSheet, boolean isShowTabulatorAsProjectLeader) throws Exception {

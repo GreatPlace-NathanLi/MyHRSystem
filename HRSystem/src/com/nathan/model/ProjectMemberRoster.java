@@ -66,6 +66,9 @@ public class ProjectMemberRoster extends AbstractBook {
 	}
 	
 	public int getAvailablePayCount(int startPayMonth, int endPayMonth) {
+		if (statistics == null) {
+			return 0;
+		}
 		return statistics.getAvailableCount(startPayMonth, endPayMonth);
 	}
 	
