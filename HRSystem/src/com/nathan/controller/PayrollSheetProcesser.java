@@ -377,8 +377,16 @@ public class PayrollSheetProcesser extends AbstractExcelOperater {
 		int endPayMonth = processingYear < endPayYear ? 12 : billingPlan.getEndPayMonth();
 
 		ArrayList<ProjectLeader> availableProjectLeaderList = new ArrayList<ProjectLeader>();
+		
+		List<String> alternatedProjectLeaderList = getAlternatedProjectLeaderList(company, processingYear);
+		
+		if (!alternatedProjectLeaderList.contains(processingProjectLeader)
+				&& company.equals(billingPlan.getProjectUnit())) {
+			logger.debug("Replace " + processingProjectLeader + " with " + company);
+			processingProjectLeader = company;
+		}
 
-		for (String alternatedProjectLeader : getAlternatedProjectLeaderList(company, processingYear)) {
+		for (String alternatedProjectLeader : alternatedProjectLeaderList) {
 			if (processingProjectLeader.equals(alternatedProjectLeader)) {
 				logger.debug("Bypass " + alternatedProjectLeader);
 				continue;
