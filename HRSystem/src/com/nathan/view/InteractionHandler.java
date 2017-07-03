@@ -1,5 +1,7 @@
 package com.nathan.view;
 
+import java.util.Arrays;
+
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
@@ -143,7 +145,13 @@ public class InteractionHandler {
 		} else if (AggregatingType.借款情况.equals(aggregatingType)) {
 			title = "借款情况汇总";
 		}
-		String company = handleCompanyInput();
+		
+		String company = null;
+		if (AggregatingType.劳务费.equals(aggregatingType)) {
+			company = handleCompanyInputWithAllCompany();
+		} else {
+			company = handleCompanyInput();
+		}
 		if (company == null) {
 			return null;
 		}
@@ -183,6 +191,21 @@ public class InteractionHandler {
 			handleWarning(path + " 目录下没有任何单位！");
 			return null;
 		}
+		String company = (String) handleListSelection(companyArray, "请指定汇总单位：", title);
+		logger.debug("汇总单位： " + company);
+		return company;
+	}
+	
+	public static String handleCompanyInputWithAllCompany() {
+		String path = Constant.propUtil.getStringEnEmpty("user.花名册根目录");
+		Object[] companyArray = Util.getFoldersUnderPath(path).toArray();
+		if (companyArray == null || companyArray.length == 0) {
+			handleWarning(path + " 目录下没有任何单位！");
+			return null;
+		}
+		int length = companyArray.length;
+		companyArray = Arrays.copyOf(companyArray, length + 1);
+		companyArray[length] = Constant.ALL_COMPANY;
 		String company = (String) handleListSelection(companyArray, "请指定汇总单位：", title);
 		logger.debug("汇总单位： " + company);
 		return company;

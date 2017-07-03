@@ -47,7 +47,7 @@ public class ServiceFeeSummarySheetProcesser extends AbstractExcelOperater imple
 		for (BillingPlan billingPlan : resultList) {
 			ServiceFeeSummary summary = getServiceFeeSummaryFromCache(billingPlan);
 			summary.setYearMonthInt(billingPlan.getBillingYearMonthInt());
-			summary.add(billingPlan.getInvoiceAmount(), billingPlan.getTotalPay(),
+			summary.add(billingPlan.getProjectUnit(), billingPlan.getInvoiceAmount(), billingPlan.getTotalPay(),
 					billingPlan.getTotalAdministrationExpenses());
 		}
 		serviceFeeSummarySheet = new ServiceFeeSummarySheet();
@@ -55,7 +55,6 @@ public class ServiceFeeSummarySheetProcesser extends AbstractExcelOperater imple
 		serviceFeeSummarySheet.setStartYearMonthInt(criteria.getStartYearMonthInt());
 		serviceFeeSummarySheet.setEndYearMonthInt(criteria.getEndYearMonthInt());
 		for (ServiceFeeSummary summary : companyYearMonthSummaryMap.values()) {
-			summary.setCompany(criteria.getCompany());
 			serviceFeeSummarySheet.addServiceFeeSummary(summary);
 		}
 		logger.debug(serviceFeeSummarySheet.getServiceFeeSummaryList());

@@ -14,7 +14,8 @@ public class ServiceFeeSummary {
 	
 	private String remark;
 	
-	public void add(double invoiceAmount, double totalPay, double totalAdministrationExpenses) {
+	public void add(String company, double invoiceAmount, double totalPay, double totalAdministrationExpenses) {
+		this.company = company;
 		this.invoiceAmount += invoiceAmount;
 		this.totalPay += totalPay;
 		this.totalAdministrationExpenses += totalAdministrationExpenses;

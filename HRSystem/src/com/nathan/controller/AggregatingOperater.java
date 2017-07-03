@@ -93,21 +93,26 @@ public class AggregatingOperater {
 		});
 	}
 	
-	private void filter(List<BillingPlan> resultList, BillingPlan billingPlan, AggregatingCriteria criteria, AggregatingType aggregatingType) {
-//		logger.debug(billingPlan);
-		if (criteria.getCompany() != null && !criteria.getCompany().equals(billingPlan.getProjectUnit())) {
+	private void filter(List<BillingPlan> resultList, BillingPlan billingPlan, AggregatingCriteria criteria,
+			AggregatingType aggregatingType) {
+		// logger.debug(billingPlan);
+		if (criteria.getCompany() != null && !criteria.getCompany().equals(billingPlan.getProjectUnit())
+				&& !Constant.ALL_COMPANY.equals(criteria.getCompany())) {
 			return;
 		}
-		
-		if (criteria.getProjectLeader() != null && !criteria.getProjectLeader().equals(billingPlan.getProjectLeader())) {
+
+		if (criteria.getProjectLeader() != null
+				&& !criteria.getProjectLeader().equals(billingPlan.getProjectLeader())) {
 			return;
 		}
-		
-		if (criteria.getStartYearMonthInt() != 0 && criteria.getStartYearMonthInt() > billingPlan.getBillingYearMonthInt()) {
+
+		if (criteria.getStartYearMonthInt() != 0
+				&& criteria.getStartYearMonthInt() > billingPlan.getBillingYearMonthInt()) {
 			return;
 		}
-		
-		if (criteria.getEndYearMonthInt() != 0 && criteria.getEndYearMonthInt() < billingPlan.getBillingYearMonthInt()) {
+
+		if (criteria.getEndYearMonthInt() != 0
+				&& criteria.getEndYearMonthInt() < billingPlan.getBillingYearMonthInt()) {
 			return;
 		}
 		
