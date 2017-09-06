@@ -235,7 +235,7 @@ public class RosterProcesser extends AbstractExcelOperater {
 			parseCursors(readsheet, isRosterWithStatistics, roster);
 		}
 
-//		logger.debug(roster);
+		logger.debug(roster.getStatistics());
 	}
 
 	private void parseCursors(Sheet readsheet, boolean isRosterWithStatistics, ProjectMemberRoster roster) {
@@ -283,6 +283,7 @@ public class RosterProcesser extends AbstractExcelOperater {
 		RosterStatistics statistics = new RosterStatistics();
 		for (int c = 5; c < rsColumns; c += 2) {
 			int currentAvailableIndex = 2;
+			boolean isThereAnyAvailable = false;
 			int availableCount = 0;
 			int payMonth = Integer.valueOf(readsheet.getCell(c + 1, 0).getContents().split("ÔÂ")[0]);
 			for (int r = 1; r < rsRows; r++) {
@@ -290,16 +291,19 @@ public class RosterProcesser extends AbstractExcelOperater {
 				if (Constant.EMPTY_STRING.equals(cell.getContents())) {
 					if (isAvailable(r, payYear, payMonth, true, roster)) {
 						availableCount++;
+						isThereAnyAvailable = true;
 						if (currentAvailableIndex == -1) {
 							currentAvailableIndex = r + 1;
 						}
+					} else if(!isThereAnyAvailable) {
+						currentAvailableIndex++;
 					}
 				} else {
 					currentAvailableIndex = -1;
 					availableCount = 0;
 				}
 			}
-			if (currentAvailableIndex > rsRows) {
+			if (currentAvailableIndex > rsRows || availableCount==0) {
 				currentAvailableIndex = -1;
 			}
 

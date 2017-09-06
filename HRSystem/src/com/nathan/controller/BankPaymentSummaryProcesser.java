@@ -1,7 +1,6 @@
 package com.nathan.controller;
 
 import java.util.List;
-import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
@@ -52,6 +51,7 @@ public class BankPaymentSummaryProcesser extends AbstractExcelOperater {
 			for (PayrollSheet payrollSheet : payrollSheetList) {
 				List<Payroll> payrollList = payrollSheet.getPayrollList();
 				for (Payroll payroll : payrollList) {
+					bankPaymentSummary.addName(payroll.getName());
 					bankPaymentSummary.putPayment(payroll.getName(), payroll.getActualPay());
 				}
 			}
@@ -89,12 +89,12 @@ public class BankPaymentSummaryProcesser extends AbstractExcelOperater {
 		wwb.copySheet(0, bankPaymentSummary.getContractID(), 1);
 		WritableSheet sheet = wwb.getSheet(1);
 
+		fillBankPayments(sheet);
+		
 		int rsColumns = sheet.getColumns();
 		int rsRows = sheet.getRows();
 
 		logger.debug("总列数：" + rsColumns + ", 总行数：" + rsRows);
-
-		fillBankPayments(sheet);
 
 		wwb.removeSheet(0);
 	}
@@ -110,17 +110,18 @@ public class BankPaymentSummaryProcesser extends AbstractExcelOperater {
 		int srcRowIndex = 3;
 
 		int index = 1;
-		for (Entry<String, Double> entry : bankPaymentSummary.getNamePayMap().entrySet()) {
+//		for (Entry<String, Double> entry : bankPaymentSummary.getNamePayMap().entrySet()) {
+		for (String name : bankPaymentSummary.getNameList()) {			
 			int currentRowIndex = index + srcRowIndex;
 			sheet.insertRow(currentRowIndex);
 
 			Number order = new Number(0, currentRowIndex, index, sheet.getCell(0, srcRowIndex).getCellFormat());
 			sheet.addCell(order);
 
-			Label name = new Label(1, currentRowIndex, entry.getKey(), sheet.getCell(1, srcRowIndex).getCellFormat());
-			sheet.addCell(name);
+			Label nameLable = new Label(1, currentRowIndex, name, sheet.getCell(1, srcRowIndex).getCellFormat());
+			sheet.addCell(nameLable);
 
-			Number totalPay = new Number(2, currentRowIndex, entry.getValue(),
+			Number totalPay = new Number(2, currentRowIndex, bankPaymentSummary.getPayment(name),
 					sheet.getCell(2, srcRowIndex).getCellFormat());
 			sheet.addCell(totalPay);
 

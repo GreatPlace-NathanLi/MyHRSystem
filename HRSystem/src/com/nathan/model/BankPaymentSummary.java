@@ -1,5 +1,7 @@
 package com.nathan.model;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -9,10 +11,28 @@ public class BankPaymentSummary {
 	
 	private Map<String, Double> namePayMap;
 	
+	private HashSet<String> nameSet;
+	
+	private ArrayList<String> nameList;
+	
 	public BankPaymentSummary() {
 		namePayMap = new ConcurrentHashMap<String, Double>();
+		nameSet = new HashSet<String>();
+		nameList = new ArrayList<String>();
 	}
 
+	public void addName(String name) {
+		if (nameSet.contains(name)) {
+			return;
+		}
+		nameSet.add(name);
+		nameList.add(name);
+	}
+	
+	public ArrayList<String> getNameList() {
+		return this.nameList;
+	}
+	
 	/**
 	 * @return the contractID
 	 */
